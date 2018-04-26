@@ -1,0 +1,27 @@
+{
+"type": "FeatureCollection",
+"name": "HurricanePath",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Date": "Oct\/05", "Time": "0300 GMT", "Lat": 20.4, "Lon": -74.4, "Wind__mph_": 135.0, "Pressure": 950.0, "Storm_Type": "Category 4 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -74.4, 20.4 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/05", "Time": "0900 GMT", "Lat": 21.1, "Lon": -74.6, "Wind__mph_": 125.0, "Pressure": 962.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -74.6, 21.1 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/05", "Time": "1500 GMT", "Lat": 21.8, "Lon": -75.2, "Wind__mph_": 120.0, "Pressure": 962.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -75.2, 21.8 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/05", "Time": "2100 GMT", "Lat": 22.5, "Lon": -75.7, "Wind__mph_": 120.0, "Pressure": 963.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -75.7, 22.5 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/06", "Time": "0300 GMT", "Lat": 23.4, "Lon": -76.4, "Wind__mph_": 115.0, "Pressure": 961.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -76.4, 23.4 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/06", "Time": "0900 GMT", "Lat": 24.2, "Lon": -77.1, "Wind__mph_": 125.0, "Pressure": 944.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -77.1, 24.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/06", "Time": "1500 GMT", "Lat": 25.1, "Lon": -77.8, "Wind__mph_": 140.0, "Pressure": 940.0, "Storm_Type": "Category 4 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -77.8, 25.1 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/06", "Time": "2100 GMT", "Lat": 26.2, "Lon": -78.6, "Wind__mph_": 140.0, "Pressure": 938.0, "Storm_Type": "Category 4 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -78.6, 26.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/07", "Time": "0300 GMT", "Lat": 27.1, "Lon": -79.2, "Wind__mph_": 135.0, "Pressure": 939.0, "Storm_Type": "Category 4 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -79.2, 27.1 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/07", "Time": "0900 GMT", "Lat": 28.2, "Lon": -80.0, "Wind__mph_": 120.0, "Pressure": 938.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -80.0, 28.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/07", "Time": "1500 GMT", "Lat": 29.4, "Lon": -80.5, "Wind__mph_": 120.0, "Pressure": 947.0, "Storm_Type": "Category 3 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -80.5, 29.4 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/07", "Time": "2100 GMT", "Lat": 30.2, "Lon": -80.7, "Wind__mph_": 110.0, "Pressure": 948.0, "Storm_Type": "Category 2 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -80.7, 30.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/08", "Time": "0300 GMT", "Lat": 31.2, "Lon": -80.5, "Wind__mph_": 105.0, "Pressure": 948.0, "Storm_Type": "Category 2 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -80.5, 31.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/08", "Time": "0900 GMT", "Lat": 32.0, "Lon": -80.5, "Wind__mph_": 105.0, "Pressure": 955.0, "Storm_Type": "Category 2 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -80.5, 32.0 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/08", "Time": "1500 GMT", "Lat": 33.0, "Lon": -79.4, "Wind__mph_": 75.0, "Pressure": 967.0, "Storm_Type": "Category 1 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -79.4, 33.0 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/08", "Time": "2100 GMT", "Lat": 33.8, "Lon": -78.2, "Wind__mph_": 75.0, "Pressure": 977.0, "Storm_Type": "Category 1 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -78.2, 33.8 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/09", "Time": "0300 GMT", "Lat": 34.1, "Lon": -76.5, "Wind__mph_": 75.0, "Pressure": 982.0, "Storm_Type": "Category 1 Hurricane" }, "geometry": { "type": "Point", "coordinates": [ -76.5, 34.1 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/09", "Time": "0900 GMT", "Lat": 34.9, "Lon": -75.1, "Wind__mph_": 75.0, "Pressure": 983.0, "Storm_Type": "Post-Tropical Cyclone" }, "geometry": { "type": "Point", "coordinates": [ -75.1, 34.9 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/09", "Time": "1500 GMT", "Lat": 35.2, "Lon": -73.7, "Wind__mph_": 75.0, "Pressure": 984.0, "Storm_Type": "Post-Tropical Cyclone" }, "geometry": { "type": "Point", "coordinates": [ -73.7, 35.2 ] } },
+{ "type": "Feature", "properties": { "Date": "Oct\/09", "Time": "2100 GMT", "Lat": 35.4, "Lon": -72.0, "Wind__mph_": 75.0, "Pressure": 988.0, "Storm_Type": "Post-Tropical Cyclone" }, "geometry": { "type": "Point", "coordinates": [ -72.0, 35.4 ] } }
+]
+}
