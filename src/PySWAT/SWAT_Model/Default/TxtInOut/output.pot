@@ -1,0 +1,2 @@
+ SUB HRU   DAY  YEAR     VOL-I      SA-I     SPILLO    POTSEP    POTEV    SOL_SW    TILE-O     VOL-F     SA-F
+                          (mm)      (ha)      (mm)      (mm)      (mm)      (mm)      (mm)      (mm)      (ha)

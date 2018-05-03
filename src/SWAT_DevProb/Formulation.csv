@@ -1,0 +1,25 @@
+Decision Variables
+Variable, Type of Variable, Min Value, Max. Value, Conditions
+IRRSC,N,0
+IRRSC,N,1
+IRRSC,N,3
+DIVMAX,N,0
+DIVMAX,N,0.0008
+DIVMAX,N,0.0012
+PND_FR,N,0.25,,
+PND_PSA,N,5,,PND_FR > 0
+PND_PSA,N,10,,PND_FR > 0
+PND_PSA,N,15,,PND_FR > 0
+PND_VOL,N,25,,"PND_FR > 0, PND_PSA == 5"
+PND_VOL,N,50,,"PND_FR > 0, PND_PSA == 10"
+PND_VOL,N,75,,"PND_FR > 0, PND_PSA == 15"
+PND_ESA,N,8,,"PND_FR > 0, PND_PSA == 5"
+PND_ESA,N,16,,"PND_FR > 0, PND_PSA == 10"
+PND_ESA,N,24,,"PND_FR > 0, PND_PSA == 15"
+PND_ENVOL,N,40,,"PND_FR > 0, PND_PSA == 5"
+PND_ENVOL,N,80,,"PND_FR > 0, PND_PSA == 10"
+PND_ENVOL,N,120,,"PND_FR > 0, PND_PSA == 15"
+PND_VOL,N,10,,PND_FR > 0
+PND_K,N,360,,PND_FR > 0
+,,,,,
+Objective Functions,,,,,
