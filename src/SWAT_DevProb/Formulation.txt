@@ -31,7 +31,7 @@ PND_PSA == 15	[13,16,19]
 
 Sub-basins and HRUs
 SUB	HRU 			IDv
-6	[range(59-84)] [range(1-21)]
+6	[range(1-16)] [range(1-21)]
 
 
 Baseline Files

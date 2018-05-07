@@ -5,8 +5,8 @@ def ParseFormulation(self):
     
     with open(self.formulation_path,'rb') as search:
         for line in search:
-            if 'variable' in line.lower() and 'conditions' not in line.lower():
-                    
+            #if 'variable' in line.lower() and 'conditions' not in line.lower():
+            if 'decision variables' in line.lower():       
                 line = search.next()
                 line = search.next()
                 
@@ -16,19 +16,28 @@ def ParseFormulation(self):
                     linesplit = [e for e in linesplit if e != '']
                     temp_dict['VAR'] = linesplit[1]
                     temp_dict['TYPE'] = linesplit[2]
-                    temp_dict['MIN'] = float(linesplit[3])
-                    if linesplit[2] == 'N':
-                        temp_dict['MAX'] = float(linesplit[3])
-                        temp_dict['FILE'] = linesplit[4]
-                    else:
-                        temp_dict['MAX'] = float(linesplit[4])
-                        temp_dict['FILE'] = linesplit[5]
+                    linesplit[3] = linesplit[3][1:len(linesplit[3])-1]
+                    temp_linesplit = re.split(',',linesplit[3])
+                    var_range = []
+                    for temprange in temp_linesplit:
+                        if 'range' in temprange: 
+
+                            temprange = temprange.strip('range(')
+                            temprange = temprange.strip(')')
+                            temprange = re.split('-',temprange)
+                            var_range.extend(range(int(temprange[0]),int(temprange[1])+1))
+                        else:
+                            var_range.extend([float(temprange)])
                     
+                    temp_dict['VALUES'] = var_range
+                    temp_dict['FILE'] = linesplit[4]
                     
                     opt_problem[linesplit[0]] = temp_dict
                     line = search.next()
                     
-            elif 'variable' in line.lower() and 'conditions' in line.lower():
+            #elif 'variable' in line.lower() and 'conditions' in line.lower():
+            elif 'variable conditions' in line.lower():
+            
                 line = search.next()
                 line = search.next()
                 condition_dict = dict()
@@ -53,10 +62,26 @@ def ParseFormulation(self):
                             var_range.extend([int(temprange)])
 
                     temp_dict['CON_VAR'] = linesplit[0]
-                    temp_dict['CON_LOG'] = linesplit[1]
+                    temp_dict['CON_LOGIC'] = linesplit[1]
                     temp_dict['CON_VALUE'] = linesplit[2]
                     temp_dict['VAR_IDS'] = var_range
 
+                        
+                    linesplit[4] = linesplit[4][1:len(linesplit[4])-1]
+                    temp_linesplit = re.split(',',linesplit[4])
+                    var_range = []
+                    for temprange in temp_linesplit:
+                        if 'range' in temprange: 
+
+                            temprange = temprange.strip('range(')
+                            temprange = temprange.strip(')')
+                            temprange = re.split('-',temprange)
+                            var_range.extend(range(int(temprange[0]),int(temprange[1])+1))
+                        elif 'any' in temprange.lower():
+                            var_range.extend([float('nan')])
+                        else:
+                            var_range.extend([int(temprange)])
+                    temp_dict['VAR_VALUES'] = var_range
                     
                     condition_dict[str(cc)] = temp_dict
                     line = search.next()
@@ -90,7 +115,6 @@ def ParseFormulation(self):
                             temp_dict['HRU'] = var_range
                         elif jj == 2:
                             temp_dict['VAR_IDS'] = var_range
-
                     
                     subbasin_dict[str(linesplit[0])] = temp_dict
                     line = search.next()
@@ -108,26 +132,53 @@ def ParseFormulation(self):
                         line = search.next()
                     except:
                         break
-                
+                    
+            elif 'objectives' in line.lower():
+                line = search.next()
+                line = search.next()
+                obj_dict = dict()
+                obj_id = 0
+                while(len(line) > 2):
+                    temp_dict = dict()
+                    linesplit = re.split('\s',line)
+                    linesplit = [e for e in linesplit if e != '']
+                    temp_dict['PAR'] = linesplit[0]
+                    temp_dict['DIR'] = linesplit[1]
+                    temp_dict['LEVEL'] = linesplit[2]
+                    obj_dict[str(obj_id)] = temp_dict
+                    obj_id += 1
+                    try:
+                        line = search.next()
+                    except:
+                        break
+                    
     self.decisions_vars = opt_problem
     self.decisions_conditions = condition_dict
     self.decisions_subbasin = subbasin_dict
     self.baseline_vars = baseline_files
+    self.objectives = obj_dict
     
     return
                    
 class OptFormulation():
     def __init__(self,path):
-        self.formulation_path = path
+        self.formulation_path = path['PROB']
         
         self.decisions_vars = []
         self.decisions_conditions = []
         self.decisions_subbasin = []
         self.baseline_vars =[]
-        
+        self.objectives = []
         ParseFormulation(self) 
         
-#if __name__ == '__main__':
-#    
-#    path = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation.txt'
-#    problem = OptFormulation(path)
+        import Objectives
+        self.objectives_data = []
+        Objectives.Get_Objectives(self,path)
+
+if __name__ == '__main__':
+    
+    path = dict()
+    path['SWAT'] = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default/'
+    path['PROB'] = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation2.txt'
+    
+    problem = OptFormulation(path)

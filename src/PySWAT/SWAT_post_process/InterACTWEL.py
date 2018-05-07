@@ -1,4 +1,4 @@
-import os, re, zipfile, argparse, subprocess, shutil, csv
+import os, re, zipfile, argparse, subprocess, shutil
 import numpy as np
 import Formulation
 
@@ -23,7 +23,7 @@ def GetSummary_Data(self,path):
             line = search.next()
             linesplit = re.split('\s',line)
             linesplit = [e for e in linesplit if e != '']
-            temp_basin_file_id[linesplit[3]] = tfile
+            temp_basin_file_id[linesplit[3]] = tfile[0:len(tfile)-4]
     search.close()
     
     hrus_file_id = dict()
@@ -35,7 +35,7 @@ def GetSummary_Data(self,path):
             linesplit = re.split('\s',line)
             linesplit = [e for e in linesplit if e != '']
             temp_dict['SUB_HRU'] = (int(linesplit[4].strip('Subasin:' )),int(linesplit[5].strip('HRU: ')))
-            temp_dict['HRU_FILE']= tfile
+            temp_dict['HRU_FILE']= tfile[0:len(tfile)-4]
         hrus_file_id[linesplit[3].strip('HRU: ')] = temp_dict
     search.close()
     
@@ -103,7 +103,7 @@ def Get_output_rch(tfile,var):
     varbool = 0
     with open(tfile) as search:
         for line in search:
-            if var in line:    
+            if var.lower() in line.lower():    
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
                 varcol = [i for i in range(0,len(linesplit)) if linesplit[i] == var]
@@ -134,7 +134,7 @@ def Get_output_wtr(tfile,var):
     varbool = 0
     with open(tfile) as search:
         for line in search:
-            if var in line:    
+            if var.lower() in line.lower():    
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
                 varcol = [i for i in range(0,len(linesplit)) if linesplit[i] == var]
@@ -144,10 +144,10 @@ def Get_output_wtr(tfile,var):
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
                 if linesplit[1] not in data_array.keys():
-                    data_array[linesplit[2]] = []
+                    data_array[linesplit[1]] = []
                 try:
                     if int(linesplit[5]) < 13:
-                        data_array[linesplit[2]].append(float(linesplit[varcol[0]]))
+                        data_array[linesplit[1]].append(float(linesplit[varcol[0]]))
                 except:
                     pass;
     
@@ -158,17 +158,51 @@ def Get_output_wtr(tfile,var):
     
     return output_data
 
+
+def Get_output_hru(tfile,var):
+    output_data = dict()
+    data_array = dict()
+    varbool = 0
+    with open(tfile) as search:
+        for line in search:
+            if var.lower() in line.lower():    
+                linesplit = re.split('\s',line)
+                linesplit = [e for e in linesplit if e != '']
+                varcol = [i for i in range(0,len(linesplit)) if linesplit[i] == var] #Another Error in SWATA DA_STmmSURQ_GENmmSURQ_CNTmm
+                varbool = 1
+                
+            elif varbool == 1:
+                linesplit = re.split('\s',line)
+                linesplit = [e for e in linesplit if e != '']
+                if linesplit[1] not in data_array.keys():
+                    data_array[linesplit[1]] = []
+                try:
+                    if int(linesplit[5].split('.')[0]) < 13: # NEEDS to be chceck the HRU file is not displaying a month. ERROR IN SWAT
+                        data_array[linesplit[1]].append(float(linesplit[varcol[0]-1]))
+                except:
+                    pass;
+    
+    if varbool == 0:
+        print('Error: variable ' + var + ' was NOT found in File: ' + tfile)
+    else:               
+        output_data[var] = data_array
+    
+    return output_data
+
+
 #%%
 
 def Get_output_data(tfile,var):
     output_data = dict()
     if tfile[len(tfile)-3:len(tfile)] == 'rch':
         output_data = Get_output_rch(tfile,var)
+        
     elif tfile[len(tfile)-3:len(tfile)] == 'wtr':
         output_data = Get_output_wtr(tfile,var)
-    #elif tfile[len(tfile)-3:len(tfile)] == 'hru':
-    #    output_data = Get_output_wtr(tfile,var)
         
+    elif tfile[len(tfile)-3:len(tfile)] == 'hru':
+        output_data = Get_output_hru(tfile,var)
+
     return output_data
 
 
@@ -182,33 +216,83 @@ def Getbaseline(path,baseline_files):
     return baseline_data
 
 #%%
-def Get_DecisionVars_baseline(path,decision_vars,subbasins):
-    for var_id in decision_vars.keys():
-        var_data = decision_vars[var_id]
-        text_files = []
-        text_files = [f for f in os.listdir(path + 'TxtInOut/') if f.endswith('.'+ var_data['FILE'])]
-        for subs in subbasins.keys():
-            tempsub = subbasins[subs]
-            if var_id in tempsub['VAR_IDS'] and var_data['FILE'] not in ['pnd','rte','sub','swq','wgn','wus']:
+def Get_DecisionVars_baseline(self,path,decision_vars,decision_subbasins):
+    
+    ftype = []
+    varid = []
+    for temp_vars in decision_vars.keys():
+        ftype.append(decision_vars[temp_vars]['FILE'])
+        varid.append(int(temp_vars))
+    varid = np.array(varid)
+    ftype = np.array(ftype)
+    
+#    var_file_dict = dict()
+#    for u_ftype in np.unique(ftype):
+#        var_file_index = [i for i in range(0,len(ftype)) if ftype[i] == u_ftype]
+#        var_file_dict[u_ftype.__str__()] = list(varid[var_file_index])
+    
+    for subs in decision_subbasins.keys():
+        tempsub = decision_subbasins[subs]
+        temp_list_files = []
+        temp_list_files = [ftype[varid==temp_var] for temp_var in tempsub['VAR_IDS']]
+        baseline_inputs_sub = dict()
+        baseline_inputs_hru = dict()
+        
+        for uftype in np.unique(temp_list_files):
+            if uftype not in ['pnd','rte','sub','swq','wgn','wus']:
+                temp_list_varnames = [decision_vars[str(tempsub['VAR_IDS'][temp_var])]['VAR'] 
+                        for temp_var in range(0,len(tempsub['VAR_IDS'])) if temp_list_files[temp_var] == uftype]
+                temp_list_varnames = np.unique(temp_list_varnames)
+                
                 for hrus in tempsub['HRU']:
-                    print(hrus)
+                    hru_index =self.sub_basins[subs]['HRU'][self.sub_basins[subs]['HRU_ID'] == hrus][0]
+                    temp_dict = dict()
+                    with open(path + 'TxtInOut/' + self.hrus_file_id[str(hru_index)]['HRU_FILE'] + '.' + uftype) as search:
+                        for line in search:
+                            findvar = [varname_id for varname_id in range(0,len(temp_list_varnames)) if temp_list_varnames[varname_id] in line]
+                            if findvar:
+                                linesplit = re.split('\s',line)
+                                linesplit = [e for e in linesplit if e != '']
+                                temp_dict[temp_list_varnames[findvar][0]] = float(linesplit[0])
+                            
+                    search.close()
+                    baseline_inputs_hru[hrus] = temp_dict
             else:
-                print(path)
-                #with open(path + 'TxtInOut/' + )
+                temp_list_varnames = [decision_vars[str(tempsub['VAR_IDS'][temp_var])]['VAR'] 
+                        for temp_var in range(0,len(tempsub['VAR_IDS'])) if temp_list_files[temp_var] == uftype]
+                temp_list_varnames = np.unique(temp_list_varnames)
+                temp_dict = dict()
+                with open(path + 'TxtInOut/' + self.sub_basins[str(subs)]['FILE'] + '.' + uftype) as search:
+                    for line in search:
+                        findvar = [varname_id for varname_id in range(0,len(temp_list_varnames)) if temp_list_varnames[varname_id] in line]
+                        if findvar:
+                            linesplit = re.split('\s',line)
+                            linesplit = [e for e in linesplit if e != '']
+                            temp_dict[temp_list_varnames[findvar][0]] = float(linesplit[0])
+                            
+                search.close()
+                baseline_inputs_sub[str(subs)] = temp_dict
+
+
+    self.baseline_inputs_sub = baseline_inputs_sub
+    self.baseline_inputs_hru = baseline_inputs_hru
+    
     return
 
 #%%
 class SWATmodel():
     def __init__(self,path,Problem):
         
-        self.path = path
+        self.path = path['SWAT']
         self.sub_basins =[]
         self.hrus_file_id = []
-        GetSummary_Data(self,path)
-        self.baseline_output = Getbaseline(path,Problem.baseline_vars)
+        GetSummary_Data(self,path['SWAT'])
+        self.baseline_output = Getbaseline(path['SWAT'],Problem.baseline_vars)
         self.baseline_keys = self.baseline_output.keys()
-        self.HRUs = Get_HRUs_ids(path + 'TxtInOut/output.hru','HRU')
-        #self.baseline_inputs = Get_DecisionVars_baseline(path,Problem.decisions_vars,Problem.decisions_subbasin)
+        self.HRUs = Get_HRUs_ids(path['SWAT'] + 'TxtInOut/output.hru','HRU')
+        self.baseline_inputs_sub = []
+        self.baseline_inputs_hru = []
+        Get_DecisionVars_baseline(self,path['SWAT'],Problem.decisions_vars,Problem.decisions_subbasin)
         
 if __name__ == '__main__':
     
@@ -225,8 +309,8 @@ if __name__ == '__main__':
 #    UnzipModel(path,pathuzip)
 
 #%% Setup problem and save baseline data
-    path = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default/'
-    pathform = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation.txt'
+    path['SWAT'] = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default/'
+    path['PROB'] = 'C:/Users/babbarsm/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation2.txt'
     
 #    baseline_files = dict()
 #    baseline_files['output.rch'] = ['FLOW_OUTcms','EVAPcms']
@@ -238,7 +322,8 @@ if __name__ == '__main__':
 #    
 #    sub_basin_decisions = [6]
 #    
-    Problem = Formulation.OptFormulation(pathform)
+    Problem = Formulation.OptFormulation(path)
+    #Problem.Objfuction = 
     SWATmodel = SWATmodel(path,Problem)
     
     
