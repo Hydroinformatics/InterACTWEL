@@ -35,10 +35,10 @@ There is an pyoptsparse wrapper which we modified to add some limitations and ti
 
 References -
 
-1. OpenMDAO Example -
+1. OpenMDAO Example (example1.py) -
 http://openmdao.org/twodocs/versions/latest/examples/simul_deriv_example/simul_deriv_example.html
 
-2. Cone Surface Area Example - 
+2. Cone Surface Area Example (example2.py) - 
 http://www.math.unipd.it/~marcuzzi/DIDATTICA/LEZ&ESE_PIAI_Matematica/3_cones.pdf
 
 3. pyOpt Driver - 

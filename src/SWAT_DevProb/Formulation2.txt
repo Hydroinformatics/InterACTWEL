@@ -23,13 +23,11 @@ Sub-basins and HRUs
 SUB	HRU 			IDv
 6	[range(1-16)] [range(1-9)]
 
-Baseline Files
-File		BVAR 
-output.rch [FLOW_OUTcms,EVAPcms]
-output.wtr [PNDSEPmm]
-
 Opt. Objectives
-Parameter	Objective	Level
-Yield		MAX			REGION
-GW_RCH		MAX			REGION
-Yield		MAX			HRU
+Parameter	Objective	Level					File 			BVAR				
+Yield		MAX			[REGION,SUB,HRU]		output.hru		[YLDt/ha]			
+GW_RCH		MAX			[REGION,SUB]			output.hru		[SA_STmm,DA_STmm]
+
+Opt. Constraints
+File		BVAR 
+output.rch [FLOW_OUTcms]

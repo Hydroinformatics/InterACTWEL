@@ -1,5 +1,8 @@
+# Link to example page: http://openmdao.org/twodocs/versions/latest/examples/simul_deriv_example/simul_deriv_example.html
+
 from openmdao.api import Problem, IndepVarComp, ExecComp, pyOptSparseDriver
 import numpy as np
+import deap_driver_example
 
 # note: size must be an even number
 SIZE = 10
