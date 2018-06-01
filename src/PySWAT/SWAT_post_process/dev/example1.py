@@ -1,8 +1,10 @@
 # Link to example page: http://openmdao.org/twodocs/versions/latest/examples/simul_deriv_example/simul_deriv_example.html
-
 from openmdao.api import Problem, IndepVarComp, ExecComp, pyOptSparseDriver
 import numpy as np
-from deap_driver_examples import DeapGADriver
+#from deap_driver_examples import DeapGADriver
+from deap_driver_examples1 import DeapGADriver
+
+from example1_circle import circle, r_con, theta_con, delta_theta_con, l_conx
 
 # note: size must be an even number
 SIZE = 10
@@ -20,30 +22,33 @@ indeps.add_output('y', np.array([ 0.52577864,  0.30894559,  0.8420792 ,  0.35039
 indeps.add_output('r', 0.7)
 
 # this subsytem is for minimizing the area of the circle with given input values above.
-p.model.add_subsystem('circle', ExecComp('area=pi*r**2'))
+#p.model.add_subsystem('circle', ExecComp('area=pi*r**2'))
+p.model.add_subsystem('circle', circle())
 
 # this subsystem provides the area of circle as the equation of the form with x and y points in space.
-p.model.add_subsystem('r_con', ExecComp('g=x**2 + y**2 - r',
-                                        g=np.ones(SIZE), x=np.ones(SIZE), y=np.ones(SIZE)))
-thetas = np.linspace(0, np.pi/4, SIZE)
+#p.model.add_subsystem('r_con', ExecComp('g=x**2 + y**2 - r', g=np.ones(SIZE), x=np.ones(SIZE), y=np.ones(SIZE)))
+p.model.add_subsystem('r_con', r_con())
+                      
+#thetas = np.linspace(0, np.pi/4, SIZE)
 
-p.model.add_subsystem('theta_con', ExecComp('g=arctan(y/x) - theta',
-                                            g=np.ones(SIZE), x=np.ones(SIZE), y=np.ones(SIZE),
-                                            theta=thetas))
-p.model.add_subsystem('delta_theta_con', ExecComp('g = arctan(y/x)[::2]-arctan(y/x)[1::2]',
-                                                  g=np.ones(SIZE//2), x=np.ones(SIZE),
-                                                  y=np.ones(SIZE)))
+#p.model.add_subsystem('theta_con', ExecComp('g=arctan(y/x) - theta', g=np.ones(SIZE), x=np.ones(SIZE), y=np.ones(SIZE), theta=thetas))
+p.model.add_subsystem('theta_con', theta_con())
 
-p.model.add_subsystem('l_conx', ExecComp('g=x-1', g=np.ones(SIZE), x=np.ones(SIZE)))
-
-p.model.connect('r', ('circle.r', 'r_con.r'))
-p.model.connect('x', ['r_con.x', 'theta_con.x', 'delta_theta_con.x', 'l_conx.x'])
-p.model.connect('y', ['r_con.y', 'theta_con.y', 'delta_theta_con.y'])
+#p.model.add_subsystem('delta_theta_con', ExecComp('g = arctan(y/x)[::2]-arctan(y/x)[1::2]', g=np.ones(SIZE//2), x=np.ones(SIZE), y=np.ones(SIZE)))
+p.model.add_subsystem('delta_theta_con', delta_theta_con())
+                      
+#p.model.add_subsystem('l_conx', ExecComp('g=x-1', g=np.ones(SIZE), x=np.ones(SIZE)))
+p.model.add_subsystem('l_conx', l_conx())
 
 # adding design variables in the model
-p.model.add_design_var('x')
-p.model.add_design_var('y')
-p.model.add_design_var('r', lower=0.1, upper=10)
+p.model.add_design_var('indeps.x')
+p.model.add_design_var('indeps.y')
+p.model.add_design_var('indeps.r', lower=0.1, upper=10)
+
+p.model.connect('indeps.r', ['circle.r', 'r_con.r'])
+p.model.connect('indeps.x', ['r_con.x', 'theta_con.x', 'delta_theta_con.x', 'l_conx.x'])
+p.model.connect('indeps.y', ['r_con.y', 'theta_con.y', 'delta_theta_con.y'])
+
 
 ## nonlinear constraints
 #p.model.add_constraint('r_con.g', equals=0)
@@ -60,7 +65,7 @@ p.model.add_design_var('r', lower=0.1, upper=10)
 #p.model.add_constraint('y', equals=0, indices=[0,], linear=True)
 
 # the objective of the problem we are trying to run.
-p.model.add_objective('circle.area', ref=-1)
+p.model.add_objective('circle.area')
 
 # driver file to perform the optimization on the above problem and model system
 p.driver = DeapGADriver()
@@ -70,6 +75,8 @@ p.driver.options['bits'] = {'indeps.x' : 8}
 p.driver.options['bits'] = {'indeps.y' : 8}
 p.driver.options['bits'] = {'indeps.r' : 8}
 p.driver.options['pop_size'] = 500
+p.driver.options['max_gen'] = 300
+p.driver.options['weights'] = (-1.0,-1.0)
 
 p.setup()
 p.run_driver()

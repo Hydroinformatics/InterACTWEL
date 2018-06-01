@@ -1,12 +1,13 @@
 import numpy as np
 from openmdao.api import Problem, Group, IndepVarComp, DeapGADriver
 from branin_test import Branin, Branin2, pp1
+import itertools
 
 class Var_Dict():
     def __init__(self):
         self.var_names = ['IRR','DIV','PND']
         temp_dict = dict()
-        temp_dict['IRR'] = [(10,10),(10,20),(20,10),(20,20)]
+        temp_dict['IRR'] = [subset for subset in itertools.product((0,1,3), repeat = 2)]
         temp_dict['DIV'] = [(1,1),(0,0),(1,0),(0,1)]
         temp_dict['PND'] = [(5,8),(5,9),(10,5)]
         self.var_dict = temp_dict

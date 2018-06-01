@@ -1,7 +1,21 @@
 import numpy as np
 from openmdao.api import ExplicitComponent
+#import os, zipfile, subprocess, shutil
 
-class Fitness_Function(ExplicitComponent):
+#def UnzipModel(path,pathuzip,tempname):
+#    folderpath = pathuzip+'/Default'
+#    if os.path.isdir(folderpath):
+#        shutil.rmtree(folderpath)
+#    
+#    path = path + '/' + tempname + '/'
+#    with zipfile.ZipFile(path, "r") as z:
+#        z.extractall(pathuzip)
+#        os.chdir(pathuzip+'/Default/TxtInOut/')
+#    exitflag = subprocess.check_call(['swatmodel_64rel.exe'])
+#    print exitflag
+
+
+class Fitness_Function_Region(ExplicitComponent):
     def initialize(self):
         self.metadata.declare('SWAT')
         self.metadata.declare('Problem')
@@ -67,8 +81,38 @@ class Fitness_Function(ExplicitComponent):
                 
         return fitness
     
-    
-    
+
+class Fitness_Function_Sub(ExplicitComponent):
+    def initialize(self):
+        self.metadata.declare('SWAT')
+        self.metadata.declare('Problem')
+        
+    def setup(self):
+#        self.optproblem_data = OptProblem
+#        self.swatmodel = SWATmodel
+        # Inputs
+        self.add_input('x0', 0.0)
+        self.add_input('x1', 0.0)
+        #self.add_input('x2', 0.0)
+        #self.add_input('x3', 0.0)
+        #self.output_data = self.objectives_data
+        # Outputs
+        self.add_output('f', val=0.0)
+        
+        #self.o
+        
+    def compute(self, inputs, outputs):
+        """
+        Define the function f(xI, xC).
+
+        When Branin is used in a mixed integer problem, x0 is integer and x1 is continuous.
+        """
+        x0 = inputs['x0']
+        x1 = inputs['x1']
+        optproblem = self.metadata['Problem']
+        data = optproblem.objectives_data
+        outputs['f'] = x1*x0
+   
     def Get_fitness_sub(problem,SWAT,output_data,input_sub):
         fitness = dict()
         temp_years = np.asarray(SWAT.timeseries['YEAR'])
@@ -105,7 +149,31 @@ class Fitness_Function(ExplicitComponent):
                         fitness[var] = np.dot(temp,(max(np.unique(temp_years))+1)/np.arange(max(np.unique(temp_years))+1,0,-1))
                 
         return fitness
-    
+
+
+class Fitness_Function_HRU(ExplicitComponent):
+    def initialize(self):
+        self.metadata.declare('SWAT')
+        self.metadata.declare('Problem')
+        
+    def setup(self):
+#        self.optproblem_data = OptProblem
+#        self.swatmodel = SWATmodel
+        
+        # Inputs
+        self.add_input('plan', 0.0)
+        #self.output_data = self.objectives_data
+        
+        # Outputs
+        self.add_output('f', val=0.0)
+        
+    def compute(self, inputs, outputs):
+        
+        x0 = inputs['plan']
+        optproblem = self.metadata['Problem']
+        data = optproblem.objectives_data
+        outputs['f'] = x1*x0
+
     
     def Get_fitness_hru(problem,SWAT,output_data,input_hru):
         fitness = dict()
@@ -143,3 +211,6 @@ class Fitness_Function(ExplicitComponent):
                         fitness[var] = np.dot(temp,(max(np.unique(temp_years))+1)/np.arange(max(np.unique(temp_years))+1,0,-1))
                 
         return fitness
+    
+    
+    

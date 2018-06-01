@@ -12,6 +12,7 @@ for x0 = [-5:1:10]
     for x1 = [0:0.001:15]
         fitness(ci,cj) = a*(x1 - b*x0^2 + c*x0 - d)^2 + e*(1-f)*cos(x0) + e;
         fitness2(ci,cj) = x0^2 + c*x0*x1;
+        fitness3(ci,cj) = x0^2 + -x1^.8;
         ci = ci + 1;
     end
     cj = cj + 1;
@@ -39,29 +40,36 @@ minval2 = min(fitness2(:));
 [row2,cols2] = find(fitness2 == minval2);
 [x(row2,cols2),y(row2,cols2)]
 
+surf(x,y,fitness3);shading flat
 surf(x,y,fitness2);shading flat
 xlabel('x0')
 ylabel('x1')
-
-%%
-% subplot(1,2,1)
-% imagesc([-5:1:10],[0:0.001:15],fitness)
-% xlabel('x0')
-% ylabel('x1')
+zlabel('Fitness')
+% %%
+% % subplot(1,2,1)
+% % imagesc([-5:1:10],[0:0.001:15],fitness)
+% % xlabel('x0')
+% % ylabel('x1')
+% % 
+% % subplot(1,2,2)
+% % imagesc([-5:1:10],[0:0.001:15],fitness2)
+% % xlabel('x0')
+% % ylabel('x1')
 % 
-% subplot(1,2,2)
-% imagesc([-5:1:10],[0:0.001:15],fitness2)
+% %%
+% figure(3)
+% subplot(1,2,1);
+% %surf(x,y,fitness);shading flat;
+% imagesc([-5:1:10],[0:0.001:15],fitness);shading flat; bc = colorbar
 % xlabel('x0')
 % ylabel('x1')
-
-%%
-figure(3)
-subplot(1,2,1);
-surf(x,y,fitness);shading flat;
-xlabel('x0')
-ylabel('x1')
-hold on
-subplot(1,2,2);
-surf(x,y,fitness2);shading flat
-xlabel('x0')
-ylabel('x1')
+% zlabel('Fitness')
+% ylabel(bc,'Fitness');
+% hold on
+% subplot(1,2,2);
+% %surf(x,y,fitness2);shading flat
+% imagesc([-5:1:10],[0:0.001:15],fitness2);shading flat; bc2 = colorbar
+% xlabel('x0')
+% ylabel('x1')
+% zlabel('Fitness')
+% ylabel(bc2,'Fitness');

@@ -1,8 +1,5 @@
-# Link to example page: http://openmdao.org/twodocs/versions/latest/examples/simul_deriv_example/simul_deriv_example.html
-
 from openmdao.api import Problem, IndepVarComp, ExecComp, pyOptSparseDriver
 import numpy as np
-import deap_driver_example
 
 # note: size must be an even number
 SIZE = 10
@@ -25,6 +22,7 @@ p.model.add_subsystem('circle', ExecComp('area=pi*r**2'))
 # this subsystem provides the area of circle as the equation of the form with x and y points in space.
 p.model.add_subsystem('r_con', ExecComp('g=x**2 + y**2 - r',
                                         g=np.ones(SIZE), x=np.ones(SIZE), y=np.ones(SIZE)))
+
 thetas = np.linspace(0, np.pi/4, SIZE)
 
 p.model.add_subsystem('theta_con', ExecComp('g=arctan(y/x) - theta',

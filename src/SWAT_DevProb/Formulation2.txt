@@ -6,7 +6,7 @@ IDv	Variable	Type of Variable	Values				File_Ext
 4	PND_PSA		N					[5,10,15]			pnd
 5	PND_VOL		N 					[25,50,75]			pnd
 6	PND_ESA		N					[8,16,24]			pnd
-7	PND_ENVOL	N					[40,80,120]			pnd
+7	PND_EVOL	N					[40,80,120]			pnd
 8	PND_VOL		N					[10]				pnd
 9	PND_K		N					[360]				pnd
 10  IRRNO		N					[6]					mgt				
