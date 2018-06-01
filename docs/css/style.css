@@ -1,0 +1,812 @@
+<<<<<<< HEAD:css/style.css
+@charset "utf-8";
+/*
+Theme Name: Wrestore
+Description: The custom WordPress theme for the Wrestore web site.
+Author: Jon Eynon and Rhaya Shilts
+*/
+
+
+/****** FONTS ********/
+
+/*
+ * Web Fonts from fontspring.com
+ *
+ * All OpenType features and all extended glyphs have been removed.
+ * Fully installable fonts can be purchased at http://www.fontspring.com
+ *
+ * The fonts included in this stylesheet are subject to the End User License you purchased
+ * from Fontspring. The fonts are protected under domestic and international trademark and 
+ * copyright law. You are prohibited from modifying, reverse engineering, duplicating, or
+ * distributing this font software.
+ *
+ * (c) 2010-2012 Fontspring
+ *
+ *
+ *
+ *
+ * The fonts included are copyrighted by the vendor listed below.
+ *
+ * Vendor:      Typedepot
+ * License URL: http://www.fontspring.com/fflicense/typedepot
+ *
+ *
+ */
+
+@font-face {
+    font-family: 'BandaRegularRegular';
+    src: url('fonts/Banda_regular-webfont.eot');
+	src: local("☺"),
+    	url('fonts/Banda_regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/Banda_regular-webfont.woff') format('woff'),
+         url('fonts/Banda_regular-webfont.ttf') format('truetype'),
+         url('fonts/Banda_regular-webfont.svg#BandaRegularRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/****** RESET ********/
+/* http://meyerweb.com/eric/tools/css/reset/ */
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{
+  margin:0;
+  padding:0;
+  border:0;
+  outline:0;
+  font-size:100%;
+  font:inherit;
+  vertical-align:baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{
+  display:block;
+}
+nav ul{
+  list-style:none;
+}
+table{
+  border-collapse:collapse;
+  border-spacing:0;
+}
+
+/****** DEFAULT STYLES *******/
+
+html{
+	margin-bottom: 1px;
+	min-height: 100%;
+	height:100%;
+}
+body {
+	background: #ffffff;
+	color:#4f5050;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size: 62.5%;
+	line-height: 1.5;
+	height:100%;
+	text-align:left;
+}
+html>body {
+	font-size: 14px;
+}
+p, blockquote, footer {
+	font-size: 1em;
+	line-height: 1.5;
+}
+
+
+blockquote{padding:0px 10px 20px 20px; margin:0; font-size:18px; font-family:Arial, Helvetica, sans-serif; color:#999; }
+
+p{margin:0 0 20px 0;}
+
+a{color:#d85a1a;}
+a:hover{color:#2d637f;}
+
+hr {
+	border:none 0;
+	border-top:1px dashed #b4b4b4;
+	height:1px;
+	margin: 0 0 15px 0;
+	clear:both;
+}
+
+h1, h2, h3, h4, h5, h6{ font-family: 'Oswald', Arial, Helvetica, sans-serif; line-height:1.2; font-weight:normal; color:#7d110c;}
+h1{font-size:30px; font-weight:300; /*text-transform:uppercase;*/ color:#2d637f;}
+h2{font-size:20px; font-weight:300; /*text-transform:uppercase;*/ margin-bottom:5px;}
+h3{font-size:20px; margin-bottom:5px; font-weight:300;}
+h4{font-size:16px;}
+h5{font-size:14px;}
+h6{font-size:12px;}
+
+/* Lists */
+#mainCol ol, ul{ margin:0 0 20px 25px;}
+#mainCol li{line-height:1.5; margin:0 0 7px 0; padding:0;}
+
+
+/***** Common Addative Classes *****/
+.left, .float_left  { float:left;}
+.right, .float_right { float:right;}
+.clear { clear:both; display:block; overflow:hidden; visibility:hidden; height:0px;}
+.clear-left, .clear_left { clear:left; } .clear-right, .clear_right { clear:right; }
+.hide  { display:none	} .block {display:block !important;} .inline {display:inline !important;}
+
+.align_right    { text-align:right;	  }
+.align_left     { text-align:left;	  }
+.align_center   { text-align:center;  }
+.align_justify  { text-align:justify; }
+
+strong, b, .bold {font-weight: bold;}
+em, i, .italic {font-style:italic; font-family: Arial, Helvetica, sans-serif;}
+
+sup, sub 		{   line-height:0;}
+
+
+/******* LAYOUT **********/
+
+.wrapper{width:1000px; margin:33px auto 30px auto; position:relative; text-align:left;}
+.row{width:1000px; margin:0 auto; position:relative; text-align:left; clear:both;}
+
+/**** Page Header ****/
+#siteHeader{height:72px;}
+#siteHeader hgroup h1{ float:left; display:inline; width:360px; font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; line-height:1; font-size:50px; font-weight:normal; color:#2f2f2f;}
+#siteHeader hgroup h1 a{text-decoration:none; color:#2f2f2f; line-height:1; padding:0; margin:0;}
+#siteHeader hgroup h2{ float:left; display:inline; width:640px; font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; line-height:16px; text-align:right; font-size:16px; color: rgba(87, 87, 87, 0.81); margin:0; padding:0; text-transform:none;}
+#siteHeader hgroup h3{ float:left; display:inline; width:640px; font-family: 'Oswald', sans-serif; font-size:25px; text-align:right; text-transform:uppercase; font-weight: 300; line-height:30px; margin:0; padding:0; color:#2d637f;}
+
+/**** Content Frame ****/
+#mainFrame{ margin:3px 0 3px 0; float:left; display:inline;}
+.mainFrameRightBck{background:url(images/contentAreaBckgrd.gif) repeat-y;}
+
+/**** Main Content Area ****/
+#mainCol{margin:3px 30px 0 0; padding:5px 0 5px 0; width:682px; float:left; display:inline;}
+#mainCol-full {margin:3px 0 0 0; padding:5px 0 5px 0; float:left; display:inline;}
+section#content h1{color:2d637f; margin-bottom:18px;}
+section#content article{}
+
+/**** Right Side Column ****/
+#sideCol{ float:left; display:inline; margin:0; padding:15px 0 15px 0; width:288px; font-size:12px; background:#E89B34;}
+#sideCol h1, #sideCol h2{color:#6d6e70; font-size:30px; line-height:1; margin-bottom:10px;}
+#sideCol h1, #sideCol p{ margin-left:15px; margin-right:15px;}
+#sideCol .barButton{font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; height:48px; width:288px; display:block; margin-bottom:3px; font-size:18px;}
+#sideCol .barButton a{display:block; width:275px; height:48px; background:#2d637f; color:#fff; text-decoration:none; line-height:48px; padding-left:13px;
+		-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;}
+#sideCol .barButton a:hover{ background:#1d4052;}
+
+/**** Footer ****/
+
+.footer{height: 106px; clear:both; background:#dfe0e1; padding:31px 28px 23px 32px; width:940px;}
+/*** Sponsors Area ***/
+#sponsorsCon{float:left; display:inline; width:650px;}
+#sponsorsCon h1, #sponsorsCon h2{font-size: 18px; color:#2f2f2f; text-transform:uppercase;}
+.sponsorsLogos{float:left; display: inline; margin-right:15px;}
+
+/*** Utility Area ***/
+#utilityCon{float:left; display:inline; width:290px; text-align:right;}
+.contactLinks{font-size:18px; color:#b0b2b4; font-family: 'Oswald', Arial, Helvetica, sans-serif; font-weight:300; text-transform:uppercase; line-height:18px; margin-bottom:12px;}
+.contactLinks a{color:#2d637f; text-decoration:none;}
+.contactLinks a:hover{text-decoration:underline; color:#7d110c;}
+.connectCon{height:30px; width:290px; text-align:right; font-family: 'Oswald', Arial, Helvetica, sans-serif; font-weight:300; text-transform:uppercase; font-size:18px; line-height:30px; color:#b0b2b4;}
+
+/*** Copyright ***/
+.copyright{color:#b0b2b4; font-size:10px; clear:both; margin-top:20px;}
+
+#rss{
+float:right;
+height:30px;
+width:31px;
+display: block;
+text-indent: -9999px;
+text-align:left;
+margin-left:5px;
+}
+
+#rss a{
+height: 30px;
+width: 31px;
+display: block;
+text-indent: -9999px;
+overflow:hidden;
+background-position:bottom;
+background-repeat:no-repeat;
+opacity:0;
+-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;
+}
+
+#rss a:hover{ background-position:bottom; opacity:1;}
+#rss a, #rss{background-image: url(images/rss.gif);}
+
+/***** PAGE LAYOUTS ******/
+/**** Home ****/
+#banner{margin-top:3px;}
+#banner img{display:block;}
+
+/**** Blog ****/
+#content article h1{font-size:24px; font-weight:300; text-transform:uppercase; margin-bottom:5px; color:#7d110c;}
+
+/**** Misc ****/
+.size11 {font-size:11px;}
+.size12 {font-size:12px;}
+
+/* ------------- WORDPRESS STYLES ------------- */
+
+img.alignleft {float:left; display:inline; margin:0 15px 15px 0;}
+img.alignright {float:right; display:inline; margin:0 0 15px 15px;}
+img.alignnone {margin: 0 0 10px 0}
+img.border {border:1px solid #b4b4b4; padding:4px;}
+img.nomargin {margin:0 !important;}
+
+
+img.aligncenter {
+clear: both;
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-bottom: 10px;
+}
+
+.alignright {float: right; margin: 0 0 5px 15px; display:inline;}
+.alignleft {float: left; margin: 0 15px 5px 0; display:inline;}
+
+#postinfo {
+	float:left;
+	display:inline;
+	background:#eeeeee;
+	color:#6e6e6e;
+	font-size:11px;
+	padding:1px 6px 1px 6px;
+	border-top:1px solid #d2d1d1;
+	border-bottom:1px solid #d2d1d1;
+	margin:5px 0 30px 0;
+	width: 100%;
+	clear: both;
+}
+
+#postinfo a {color:#70afc9;}
+
+#postinfo a:hover {
+	color:#377b95;
+	background:#eeeeee;
+}
+
+.wp-caption {
+font-size:11px;
+color:#b4b4b4;
+line-height:140%;
+}
+
+.wp-caption-text, p.wp-caption-text {
+padding:2px 5px 0 5px;
+margin:0;
+text-align:center;
+}
+
+/***** Navigation ******/
+#navRow{ display:block; height:33px; width:1000px; background:#d85a1a; }
+
+/** Main Navigation **/
+#mainNav{ width:847px; float:left; display:inline;}
+
+
+#loginNav{float:left; display:inline; height:33px; background:#7d110c; width:153px; text-align:center; font-size:12px; font-weight:bold; color:#fff; line-height:33px;}
+#loginNav a{color:#ffffff; text-decoration:none; text-transform:uppercase;}
+#loginNav a:hover{text-decoration:underline;}
+
+
+/* = WordPress Menu Styles
+-------------------------------------------------------------- */
+menu, nav {display: block;}
+
+
+
+#access { width:847px; float:left; display:inline;}
+#access ul {
+	list-style: none;
+	margin: 0;
+	padding-left: 0;
+	text-transform:uppercase; 
+	}
+#access li {
+	float: left;
+	position: relative;
+}
+#access a {display:block; height:33px; padding:0 14px 0 14px; font-weight:bold; font-family:Arial, Helvetica, sans-serif; color:#ffffff; font-size:12px; text-decoration:none; background:#d85a1a;
+		-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;
+		line-height:33px;}
+		
+#access ul ul {
+	text-transform:none;
+	display: none;
+	float: left;
+	margin: 0;
+	position: absolute;
+	top: 33px;
+	left: 0;
+	width: 208px;
+	z-index: 99999;
+}
+#access ul ul ul {
+	left: 100%;
+	top: 0;
+}
+#access ul ul a {
+	background: #6f6f6f;
+	border-top: 1px solid #919191;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: normal;
+	height: 16px;
+	line-height: 16px;
+	padding: 6px 14px;
+	width: 188px;
+}
+#access li:hover > a,
+#access ul ul :hover > a,
+#access a:focus {
+	background: #585858; color:#ffffff;
+}
+#access li:hover > a,
+#access a:focus {
+	background: #2d637f; 
+	color: #ffffff;
+}
+#access ul li:hover > ul {
+	display: block;
+}
+#access .current-menu-item > a,
+#access .current-menu-ancestor > a,
+#access .current_page_item > a,
+#access .current_page_ancestor > a {
+	
+}
+/* = Gravity Forms
+-------------------------------------------------------------- */
+body .gform_wrapper .gform_body .gform_fields {
+	border: 1px dotted #333;
+	padding: 20px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .ginput_container {
+	border: 1px dotted #666;
+	padding-top: 30px;
+	padding-right: 20px;
+	padding-bottom: 20px;
+	padding-left: 20px;
+	/*padding-left: 20px;*/
+	margin-top: 0px;
+	/*margin-top: -17px;*/
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .gfield_label {
+	color: #666666;
+	font-size: 14px;
+	font-weight: bold;
+	background-color: #FFF;
+	/*margin-left: 20px;*/
+	padding-top: 2px;
+	padding-right: 5px;
+	padding-bottom: 2px;
+	padding-left: 5px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .gfield_label .gfield_required {color: #7C91A7}
+body .gform_wrapper .gf_progressbar_wrapper .gf_progressbar {
+	border: 1px solid red;
+	display: none;
+=======
+@charset "utf-8";
+/*
+Theme Name: Wrestore
+Description: The custom WordPress theme for the Wrestore web site.
+Author: Jon Eynon and Rhaya Shilts
+*/
+
+
+/****** FONTS ********/
+
+/*
+ * Web Fonts from fontspring.com
+ *
+ * All OpenType features and all extended glyphs have been removed.
+ * Fully installable fonts can be purchased at http://www.fontspring.com
+ *
+ * The fonts included in this stylesheet are subject to the End User License you purchased
+ * from Fontspring. The fonts are protected under domestic and international trademark and 
+ * copyright law. You are prohibited from modifying, reverse engineering, duplicating, or
+ * distributing this font software.
+ *
+ * (c) 2010-2012 Fontspring
+ *
+ *
+ *
+ *
+ * The fonts included are copyrighted by the vendor listed below.
+ *
+ * Vendor:      Typedepot
+ * License URL: http://www.fontspring.com/fflicense/typedepot
+ *
+ *
+ */
+
+@font-face {
+    font-family: 'BandaRegularRegular';
+    src: url('fonts/Banda_regular-webfont.eot');
+	src: local("☺"),
+    	url('fonts/Banda_regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/Banda_regular-webfont.woff') format('woff'),
+         url('fonts/Banda_regular-webfont.ttf') format('truetype'),
+         url('fonts/Banda_regular-webfont.svg#BandaRegularRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/****** RESET ********/
+/* http://meyerweb.com/eric/tools/css/reset/ */
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,figcaption,figure,footer,header,hgroup,menu,nav,section,summary,time,mark,audio,video{
+  margin:0;
+  padding:0;
+  border:0;
+  outline:0;
+  font-size:100%;
+  font:inherit;
+  vertical-align:baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{
+  display:block;
+}
+nav ul{
+  list-style:none;
+}
+table{
+  border-collapse:collapse;
+  border-spacing:0;
+}
+
+/****** DEFAULT STYLES *******/
+
+html{
+	margin-bottom: 1px;
+	min-height: 100%;
+	height:100%;
+}
+body {
+	background: #ffffff;
+	color:#4f5050;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size: 62.5%;
+	line-height: 1.5;
+	height:100%;
+	text-align:left;
+}
+html>body {
+	font-size: 14px;
+}
+p, blockquote, footer {
+	font-size: 1em;
+	line-height: 1.5;
+}
+
+
+blockquote{padding:0px 10px 20px 20px; margin:0; font-size:18px; font-family:Arial, Helvetica, sans-serif; color:#999; }
+
+p{margin:0 0 20px 0;}
+
+a{color:#d85a1a;}
+a:hover{color:#2d637f;}
+
+hr {
+	border:none 0;
+	border-top:1px dashed #b4b4b4;
+	height:1px;
+	margin: 0 0 15px 0;
+	clear:both;
+}
+
+h1, h2, h3, h4, h5, h6{ font-family: 'Oswald', Arial, Helvetica, sans-serif; line-height:1.2; font-weight:normal; color:#7d110c;}
+h1{font-size:30px; font-weight:300; /*text-transform:uppercase;*/ color:#2d637f;}
+h2{font-size:20px; font-weight:300; /*text-transform:uppercase;*/ margin-bottom:5px;}
+h3{font-size:20px; margin-bottom:5px; font-weight:300;}
+h4{font-size:16px;}
+h5{font-size:14px;}
+h6{font-size:12px;}
+
+/* Lists */
+#mainCol ol, ul{ margin:0 0 20px 25px;}
+#mainCol li{line-height:1.5; margin:0 0 7px 0; padding:0;}
+
+
+/***** Common Addative Classes *****/
+.left, .float_left  { float:left;}
+.right, .float_right { float:right;}
+.clear { clear:both; display:block; overflow:hidden; visibility:hidden; height:0px;}
+.clear-left, .clear_left { clear:left; } .clear-right, .clear_right { clear:right; }
+.hide  { display:none	} .block {display:block !important;} .inline {display:inline !important;}
+
+.align_right    { text-align:right;	  }
+.align_left     { text-align:left;	  }
+.align_center   { text-align:center;  }
+.align_justify  { text-align:justify; }
+
+strong, b, .bold {font-weight: bold;}
+em, i, .italic {font-style:italic; font-family: Arial, Helvetica, sans-serif;}
+
+sup, sub 		{   line-height:0;}
+
+
+/******* LAYOUT **********/
+
+.wrapper{width:1000px; margin:33px auto 30px auto; position:relative; text-align:left;}
+.row{width:1000px; margin:0 auto; position:relative; text-align:left; clear:both;}
+
+/**** Page Header ****/
+#siteHeader{height:72px;}
+#siteHeader hgroup h1{ float:left; display:inline; width:360px; font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; line-height:1; font-size:50px; font-weight:normal; color:#2f2f2f;}
+#siteHeader hgroup h1 a{text-decoration:none; color:#2f2f2f; line-height:1; padding:0; margin:0;}
+#siteHeader hgroup h2{ float:left; display:inline; width:640px; font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; line-height:16px; text-align:right; font-size:16px; color: rgba(87, 87, 87, 0.81); margin:0; padding:0; text-transform:none;}
+#siteHeader hgroup h3{ float:left; display:inline; width:640px; font-family: 'Oswald', sans-serif; font-size:25px; text-align:right; text-transform:uppercase; font-weight: 300; line-height:30px; margin:0; padding:0; color:#2d637f;}
+
+/**** Content Frame ****/
+#mainFrame{ margin:3px 0 3px 0; float:left; display:inline;}
+.mainFrameRightBck{background:url(images/contentAreaBckgrd.gif) repeat-y;}
+
+/**** Main Content Area ****/
+#mainCol{margin:3px 30px 0 0; padding:5px 0 5px 0; width:682px; float:left; display:inline;}
+#mainCol-full {margin:3px 0 0 0; padding:5px 0 5px 0; float:left; display:inline;}
+section#content h1{color:2d637f; margin-bottom:18px;}
+section#content article{}
+
+/**** Right Side Column ****/
+#sideCol{ float:left; display:inline; margin:0; padding:15px 0 15px 0; width:288px; font-size:12px; background:#E89B34;}
+#sideCol h1, #sideCol h2{color:#6d6e70; font-size:30px; line-height:1; margin-bottom:10px;}
+#sideCol h1, #sideCol p{ margin-left:15px; margin-right:15px;}
+#sideCol .barButton{font-family:'BandaRegularRegular', Arial, Helvetica, sans-serif; height:48px; width:288px; display:block; margin-bottom:3px; font-size:18px;}
+#sideCol .barButton a{display:block; width:275px; height:48px; background:#2d637f; color:#fff; text-decoration:none; line-height:48px; padding-left:13px;
+		-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;}
+#sideCol .barButton a:hover{ background:#1d4052;}
+
+/**** Footer ****/
+
+.footer{height: 106px; clear:both; background:#dfe0e1; padding:31px 28px 23px 32px; width:940px;}
+/*** Sponsors Area ***/
+#sponsorsCon{float:left; display:inline; width:650px;}
+#sponsorsCon h1, #sponsorsCon h2{font-size: 18px; color:#2f2f2f; text-transform:uppercase;}
+.sponsorsLogos{float:left; display: inline; margin-right:15px;}
+
+/*** Utility Area ***/
+#utilityCon{float:left; display:inline; width:290px; text-align:right;}
+.contactLinks{font-size:18px; color:#b0b2b4; font-family: 'Oswald', Arial, Helvetica, sans-serif; font-weight:300; text-transform:uppercase; line-height:18px; margin-bottom:12px;}
+.contactLinks a{color:#2d637f; text-decoration:none;}
+.contactLinks a:hover{text-decoration:underline; color:#7d110c;}
+.connectCon{height:30px; width:290px; text-align:right; font-family: 'Oswald', Arial, Helvetica, sans-serif; font-weight:300; text-transform:uppercase; font-size:18px; line-height:30px; color:#b0b2b4;}
+
+/*** Copyright ***/
+.copyright{color:#b0b2b4; font-size:10px; clear:both; margin-top:20px;}
+
+#rss{
+float:right;
+height:30px;
+width:31px;
+display: block;
+text-indent: -9999px;
+text-align:left;
+margin-left:5px;
+}
+
+#rss a{
+height: 30px;
+width: 31px;
+display: block;
+text-indent: -9999px;
+overflow:hidden;
+background-position:bottom;
+background-repeat:no-repeat;
+opacity:0;
+-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;
+}
+
+#rss a:hover{ background-position:bottom; opacity:1;}
+#rss a, #rss{background-image: url(images/rss.gif);}
+
+/***** PAGE LAYOUTS ******/
+/**** Home ****/
+#banner{margin-top:3px;}
+#banner img{display:block;}
+
+/**** Blog ****/
+#content article h1{font-size:24px; font-weight:300; text-transform:uppercase; margin-bottom:5px; color:#7d110c;}
+
+/**** Misc ****/
+.size11 {font-size:11px;}
+.size12 {font-size:12px;}
+
+/* ------------- WORDPRESS STYLES ------------- */
+
+img.alignleft {float:left; display:inline; margin:0 15px 15px 0;}
+img.alignright {float:right; display:inline; margin:0 0 15px 15px;}
+img.alignnone {margin: 0 0 10px 0}
+img.border {border:1px solid #b4b4b4; padding:4px;}
+img.nomargin {margin:0 !important;}
+
+
+img.aligncenter {
+clear: both;
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-bottom: 10px;
+}
+
+.alignright {float: right; margin: 0 0 5px 15px; display:inline;}
+.alignleft {float: left; margin: 0 15px 5px 0; display:inline;}
+
+#postinfo {
+	float:left;
+	display:inline;
+	background:#eeeeee;
+	color:#6e6e6e;
+	font-size:11px;
+	padding:1px 6px 1px 6px;
+	border-top:1px solid #d2d1d1;
+	border-bottom:1px solid #d2d1d1;
+	margin:5px 0 30px 0;
+	width: 100%;
+	clear: both;
+}
+
+#postinfo a {color:#70afc9;}
+
+#postinfo a:hover {
+	color:#377b95;
+	background:#eeeeee;
+}
+
+.wp-caption {
+font-size:11px;
+color:#b4b4b4;
+line-height:140%;
+}
+
+.wp-caption-text, p.wp-caption-text {
+padding:2px 5px 0 5px;
+margin:0;
+text-align:center;
+}
+
+/***** Navigation ******/
+#navRow{ display:block; height:33px; width:1000px; background:#d85a1a; }
+
+/** Main Navigation **/
+#mainNav{ width:847px; float:left; display:inline;}
+
+
+#loginNav{float:left; display:inline; height:33px; background:#7d110c; width:153px; text-align:center; font-size:12px; font-weight:bold; color:#fff; line-height:33px;}
+#loginNav a{color:#ffffff; text-decoration:none; text-transform:uppercase;}
+#loginNav a:hover{text-decoration:underline;}
+
+
+/* = WordPress Menu Styles
+-------------------------------------------------------------- */
+menu, nav {display: block;}
+
+
+
+#access { width:847px; float:left; display:inline;}
+#access ul {
+	list-style: none;
+	margin: 0;
+	padding-left: 0;
+	text-transform:uppercase; 
+	}
+#access li {
+	float: left;
+	position: relative;
+}
+#access a {display:block; height:33px; padding:0 14px 0 14px; font-weight:bold; font-family:Arial, Helvetica, sans-serif; color:#ffffff; font-size:12px; text-decoration:none; background:#d85a1a;
+		-webkit-transition: all .4s ease;
+		-moz-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        -o-transition: all .4s ease;
+		transition: all .4s ease;
+		line-height:33px;}
+		
+#access ul ul {
+	text-transform:none;
+	display: none;
+	float: left;
+	margin: 0;
+	position: absolute;
+	top: 33px;
+	left: 0;
+	width: 208px;
+	z-index: 99999;
+}
+#access ul ul ul {
+	left: 100%;
+	top: 0;
+}
+#access ul ul a {
+	background: #6f6f6f;
+	border-top: 1px solid #919191;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: normal;
+	height: 16px;
+	line-height: 16px;
+	padding: 6px 14px;
+	width: 188px;
+}
+#access li:hover > a,
+#access ul ul :hover > a,
+#access a:focus {
+	background: #585858; color:#ffffff;
+}
+#access li:hover > a,
+#access a:focus {
+	background: #2d637f; 
+	color: #ffffff;
+}
+#access ul li:hover > ul {
+	display: block;
+}
+#access .current-menu-item > a,
+#access .current-menu-ancestor > a,
+#access .current_page_item > a,
+#access .current_page_ancestor > a {
+	
+}
+/* = Gravity Forms
+-------------------------------------------------------------- */
+body .gform_wrapper .gform_body .gform_fields {
+	border: 1px dotted #333;
+	padding: 20px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .ginput_container {
+	border: 1px dotted #666;
+	padding-top: 30px;
+	padding-right: 20px;
+	padding-bottom: 20px;
+	padding-left: 20px;
+	/*padding-left: 20px;*/
+	margin-top: 0px;
+	/*margin-top: -17px;*/
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .gfield_label {
+	color: #666666;
+	font-size: 14px;
+	font-weight: bold;
+	background-color: #FFF;
+	/*margin-left: 20px;*/
+	padding-top: 2px;
+	padding-right: 5px;
+	padding-bottom: 2px;
+	padding-left: 5px;
+}
+body .gform_wrapper .gform_body .gform_fields .gfield .gfield_label .gfield_required {color: #7C91A7}
+body .gform_wrapper .gf_progressbar_wrapper .gf_progressbar {
+	border: 1px solid red;
+	display: none;
+>>>>>>> master:docs/css/style.css
+}
