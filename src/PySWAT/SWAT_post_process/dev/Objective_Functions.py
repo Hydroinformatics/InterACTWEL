@@ -96,6 +96,7 @@ def Get_output_std(tfile,var):
             elif varbool == 1:
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
+                print linesplit
                 if linesplit[1] not in data_array.keys():
                     data_array[linesplit[1]] = []
                 try:
@@ -314,7 +315,8 @@ class Fitness_Function(ExplicitComponent):
             #exitflag = subprocess.check_call([temp_path +'/TxtInOut/swatmodel_64rel.exe'])
             tempcwd = os.getcwd()
             os.chdir(temp_path +'/TxtInOut/')
-            exitflag = subprocess.check_call(['swatmodel_64rel.exe'])
+            #exitflag = subprocess.check_call(['swatmodel_64rel.exe'])
+            exitflag = subprocess.check_call(['/export/swat-test/bin/swat2012Rev664Rel'])
             os.chdir(tempcwd)
         
             #output_data = optproblem.objectives_data

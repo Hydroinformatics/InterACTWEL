@@ -2,7 +2,7 @@ Decision Variables
 IDv	Variable	Type of Variable	Values				File_Ext
 1	IRRSC		N					[0,1,3]				mgt
 2	DIVMAX		N					[0.0008,0.0012]		mgt
-3	PND_FR		N					[0.01,0.25]				pnd
+3	PND_FR		N					[0.01,0.25]			pnd
 4	PND_PSA		N					[5,10,15]			pnd
 5	PND_PVOL	N 					[25,50,75]			pnd
 6	PND_ESA		N					[8,16,24]			pnd

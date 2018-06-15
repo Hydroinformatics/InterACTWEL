@@ -16,10 +16,10 @@ Urban Management Parameters
                0    | IURBAN: urban simulation code, 0-none, 1-USGS, 2-buildup/washoff
                0    | URBLU: urban land type
 Irrigation Management Parameters
-               1    | IRRSC: irrigation code
+               0    | IRRSC: irrigation code
                6    | IRRNO: irrigation source location
            8.000    | FLOWMIN: min in-stream flow for irr diversions (m^3/s)
-           8.000    | DIVMAX: max irrigation diversion from reach (+mm/-10^4m^3)
+           8.0    | DIVMAX: max irrigation diversion from reach (+mm/-10^4m^3)
            1.000    | FLOWFR: : fraction of flow allowed to be pulled for irr
 Tile Drain Management Parameters
            0.000    | DDRAIN: depth to subsurface tile drain (mm)

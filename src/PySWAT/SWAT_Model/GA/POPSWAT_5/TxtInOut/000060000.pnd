@@ -1,10 +1,10 @@
  .Pnd file Subbasin: 6 8/7/2017 12:00:00 AM ArcSWAT 2012.10_4.19
 Pond inputs:
            0.01    | PND_FR : Fraction of subbasin area that drains into ponds. The value for PND_FR should be between 0.0 and 1.0. If PND_FR = 1.0, the pond is at the outlet of the subbasin on the main channel
-           5.0    | PND_PSA: Surface area of ponds when filled to principal spillway [ha]
-          25.0    | PND_PVOL: Volume of water stored in ponds when filled to the principal spillway [104 m3]
-           8.0    | PND_ESA: Surface area of ponds when filled to emergency spillway [ha]
-          40.0    | PND_EVOL: Volume of water stored in ponds when filled to the emergency spillway [104 m3]
+           5    | PND_PSA: Surface area of ponds when filled to principal spillway [ha]
+          25    | PND_PVOL: Volume of water stored in ponds when filled to the principal spillway [104 m3]
+           8    | PND_ESA: Surface area of ponds when filled to emergency spillway [ha]
+          40    | PND_EVOL: Volume of water stored in ponds when filled to the emergency spillway [104 m3]
            0.000    | PND_VOL: Initial volume of water in ponds [104 m3]
            0.000    | PND_SED: Initial sediment concentration in pond water [mg/l]
            0.000    | PND_NSED: Normal sediment concentration in pond water [mg/l]

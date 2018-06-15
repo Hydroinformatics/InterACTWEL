@@ -2,7 +2,7 @@ import os, re, zipfile, argparse, subprocess, shutil
 import numpy as np
 import Formulation
 
-#%%
+#%% Unzip user SWAT model and run baseline scenario
 def UnzipModel(path,pathuzip):
     folderpath = pathuzip+'/Default'
     if os.path.isdir(folderpath):
@@ -332,18 +332,20 @@ class SWATmodel():
 if __name__ == '__main__':
     
 ##%% Parse Path to Zip file, Uzip and run SWAT Baseline model
-#    parser = argparse.ArgumentParser(description='InterACTWEL Model')
+#    parser = argparse.ArgumentParser(description='Optimization File')
 #    parser.add_argument('path', metavar='-p', type=str, nargs='+',
 #                    help='Path to zip file of SWAT baseline model')
 #    args = parser.parse_args()
 #
 #    print args.path[0]
-#    path = 'Z:/Projects/INFEWS/Modeling/TestProblem/Model/Scenarios/flow8gw/TxtInOut/'
-#    path = 'Z:/Projects/INFEWS/Modeling/TestProblem/Model/Scenarios/Default.zip'
-#    pathuzip = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model'
-#    UnzipModel(path,pathuzip)
+#    print args.path[1]
+#     
+##    path = 'Z:/Projects/INFEWS/Modeling/TestProblem/Model/Scenarios/flow8gw/TxtInOut/'
+##    path = 'Z:/Projects/INFEWS/Modeling/TestProblem/Model/Scenarios/Default.zip'
+##    pathuzip = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model'
+##    UnzipModel(path,pathuzip)
 
-#%% Setup problem and prase SWAT baseline data
+##%% Setup problem and prase SWAT baseline data
     path = dict()
     path['SWAT'] = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default/'
     path['PROB'] = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation3.txt'
@@ -506,199 +508,199 @@ OptProblem.action_plans = action_plans
 #        tval = [tempvalues[i]for i in range(0,len(file_ext)) if file_ext[i] == f[0]]
 
 #%%
-#    
-#from deap_driver_swat import DeapGADriver
-##import matplotlib.pyplot as plt
-#from openmdao.api import Problem, Group, IndepVarComp
-#from Objective_Functions import Fitness_Function
-##from test_disciplines import HRU77, HRU76
-#
-#
-#prob = Problem()
-#model = prob.model = Group()
-#
-#tempvars = IndepVarComp()
-#for act_plans in action_plans.keys():
-#    tempvars.add_output(act_plans, val=0)
-#    
-#        
-#model.add_subsystem('act_plans',tempvars)
-#
-#
-##model.add_subsystem('subs', Fitness_Function_Sub())
-##model.add_subsystem('hrus', Fitness_Function_HRU())
-#
-##model.connect('p2.xI', 'comp.x0')
-##model.connect('p1.xC', 'comp.x1')
-##model.connect('p2.xI', 'comp2.x0')
-##model.connect('p1.xC', 'comp2.x1')
-#
-##model.add_subsystem('SWAT', Fitness_Function_Sub(SWAT=SWATmodel,Problem=OptProblem))
-#
-##plan_keys = action_plans.keys()
-##subids = [i for i in range(0,len(plan_keys)) if plan_keys[i][0:3] == 'SUB']
-##for sub_plan in subids:
-#    
-#model.add_subsystem('SWAT', Fitness_Function(SWAT=SWATmodel,Problem=OptProblem))
-#
+    
+from deap_driver_swat import DeapGADriver
+#import matplotlib.pyplot as plt
+from openmdao.api import Problem, Group, IndepVarComp
+from Objective_Functions import Fitness_Function
+#from test_disciplines import HRU77, HRU76
+
+
+prob = Problem()
+model = prob.model = Group()
+
+tempvars = IndepVarComp()
+for act_plans in action_plans.keys():
+    tempvars.add_output(act_plans, val=0)
+    
+        
+model.add_subsystem('act_plans',tempvars)
+
+
+#model.add_subsystem('subs', Fitness_Function_Sub())
+#model.add_subsystem('hrus', Fitness_Function_HRU())
+
+#model.connect('p2.xI', 'comp.x0')
+#model.connect('p1.xC', 'comp.x1')
+#model.connect('p2.xI', 'comp2.x0')
+#model.connect('p1.xC', 'comp2.x1')
+
+#model.add_subsystem('SWAT', Fitness_Function_Sub(SWAT=SWATmodel,Problem=OptProblem))
+
+#plan_keys = action_plans.keys()
+#subids = [i for i in range(0,len(plan_keys)) if plan_keys[i][0:3] == 'SUB']
+#for sub_plan in subids:
+    
+model.add_subsystem('SWAT', Fitness_Function(SWAT=SWATmodel,Problem=OptProblem))
+
+for act_plans in action_plans.keys():
+    des_vars = 'act_plans.' + act_plans
+    model.SWAT.add_input(act_plans, val=0.0)  
+    model.connect(des_vars, 'SWAT.' + act_plans)
+    #model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans])-1)
+    if 'SUB' not in act_plans:
+        model.add_design_var(des_vars, lower= 0.0, upper = 0.0)
+    else:
+        model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans])-1)
+    
+for obje in OptProblem.objectives: 
+    for sl in OptProblem.objectives[obje]['LEVEL']:
+        if OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'region':
+            for bvar in OptProblem.objectives[obje]['BVAR']:
+                if OptProblem.objectives[obje]['BVAR'][bvar] == 'SA_STmm':
+                    output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_REGION'
+                    model.SWAT.add_output(output_name, val=0.0)
+                    model.add_objective('SWAT.'+ output_name)
+                
+                #print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
+                #print "model.add_objective('SWAT." + output_name + "'" + ')'
+            
+#        elif OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'sub':
+#            for act_plans in action_plans.keys():
+#                if act_plans[0:3] == 'SUB':
+#                    for bvar in OptProblem.objectives[obje]['BVAR']:
+#                        output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_' + act_plans
+#                        model.SWAT.add_output(output_name, val=0.0)
+#                        model.add_objective('SWAT.'+ output_name)
+#                        print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
+#                        print "model.add_objective('SWAT." + output_name + "'" + ')'
+#                    
+#        elif OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'hru':
+#            for act_plans in action_plans.keys():
+#                if act_plans[0:3] == 'HRU':
+#                    for bvar in OptProblem.objectives[obje]['BVAR']:
+#                        output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_' + act_plans
+#                        model.SWAT.add_output(output_name, val=0.0)
+#                        model.add_objective('SWAT.'+ output_name)
+#                        print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
+#                        print "model.add_objective('SWAT." + output_name + "'" + ')'
+
+
 #for act_plans in action_plans.keys():
 #    des_vars = 'act_plans.' + act_plans
-#    model.SWAT.add_input(act_plans, val=0.0)  
-#    model.connect(des_vars, 'SWAT.' + act_plans)
-#    #model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans])-1)
-#    if 'SUB' not in act_plans:
-#        model.add_design_var(des_vars, lower= 0.0, upper = 0.0)
-#    else:
-#        model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans])-1)
+#    if act_plans[0:3] == 'HRU':
+#        hrusub = SWATmodel.hrus_file_id[act_plans[3:]]['SUB_HRU'][0]
+#        #addhrus = 'model.SUB' + str(hrusub) + '.add_subsystem(' + "'" + act_plans + "'"+', Fitness_Function_HRU(SWAT=SWATmodel,Problem=OptProblem))'
+#        #model.add_subsystem(act_plans, Fitness_Function_HRU(SWAT=SWATmodel,Problem=OptProblem))
+#        #exec(addhrus)
+#        #model.connect(des_vars, 'model.SUB' + str(hrusub) + '.' + act_plans + '.plan')
+#        model.SWAT.add_input(act_plans, val=0.0)
+#        
+#        model.SWAT.add_output(act_plans, val=0.0)
+#        
+#        model.connect(des_vars, 'SWAT.' + act_plans)
+#        
+#    elif act_plans[0:3] == 'SUB':
+#        #model.add_subsystem(act_plans, Fitness_Function_Sub(SWAT=SWATmodel,Problem=OptProblem))
+#        #model.add_subsystem(act_plans, Group())
+#        #model.connect(des_vars, act_plans + '.plan')
+#        
+#        model.SWAT.add_input(act_plans, val=0.0)
+#        model.SWAT.add_output(act_plans, val=0.0)
+#        model.connect(des_vars, 'SWAT.' + act_plans)
 #    
-#for obje in OptProblem.objectives: 
-#    for sl in OptProblem.objectives[obje]['LEVEL']:
-#        if OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'region':
-#            for bvar in OptProblem.objectives[obje]['BVAR']:
-#                if OptProblem.objectives[obje]['BVAR'][bvar] == 'SA_STmm':
-#                    output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_REGION'
-#                    model.SWAT.add_output(output_name, val=0.0)
-#                    model.add_objective('SWAT.'+ output_name)
-#                
-#                #print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
-#                #print "model.add_objective('SWAT." + output_name + "'" + ')'
-#            
-##        elif OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'sub':
-##            for act_plans in action_plans.keys():
-##                if act_plans[0:3] == 'SUB':
-##                    for bvar in OptProblem.objectives[obje]['BVAR']:
-##                        output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_' + act_plans
-##                        model.SWAT.add_output(output_name, val=0.0)
-##                        model.add_objective('SWAT.'+ output_name)
-##                        print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
-##                        print "model.add_objective('SWAT." + output_name + "'" + ')'
-##                    
-##        elif OptProblem.objectives[obje]['LEVEL'][sl].lower() == 'hru':
-##            for act_plans in action_plans.keys():
-##                if act_plans[0:3] == 'HRU':
-##                    for bvar in OptProblem.objectives[obje]['BVAR']:
-##                        output_name = OptProblem.objectives[obje]['BVAR'][bvar] + '_' + act_plans
-##                        model.SWAT.add_output(output_name, val=0.0)
-##                        model.add_objective('SWAT.'+ output_name)
-##                        print 'model.SWAT.add_output(' + "'" + output_name + "'" + ', val=0.0)'
-##                        print "model.add_objective('SWAT." + output_name + "'" + ')'
+#    model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans]))
+#    for act_plansb in action_plans.keys():
+#        if act_plansb != act_plans:
+#            addinputs = 'model.' + act_plans + '.add_input(' + "'" + act_plansb + "'"+', val=0.0)'
+#            exec(addinputs)
+#            conn_vars = 'act_plans.' + act_plansb
+#            model.connect(conn_vars, act_plans + '.' + act_plansb)
+#            #print 'model.connect(' + "'" + conn_vars + "'" + ',' + "'" + act_plans + '.' + act_plansb + "'" + ')'
+#
+
+
+#model.connect('p1.xC', 'comp2.x1')
+    
+#model.add_design_var('p2.xI', lower= -5.0, upper= 10.0)
+#model.add_design_var('p1.xC', lower= 0.0, upper= 15.0)
+
+#model.add_objective('comp.f3')
+##model.add_objective('comp.f2')
+#model.add_objective('SUB6.f')
+
+prob.driver = DeapGADriver()
+#prob.driver.options['bits'] = {'p1.xC' : 8}
+prob.driver.options['pop_size'] = 10
+prob.driver.options['max_gen'] = 5
+prob.driver.options['weights'] = (1.0,)
+prob.driver.options['print_results']= True
+##prob.driver.options['run_parallel'] = True
+
+prob.setup()
+prob.run_driver()
+
+
+#prob = Problem()
+#model = Group()
 #
 #
-##for act_plans in action_plans.keys():
-##    des_vars = 'act_plans.' + act_plans
-##    if act_plans[0:3] == 'HRU':
-##        hrusub = SWATmodel.hrus_file_id[act_plans[3:]]['SUB_HRU'][0]
-##        #addhrus = 'model.SUB' + str(hrusub) + '.add_subsystem(' + "'" + act_plans + "'"+', Fitness_Function_HRU(SWAT=SWATmodel,Problem=OptProblem))'
-##        #model.add_subsystem(act_plans, Fitness_Function_HRU(SWAT=SWATmodel,Problem=OptProblem))
-##        #exec(addhrus)
-##        #model.connect(des_vars, 'model.SUB' + str(hrusub) + '.' + act_plans + '.plan')
-##        model.SWAT.add_input(act_plans, val=0.0)
-##        
-##        model.SWAT.add_output(act_plans, val=0.0)
-##        
-##        model.connect(des_vars, 'SWAT.' + act_plans)
-##        
-##    elif act_plans[0:3] == 'SUB':
-##        #model.add_subsystem(act_plans, Fitness_Function_Sub(SWAT=SWATmodel,Problem=OptProblem))
-##        #model.add_subsystem(act_plans, Group())
-##        #model.connect(des_vars, act_plans + '.plan')
-##        
-##        model.SWAT.add_input(act_plans, val=0.0)
-##        model.SWAT.add_output(act_plans, val=0.0)
-##        model.connect(des_vars, 'SWAT.' + act_plans)
-##    
-##    model.add_design_var(des_vars, lower= 0.0, upper = len(action_plans[act_plans]))
-##    for act_plansb in action_plans.keys():
-##        if act_plansb != act_plans:
-##            addinputs = 'model.' + act_plans + '.add_input(' + "'" + act_plansb + "'"+', val=0.0)'
-##            exec(addinputs)
-##            conn_vars = 'act_plans.' + act_plansb
-##            model.connect(conn_vars, act_plans + '.' + act_plansb)
-##            #print 'model.connect(' + "'" + conn_vars + "'" + ',' + "'" + act_plans + '.' + act_plansb + "'" + ')'
-##
+#comp = IndepVarComp()
+#comp.add_output('IRRSC77', val = SWATmodel.baseline_inputs_hru[77]['IRRSC'])
+#comp.add_output('DIVMAX77', val = SWATmodel.baseline_inputs_hru[77]['DIVMAX'])
+##model.add_subsystem('HRU77', comp)
+##comp = IndepVarComp()
+#comp.add_output('IRRSC76', val = SWATmodel.baseline_inputs_hru[76]['IRRSC'])
+#comp.add_output('DIVMAX76', val = SWATmodel.baseline_inputs_hru[76]['DIVMAX'])
+##model.add_subsystem('HRU76', comp)
 #
+#model.add_subsystem('des_vars', comp)
+#model.add_subsystem('Comp',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
+#model.add_objective('Comp.f')
 #
-##model.connect('p1.xC', 'comp2.x1')
-#    
-##model.add_design_var('p2.xI', lower= -5.0, upper= 10.0)
-##model.add_design_var('p1.xC', lower= 0.0, upper= 15.0)
+#model.Comp.add_subsystem('HRU77',HRU77(SWAT= SWATmodel, Problem = OptProblem))
+#model.Comp.add_objective('HRU77.y1')
+#model.Comp.add_subsystem('HRU76',HRU76(SWAT= SWATmodel, Problem = OptProblem))
+#model.Comp.add_objective('HRU76.y2')
 #
-##model.add_objective('comp.f3')
-###model.add_objective('comp.f2')
-##model.add_objective('SUB6.f')
+##model.add_subsystem('comp77',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
+##model.add_subsystem('comp76',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
 #
+#model.connect('HRU77.y1', 'Comp.x0')
+#varname = 'HRU76.y2'
+#compname = 'Comp.x1'
+#model.connect(varname, compname)
+#
+##model.add_design_var('HRU77.IRRSC', lower = 0.0, upper = 3)
+##model.add_design_var('HRU77.DIVMAX', lower = 0.0, upper = 3)
+##model.add_design_var('HRU76.IRRSC', lower = 0.0, upper = 3)
+##model.add_design_var('HRU76.DIVMAX', lower = 0.0, upper = 3)
+#
+#prob = Problem(model)
 #prob.driver = DeapGADriver()
-##prob.driver.options['bits'] = {'p1.xC' : 8}
-#prob.driver.options['pop_size'] = 10
-#prob.driver.options['max_gen'] = 5
-#prob.driver.options['weights'] = (1.0,)
-#prob.driver.options['print_results']= True
-###prob.driver.options['run_parallel'] = True
 #
 #prob.setup()
 #prob.run_driver()
-#
-#
-##prob = Problem()
-##model = Group()
-##
-##
-##comp = IndepVarComp()
-##comp.add_output('IRRSC77', val = SWATmodel.baseline_inputs_hru[77]['IRRSC'])
-##comp.add_output('DIVMAX77', val = SWATmodel.baseline_inputs_hru[77]['DIVMAX'])
-###model.add_subsystem('HRU77', comp)
-###comp = IndepVarComp()
-##comp.add_output('IRRSC76', val = SWATmodel.baseline_inputs_hru[76]['IRRSC'])
-##comp.add_output('DIVMAX76', val = SWATmodel.baseline_inputs_hru[76]['DIVMAX'])
-###model.add_subsystem('HRU76', comp)
-##
-##model.add_subsystem('des_vars', comp)
-##model.add_subsystem('Comp',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
-##model.add_objective('Comp.f')
-##
-##model.Comp.add_subsystem('HRU77',HRU77(SWAT= SWATmodel, Problem = OptProblem))
-##model.Comp.add_objective('HRU77.y1')
-##model.Comp.add_subsystem('HRU76',HRU76(SWAT= SWATmodel, Problem = OptProblem))
-##model.Comp.add_objective('HRU76.y2')
-##
-###model.add_subsystem('comp77',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
-###model.add_subsystem('comp76',Fitness_Function(SWAT= SWATmodel, Problem = OptProblem))
-##
-##model.connect('HRU77.y1', 'Comp.x0')
-##varname = 'HRU76.y2'
-##compname = 'Comp.x1'
-##model.connect(varname, compname)
-##
-###model.add_design_var('HRU77.IRRSC', lower = 0.0, upper = 3)
-###model.add_design_var('HRU77.DIVMAX', lower = 0.0, upper = 3)
-###model.add_design_var('HRU76.IRRSC', lower = 0.0, upper = 3)
-###model.add_design_var('HRU76.DIVMAX', lower = 0.0, upper = 3)
-##
-##prob = Problem(model)
-##prob.driver = DeapGADriver()
-##
-##prob.setup()
-##prob.run_driver()
-#
-#
-##%%
-#    
-#hoff = prob.driver._hof
-#with open('TempResfile.txt','w') as wrt:
-#    for hof_temp in prob.driver._hof:
-#         wrt.write(str(hof_temp)+"\n")
-#
-#wrt.close()
-#
-##%%
-#
-#with open('TempPopfile.txt','w') as wrt:
-#    for pop_temp in prob.driver._pop:
-#         wrt.write(str(pop_temp)+"\n")
-#
-#wrt.close()
-#
-##%%
+
+
+#%%
+    
+hoff = prob.driver._hof
+with open('TempResfile.txt','w') as wrt:
+    for hof_temp in prob.driver._hof:
+         wrt.write(str(hof_temp)+"\n")
+
+wrt.close()
+
+#%%
+
+with open('TempPopfile.txt','w') as wrt:
+    for pop_temp in prob.driver._pop:
+         wrt.write(str(pop_temp)+"\n")
+
+wrt.close()
+
+#%%
 #
 #from Objective_Functions import Get_Objectives_Data, Get_output_std
 #
@@ -720,15 +722,15 @@ OptProblem.action_plans = action_plans
 #            if tempdiff > 0.0:
 #                data_diff[op][var_key][hru_key] = tempdiff
 #            
-#    
-##%%
-##import matplotlib.pyplot as plt
-##import numpy as np
-##from mpl_toolkits.mplot3d import axes3d, Axes3D 
-##
-##ax = fig.add_subplot(122, projection='3d')
-##ax.scatter(X0, X1, f3)
-##ax.scatter(X0, X1, f2,c='r')
-##ax.set_xlabel('X0')
-##ax.set_ylabel('X1')
-##ax.set_zlabel('Fitness')    
+    
+#%%
+#import matplotlib.pyplot as plt
+#import numpy as np
+#from mpl_toolkits.mplot3d import axes3d, Axes3D 
+#
+#ax = fig.add_subplot(122, projection='3d')
+#ax.scatter(X0, X1, f3)
+#ax.scatter(X0, X1, f2,c='r')
+#ax.set_xlabel('X0')
+#ax.set_ylabel('X1')
+#ax.set_zlabel('Fitness')    

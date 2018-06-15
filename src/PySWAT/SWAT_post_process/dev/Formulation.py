@@ -1,6 +1,5 @@
 import re
 
-
 def Get_output_std(tfile,var):
     
     output_data = dict()
@@ -93,7 +92,10 @@ def ParseFormulation(self):
                             temprange = re.split('-',temprange)
                             var_range.extend(range(int(temprange[0]),int(temprange[1])+1))
                         else:
-                            var_range.extend([float(temprange)])
+                            if '.' not in temprange:
+                                var_range.extend([int(temprange)])
+                            else:
+                                var_range.extend([float(temprange)])
                     
                     temp_dict['VALUES'] = var_range
                     temp_dict['FILE'] = linesplit[4]
