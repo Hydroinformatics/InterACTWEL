@@ -79,6 +79,7 @@ class DeapGADriver(Driver):
         self.options.declare('select_method_inputs', default= 3 ,desc='Sets the optimization crossover method')
         self.options.declare('weights', default= (1.0,) ,desc='Sets the optimization objectives weights')
         self.options.declare('name_opt', default = 'Test1', desc = 'Name to indentify opt problems')
+        self.options.declare('print_results',default = False)
         
         self._desvar_idx = {}
         self._ga = None
@@ -126,7 +127,8 @@ class DeapGADriver(Driver):
         """
         model = self._problem.model
         ga = self._ga
-
+        ga.iter = self.iter_count
+        
         # Size design variables.
         desvars = self._designvars
         count = 0
@@ -149,6 +151,8 @@ class DeapGADriver(Driver):
         max_gen = self.options['max_gen']
         user_bits = self.options['bits']
         wghts = self.options['weights']
+        optprint = self.options['print_results']
+        
         # Bits of resolution
         bits = np.ceil(np.log2(upper_bound - lower_bound + 1)).astype(int)
         prom2abs = model._var_allprocs_prom2abs_list['output']
@@ -162,7 +166,7 @@ class DeapGADriver(Driver):
 
             bits[i:j] = val
 
-        desvar_new, obj, nfit, hof, log, pop = ga.execute_ga(lower_bound, upper_bound, bits, pop_size, max_gen, wghts)
+        desvar_new, obj, nfit, hof, log, pop = ga.execute_ga(lower_bound, upper_bound, bits, pop_size, max_gen, wghts, optprint)
 
         # Pull optimal parameters back into framework and re-run, so that
         # framework is left in the right final state
@@ -281,8 +285,8 @@ class NSGAAlgorithm():
         self.lchrom = 0
         self.npop = 0
         self.elite = True
-
-    def execute_ga(self, vlb, vub, bits, pop_size, max_gen, wghts):
+        self.iter = 0
+    def execute_ga(self, vlb, vub, bits, pop_size, max_gen, wghts, optprint):
         """
         Perform the genetic algorithm.
 
@@ -323,33 +327,47 @@ class NSGAAlgorithm():
         #toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("select", tools.selNSGA2)
         
-
-        
         #toolbox.register("attr_bool", random.randint, 0, 1)
         #toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, 100)
+        varstrings = []
         for varid in range(0,len(bits)):
             if bits[varid] == 8:
                 toolbox.register("attr_flt", random.uniform, vlb[varid], vub[varid])
             else:
-                toolbox.register("attr_int", random.randint, vlb[varid], vub[varid])
-        toolbox.register("individual", tools.initCycle, creator.Individual, (toolbox.attr_int, toolbox.attr_flt), n=1)
+                #toolbox.register("attr_int", random.randint, vlb[varid], vub[varid])
+                name = 'attr_int' + str(varid)
+                toolbox.register(name, random.randint, vlb[varid], vub[varid])
+                #name = 'toolbox.attr_int'+ str(varid)
+                varstrings.append(getattr(toolbox,name))
+                
+        #toolbox.register("individual", tools.initCycle, creator.Individual, (toolbox.attr_int, toolbox.attr_flt), n=1)
+        #toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+        
+        #toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_int, n=1)
+        
+        toolbox.register("individual", generatePlan, creator.Individual,varstrings)
+        #toolbox.register("individual", tools.initCycle, creator.Individual, varstrings, n=1)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         
         pop = toolbox.population(n=pop_size)
         #hof = tools.HallOfFame(100)
         hof = tools.ParetoFront()
-        stats = tools.Statistics(lambda ind: ind.fitness.values)
-        stats.register("avg", np.mean)
-        stats.register("std", np.std)
-        stats.register("min", np.min)
-        stats.register("max", np.max)
+        
+        if optprint:
+            stats = tools.Statistics(lambda ind: ind.fitness.values)
+            stats.register("avg", np.mean)
+            stats.register("std", np.std)
+            stats.register("min", np.min)
+            stats.register("max", np.max)
         #stats.register("ParetoFront", lambda x: copy.deepcopy(hof))
         
         #logbook = tools.Logbook()
         #logbook.header = "gen", "evals", "std", "min", "avg", "max"
         
-        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=40, 
+            pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=max_gen, 
                                    stats=stats, halloffame=hof, verbose=True)
+        else:
+            pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=max_gen, halloffame=hof, verbose=False)
         
 #        xopt = copy.deepcopy(vlb)
 #        fopt = np.inf
@@ -436,6 +454,16 @@ class NSGAAlgorithm():
         #fits = [ind.fitness.values for ind in pop]
         
         return hof[0], hof[0].fitness.values, nfit, hof, log, pop
+
+
+def generatePlan(icls,attr_list):
+    
+    ind = icls(attribute() for attribute in attr_list)
+    return ind
+    
+
+
+
 
 #    def tournament(self, old_gen, fitness):
 #        """

@@ -122,8 +122,8 @@ class Branin2(ExplicitComponent):
         """
         
         x0 = inputs['x0']
-        vardict = self.metadata['vardict']
-        x0 = vardict[x0[0]]
+        #vardict = self.metadata['vardict']
+        #x0 = vardict[x0[0]]
         x1 = inputs['x1']
 
         a = 1.0

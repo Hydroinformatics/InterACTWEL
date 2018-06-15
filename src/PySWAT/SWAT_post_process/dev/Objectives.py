@@ -31,6 +31,7 @@ def Get_output_std(tfile,var):
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
                 varcol = [i for i in range(0,len(linesplit)) if linesplit[i] == var] #Another Error in SWATA DA_STmmSURQ_GENmmSURQ_CNTmm
+                
                 if var == 'YLDt/ha':
                     varcol = [71]
                 elif var == 'SA_STmm':
@@ -77,6 +78,6 @@ def Get_Objectives_Data(self,path):
 #            
 #        var_lower = self.objectives[obj_id]['PAR'].lower()
         for ci in range(0,len(self.objectives[obj_id]['BVAR'])):
-            temp_data = Get_output_std(path['SWAT'] + 'TxtInOut/' + self.objectives[obj_id]['FILE'],self.objectives[obj_id]['BVAR'][ci])
+            temp_data = Get_output_std(path['SWAT'] + 'TxtInOut/' + self.objectives[obj_id]['FILE'], self.objectives[obj_id]['BVAR'][ci])
             self.objectives_data[temp_data.keys()[0]] = temp_data[temp_data.keys()[0]]
     return

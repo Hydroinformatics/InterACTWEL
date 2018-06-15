@@ -38,10 +38,13 @@ model.add_objective('comp.f3')
 #model.add_objective('comp.f2')
 model.add_objective('comp2.f2')
 
+model.add_constraint('p2.xI',lower=0.0)
+
 prob.driver = DeapGADriver()
+prob.driver.options['print_results'] = False
 prob.driver.options['bits'] = {'p1.xC' : 8}
-prob.driver.options['pop_size'] = 500
-prob.driver.options['max_gen'] = 300
+prob.driver.options['pop_size'] = 300
+prob.driver.options['max_gen'] = 100
 prob.driver.options['weights'] = (1.0,-1.0)
 #prob.driver.options['run_parallel'] = True
 
