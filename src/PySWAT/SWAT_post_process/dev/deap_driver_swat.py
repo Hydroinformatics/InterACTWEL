@@ -13,7 +13,7 @@ from six.moves import range
 import numpy as np
 from pyDOE import lhs
 
-#import multiprocessing
+import multiprocessing
 
 class DeapGADriver(Driver):
     """
@@ -110,10 +110,11 @@ class DeapGADriver(Driver):
             raise RuntimeError(msg)
 
         if self.options['run_parallel']:
-            comm = self._problem.comm
+            #comm = self._problem.comm
+            comm = self.options['run_parallel']
         else:
             comm = None
-
+        
         self._ga = NSGAAlgorithm(self.objective_callback, comm=comm)
 
     def run(self):
@@ -286,6 +287,7 @@ class NSGAAlgorithm():
         self.npop = 0
         self.elite = True
         self.iter = 0
+        
     def execute_ga(self, vlb, vub, bits, pop_size, max_gen, wghts, optprint):
         """
         Perform the genetic algorithm.
@@ -317,8 +319,10 @@ class NSGAAlgorithm():
         #creator.create("FitnessMin", base.Fitness, weights=(1.0,1.0))
         creator.create("Individual", list, fitness=creator.FitnessMin)  
        
-        #pool = multiprocessing.Pool(processes=4)
         toolbox = base.Toolbox()
+#        if self.comm:
+#            pool = multiprocessing.Pool(processes=4)
+#            toolbox.register("map", pool.map)
         
         #toolbox.register("map", self.comm.map)
         toolbox.register("evaluate", self.objfun)

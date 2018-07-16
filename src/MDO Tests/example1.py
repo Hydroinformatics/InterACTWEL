@@ -1,5 +1,9 @@
 from openmdao.api import Problem, IndepVarComp, ExecComp, pyOptSparseDriver
 import numpy as np
+import time
+
+start = time.time()
+print("Starting")
 
 # note: size must be an even number
 SIZE = 10
@@ -63,14 +67,18 @@ p.model.add_objective('circle.area', ref=-1)
 # driver file to perform the optimization on the above problem and model system
 p.driver = pyOptSparseDriver()
 p.driver.options['optimizer'] = 'NSGA2'
-
-#p.driver.opt_settings['PopSize'] = 150
+p.driver.options['print_results'] = False
+p.driver.opt_settings['PopSize'] = 300
 
 # this setups all the subsystems and model for the driver optimization
 p.setup(mode='fwd')
 
 # this runs the driver in the OpenMDAO framework and then driver from pyOPT framwework as specified as the file.
 p.run_driver()
+
+
+end = time.time()
+print(end - start)
 
 print("Radius Min = %f" % (p['r']))
 print("Minimum Area of Circle = %f" % p['circle.area'])

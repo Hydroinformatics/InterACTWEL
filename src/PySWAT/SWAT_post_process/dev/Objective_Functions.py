@@ -96,7 +96,9 @@ def Get_output_std(tfile,var):
             elif varbool == 1:
                 linesplit = re.split('\s',line)
                 linesplit = [e for e in linesplit if e != '']
-                print linesplit
+                
+                #print linesplit
+                
                 if linesplit[1] not in data_array.keys():
                     data_array[linesplit[1]] = []
                 try:
@@ -315,8 +317,8 @@ class Fitness_Function(ExplicitComponent):
             #exitflag = subprocess.check_call([temp_path +'/TxtInOut/swatmodel_64rel.exe'])
             tempcwd = os.getcwd()
             os.chdir(temp_path +'/TxtInOut/')
-            #exitflag = subprocess.check_call(['swatmodel_64rel.exe'])
-            exitflag = subprocess.check_call(['/export/swat-test/bin/swat2012Rev664Rel'])
+            exitflag = subprocess.check_call(['swatmodel_64rel.exe'])
+            #exitflag = subprocess.check_call(['/export/swat-test/bin/swat2012Rev664Rel'])
             os.chdir(tempcwd)
         
             #output_data = optproblem.objectives_data
@@ -329,7 +331,9 @@ class Fitness_Function(ExplicitComponent):
                             if optproblem.objectives[obje]['BVAR'][bvar] == 'SA_STmm':
                                 output_name = optproblem.objectives[obje]['BVAR'][bvar] + '_REGION'
                                 outputs[output_name] = Get_fitness_region(obje,bvar,optproblem, SWATmodel, output_data)
-                                print temp_plan, outputs[output_name]
+                                
+#                                print temp_plan, outputs[output_name]
+                                
 #                    elif optproblem.objectives[obje]['LEVEL'][sl].lower() == 'sub':
 #                        for act_plans in optproblem.action_plans.keys():
 #                            if act_plans[0:3] == 'SUB':

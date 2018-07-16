@@ -351,6 +351,12 @@ if __name__ == '__main__':
     path['PROB'] = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation3.txt'
     path['ZIP'] = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default.zip'
     path['UNZIP'] = 'C:/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/GA'
+    
+#    path['SWAT'] = '/mnt/c/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default/'
+#    path['PROB'] = '/mnt/c/Users/sammy/Documents/GitHub/InterACTWEL/src/SWAT_DevProb/Formulation3.txt'
+#    path['ZIP'] = '/mnt/c/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/Default.zip'
+#    path['UNZIP'] = '/mnt/c/Users/sammy/Documents/GitHub/InterACTWEL/src/PySWAT/SWAT_Model/GA'
+    
     OptProblem = Formulation.OptFormulation(path)
     SWATmodel = SWATmodel(path,OptProblem)
 
@@ -509,12 +515,11 @@ OptProblem.action_plans = action_plans
 
 #%%
     
-from deap_driver_swat import DeapGADriver
+from deap_driver_swat_par import DeapGADriver
 #import matplotlib.pyplot as plt
-from openmdao.api import Problem, Group, IndepVarComp
+from openmdao.api import Problem, Group, IndepVarComp, pyOptSparseDriver
 from Objective_Functions import Fitness_Function
 #from test_disciplines import HRU77, HRU76
-
 
 prob = Problem()
 model = prob.model = Group()
@@ -523,9 +528,7 @@ tempvars = IndepVarComp()
 for act_plans in action_plans.keys():
     tempvars.add_output(act_plans, val=0)
     
-        
 model.add_subsystem('act_plans',tempvars)
-
 
 #model.add_subsystem('subs', Fitness_Function_Sub())
 #model.add_subsystem('hrus', Fitness_Function_HRU())
@@ -629,15 +632,29 @@ for obje in OptProblem.objectives:
 ##model.add_objective('comp.f2')
 #model.add_objective('SUB6.f')
 
+
+
 prob.driver = DeapGADriver()
 #prob.driver.options['bits'] = {'p1.xC' : 8}
 prob.driver.options['pop_size'] = 10
 prob.driver.options['max_gen'] = 5
 prob.driver.options['weights'] = (1.0,)
 prob.driver.options['print_results']= True
-##prob.driver.options['run_parallel'] = True
+prob.driver.options['run_parallel'] = False
 
 prob.setup()
+prob.run_driver()
+
+
+
+## driver file to perform the optimization on the above problem and model system
+#prob.driver = pyOptSparseDriver()
+#prob.driver.options['optimizer'] = 'NSGA2'
+##p.driver.opt_settings['PopSize'] = 150
+## this setups all the subsystems and model for the driver optimization
+#prob.setup(mode='fwd')
+
+# this runs the driver in the OpenMDAO framework and then driver from pyOPT framwework as specified as the file.
 prob.run_driver()
 
 

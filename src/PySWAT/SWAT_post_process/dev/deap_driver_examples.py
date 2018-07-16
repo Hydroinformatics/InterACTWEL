@@ -13,7 +13,7 @@ from six.moves import range
 import numpy as np
 from pyDOE import lhs
 
-#import multiprocessing
+import multiprocessing
 
 class DeapGADriver(Driver):
     """
@@ -327,9 +327,11 @@ class NSGAAlgorithm():
         #creator.create("FitnessMin", base.Fitness, weights=(1.0,1.0))
         creator.create("Individual", list, fitness=creator.FitnessMin)  
        
-        #pool = multiprocessing.Pool(processes=4)
+        multiprocessing.freeze_support()
+        pool = multiprocessing.Pool(processes=2)
         toolbox = base.Toolbox()
         
+        toolbox.register("map", pool.map)
         #toolbox.register("map", self.comm.map)
         toolbox.register("evaluate", self.objfun)
         toolbox.register("mate", tools.cxTwoPoint)
