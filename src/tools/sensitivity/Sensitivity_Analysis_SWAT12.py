@@ -35,118 +35,60 @@ class SensitivityAnalysis():
         if self.swat_exe == '':
             print 'Please specify a SWAT executable (e.g., .swat_exe)'
             sys.exit(0)
+         
+        for i in range(num_sim):
+            self.SA(num_sim)
         
-#        if self.outputcsv == 1:
-#            csv_file = self.pathuzip + '/' + 'SA_Outputs.csv'
-#            with open(csv_file, mode='wb') as outputcsv:
-#                outputcsv_writer = csv.writer(outputcsv, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_NONE, escapechar=' ')
-#                outputcsv_writer.writerow(['ITER','OUTVAR','SUBID','UNIT_TYPE','UNIT_ID','TIME (MON)'])
-#                
-#                for i in range(num_sim):
-#                    self.SA(i)
-#                    
-#                    for outfile in self.output_vars:
-#                        tfile = self.output_vars[outfile]['File']
-#                        if tfile[len(tfile)-3:len(tfile)] == 'hru':
-#                            for varkey in self.output_vars[outfile]['Vars'].keys():
-#                                data_array, hru_sub = self.saoutputs.Get_output_hru(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
-#                                self.output_vars_data[varkey] = data_array
-#                               
-#                        elif tfile[len(tfile)-3:len(tfile)] == 'rch':
-#                            for varkey in self.output_vars[outfile]['Vars'].keys():
-#                                self.output_vars_data[varkey] = self.saoutputs.Get_output_rch(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
-#                        
-#                        elif tfile[len(tfile)-3:len(tfile)] == 'std':
-#                            table = self.output_vars[outfile]['Vars']['Table']
-#                            for varkey in self.output_vars[outfile]['Vars'].keys():
-#                                if varkey.lower() != 'table':
-#                                    self.output_vars_data[varkey] = self.saoutputs.Get_output_std(tfile, table, varkey, self.output_vars[outfile]['Vars'][varkey])
-#                                
-#        #            self.saoutputs.output_data = self.output_vars_data
-#        #            self.saoutputs.WriteOutputCSV(outputcsv_writer,i)
-#                    for var in self.output_vars_data.keys():
-#                        unit_type = self.output_vars_data[var]['Type']
-#                        for unit_ids in self.output_vars_data[var].keys():
-#                            #for val in range(0,len(self.output_data[var][unit_ids])):
-#                            if unit_ids != 'Type' and unit_ids != 'Years': 
-#                                atxt = ''
-#                                cc = 0
-#                                for ast in self.output_vars_data[var][unit_ids]:
-#                                    if cc == 0:
-#                                        atxt = str(ast)
-#                                        cc = cc + 1
-#                                    else:
-#                                        atxt = atxt + ',' + str(ast)
-#                                if unit_type == 'HRU':
-#                                    subid = hru_sub[unit_ids]
-#                                elif unit_type == 'RCH':
-#                                    subid = unit_ids
-#                                elif unit_type == 'BSN':
-#                                    subid = ' '
-#                                if unit_ids.lower() == 'data':
-#                                    unit_ids = ' '
-#                                    
-#                                outputcsv_writer.writerow([num_sim,var,subid,unit_type,unit_ids,atxt])
-#                    
-#            outputcsv.close()
-#        
-#        else:
-            
-            #for i in range(num_sim):
-        self.SA(num_sim)
-    
-        for outfile in self.output_vars:
-            tfile = self.output_vars[outfile]['File']
-            if tfile[len(tfile)-3:len(tfile)] == 'hru':
-                for varkey in self.output_vars[outfile]['Vars'].keys():
-                    data_array, hru_sub = self.saoutputs.Get_output_hru(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
-                    self.output_vars_data[varkey] = data_array
-                   
-            elif tfile[len(tfile)-3:len(tfile)] == 'rch':
-                for varkey in self.output_vars[outfile]['Vars'].keys():
-                    self.output_vars_data[varkey] = self.saoutputs.Get_output_rch(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
-            
-            elif tfile[len(tfile)-3:len(tfile)] == 'std':
-                table = self.output_vars[outfile]['Vars']['Table']
-                for varkey in self.output_vars[outfile]['Vars'].keys():
-                    if varkey.lower() != 'table':
-                        self.output_vars_data[varkey] = self.saoutputs.Get_output_std(tfile, table, varkey, self.output_vars[outfile]['Vars'][varkey])
-        
-        if self.outputcsv == 1:
-            csv_file = self.swat_path + '/' + 'SA_Outputs.csv'
-            fileout = open(csv_file,'w')
-            fileout.write('ITER, OUTVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (MON) \n')
-            for var in self.output_vars_data.keys():
-                unit_type = self.output_vars_data[var]['Type']
-                for unit_ids in self.output_vars_data[var].keys():
-                    #for val in range(0,len(self.output_data[var][unit_ids])):
-                    if unit_ids != 'Type' and unit_ids != 'Years': 
-                        atxt = ''
-                        cc = 0
-                        for ast in self.output_vars_data[var][unit_ids]:
-                            if cc == 0:
-                                atxt = str(ast)
-                                cc = cc + 1
-                            else:
-                                atxt = atxt + ',' + str(ast)
-                        if unit_type == 'HRU':
-                            subid = hru_sub[unit_ids]
-                        elif unit_type == 'RCH':
-                            subid = unit_ids
-                        elif unit_type == 'BSN':
-                            subid = ' '
-                        if unit_ids.lower() == 'data':
-                            unit_ids = ' '
-                            
-                        fileout.write(str(num_sim) + ',' + var + ',' + str(subid) + ',' + unit_type + ',' + str(unit_ids) + ',' + atxt + '\n')
+            for outfile in self.output_vars:
+                tfile = self.output_vars[outfile]['File']
+                if tfile[len(tfile)-3:len(tfile)] == 'hru':
+                    for varkey in self.output_vars[outfile]['Vars'].keys():
+                        data_array, hru_sub = self.saoutputs.Get_output_hru(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
+                        self.output_vars_data[varkey] = data_array
+                       
+                elif tfile[len(tfile)-3:len(tfile)] == 'rch':
+                    for varkey in self.output_vars[outfile]['Vars'].keys():
+                        self.output_vars_data[varkey] = self.saoutputs.Get_output_rch(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
                 
-            fileout.close()
+                elif tfile[len(tfile)-3:len(tfile)] == 'std':
+                    table = self.output_vars[outfile]['Vars']['Table']
+                    for varkey in self.output_vars[outfile]['Vars'].keys():
+                        if varkey.lower() != 'table':
+                            self.output_vars_data[varkey] = self.saoutputs.Get_output_std(tfile, table, varkey, self.output_vars[outfile]['Vars'][varkey])
+            
+            if self.outputcsv == 1:
+                csv_file = self.swat_path + '/' + 'SA_Outputs.csv'
+                fileout = open(csv_file,'w')
+                fileout.write('ITER, OUTVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (MON) \n')
+                for var in self.output_vars_data.keys():
+                    unit_type = self.output_vars_data[var]['Type']
+                    for unit_ids in self.output_vars_data[var].keys():
+                        #for val in range(0,len(self.output_data[var][unit_ids])):
+                        if unit_ids != 'Type' and unit_ids != 'Years': 
+                            atxt = ''
+                            cc = 0
+                            for ast in self.output_vars_data[var][unit_ids]:
+                                if cc == 0:
+                                    atxt = str(ast)
+                                    cc = cc + 1
+                                else:
+                                    atxt = atxt + ',' + str(ast)
+                            if unit_type == 'HRU':
+                                subid = hru_sub[unit_ids]
+                            elif unit_type == 'RCH':
+                                subid = unit_ids
+                            elif unit_type == 'BSN':
+                                subid = ' '
+                            if unit_ids.lower() == 'data':
+                                unit_ids = ' '
+                                
+                            fileout.write(str(num_sim) + ',' + var + ',' + str(subid) + ',' + unit_type + ',' + str(unit_ids) + ',' + atxt + '\n')
+                    
+                fileout.close()
                     
 #%%
     def SA(self,num_sim):
-        #self.swat_path = self.UnzipModel(num_sim)
-        self.swat_path = 'C:/Users/sammy/Documents/GitHub/InterACTWEL_Dev/src/PySWAT/SWAT_post_process/dev/Sensitivity_Analysis/Test_Nick/ITER_10/'
-        
+        self.swat_path = self.UnzipModel(num_sim)
         self.LndMngOps.model_path = self.swat_path
         self.saoutputs.model_path = self.swat_path + 'Scenarios/Default/TxtInOut/'
         self.saoutputs.output_path = self.pathuzip
