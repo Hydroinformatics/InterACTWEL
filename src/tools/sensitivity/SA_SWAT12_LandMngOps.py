@@ -180,16 +180,15 @@ class LndMngOps(object):
 
 
 #%%
-    def AddParamsToLine(self, line, mngpardict, sub_basin):
+    def AddParamsToLine(self, line, mngpardict, sub_basin, cropid=None):
         newline = line
-        
-        #if self.water_rights is not None and mngpardict['param_varname']:
-            
-        #else:
         
         ParamDict = dict()
         
-        rnd_op = random.choice(mngpardict['options'].keys())
+        if cropid is not None:
+            rnd_op = cropid
+        else:
+            rnd_op = random.choice(mngpardict['options'].keys())
             
         if mngpardict['opID'] == 10:
             mngpardict['options'][rnd_op]['B']['values'] = [sub_basin]
@@ -245,7 +244,10 @@ class LndMngOps(object):
                             opkey = [mngpar for mngpar in self.MngParams.keys() if self.MngParams[mngpar]['opID'] == schd_line]
                             paramdict = dict()
                             if len(opkey) > 0:
-                                temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin)
+                                if opkey[0].lower() == 'crops':
+                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin, crop_id)
+                                else:
+                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin)
                                 wrt.write(temp_line + '\n')
                             else:
                                 wrt.write(temp_line + '\n')
@@ -301,4 +303,3 @@ class LndMngOps(object):
             
         return InputDict
     
-                

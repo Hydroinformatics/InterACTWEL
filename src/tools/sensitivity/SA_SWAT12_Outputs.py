@@ -116,15 +116,17 @@ class SA_Outputs(object):
                         linesplit = re.split('\s',line)
                         linesplit = [e for e in linesplit if e != '']
                         
-                        if len(linesplit) < 2:
+                        if len(linesplit) < 2 and len(linesplit) > 1:
                             line = search.next()
                             linesplit = re.split('\s',line)
                             linesplit = [e for e in linesplit if e != '']
                             if len(linesplit[0]) == 4:
                                 data_array['Years'].append(int(linesplit[0]))
                             varbool = 0
+                        elif len(linesplit) < 1:
+                            varbool = 0
                         else:
-                            if len(linesplit[0]) < 4:
+                            if len(linesplit[0]) < 4 and len(linesplit) > 1:
                                 data_array['Data'].append(float(linesplit[varcol-1]))
 
         
