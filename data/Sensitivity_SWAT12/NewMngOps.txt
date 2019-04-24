@@ -1,0 +1,39 @@
+#Fertilizer: [11, fert.dat, FT]
+Elem-n = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
+Elem-p = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
+31-13-00 = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
+04-08-00 = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
+
+#Tillage: [6, till.dat, TLID]
+Fldclt15 = {CNOP: [45]}
+Dskplw36 = {CNOP: [50]}
+Beddhipr = {CNOP: [55]}
+
+#Irrigation: [10, irr.dat, I]
+surface = {A_WSTRS: [0.85]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5,1,10); IASQ: [0.5]; B: []}
+
+#Crops: [1, plant.dat, CROP]
+CORN = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [2500.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+POTA = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [1000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ONIO = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [1200.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SWHT = {OP_SCHD: range(1,1,8); HEATUN_MAT: [1600.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ALFA = {OP_SCHD: range(1,1,8); HEATUN_MAT: [700.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SCRN = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [2500.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+TOBC = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+BARL = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+DWHT = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+WWHT = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+CANP = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+HAY = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SGBT = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+PTBN = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+LENT = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+PEAS = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+CELR = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SWGR = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+FRST = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+RNGE = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ORCD = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+
+#HarvKill: [5, harv.dat, ]
+harvestkill = {CNOP_HAR: [50.0]}

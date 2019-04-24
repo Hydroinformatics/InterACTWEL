@@ -1,0 +1,10 @@
+zipswat_path = ..\data\Sensitivity_SWAT12\Sensitivity_SWAT12_Nick.zip
+unzip_path = ..\data\Sensitivity_SWAT12\Test_Nick
+crop_hru_seq = ..\data\Sensitivity_SWAT12\HRU_Crop_Rotations.csv
+
+swat_exe = swat_debug32.exe
+
+output_vars = ..\data\Sensitivity_SWAT12\OutputVars.txt
+new_mng_ops = ..\data\Sensitivity_SWAT12\NewMngOps.txt
+new_ops_sched = ..\data\Sensitivity_SWAT12\NewOpsSchd.txt
+no_change_lum_path = ..\data\Sensitivity_SWAT12/no_changeLU_SWAT12.txt

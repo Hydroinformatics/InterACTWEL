@@ -1,0 +1,8 @@
+#Reach
+output.rch = {FLOW_OUTcms:[6]; ORGN_OUT:[13]; NO3_OUT:[17]; NH4_OUT:[19]; NO2_OUT:[21]; WTMPdegc:[50]}
+
+#Standard
+output.std = {Table:[Annual Summary for Watershed]; NO3_PERC:[15]; NO3_CROP:[16]; PERCOLATE:[6]}
+
+#HRUs
+output.hru = {YLDt:[72]; IRRmm: [10]; AREAkm2:[6]; NAUTO:[39]; PAUTO:[40]}
