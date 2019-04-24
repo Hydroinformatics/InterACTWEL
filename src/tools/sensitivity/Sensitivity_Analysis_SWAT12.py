@@ -120,7 +120,7 @@ class SensitivityAnalysis():
         if self.inputcsv == 1 and len(InputDict.keys()):
             csv_file = self.swat_path + 'SA_Inputs.csv'
             filein = open(csv_file,'w')
-            filein.write('ITER, INVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (YEAR)')
+            filein.write('ITER, INVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (YEAR) \n')
             for hruid in InputDict.keys():
                 for parms in InputDict[hruid].keys():
                     if parms != 'SUBID': 
