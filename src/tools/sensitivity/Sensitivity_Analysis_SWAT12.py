@@ -141,33 +141,10 @@ class SensitivityAnalysis():
                         
             filein.close()
             
-#            with open(csv_file, mode='wb') as inputcsv:
-#                inputcsv_writer = csv.writer(inputcsv, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_NONE, escapechar=' ')
-#                inputcsv_writer.writerow(['ITER','INVAR','SUBID','UNIT_TYPE','UNIT_ID','TIME (YEAR)'])
-#                
-#                for hruid in InputDict.keys():
-#                    for parms in InputDict[hruid].keys():
-#                        if parms != 'SUBID': 
-#                            atxt = ''
-#                            cc = 0
-#                            for ast in InputDict[hruid][parms]:
-#                                if cc == 0:
-#                                    if ast == -999:
-#                                        ast = '-'
-#                                    atxt = str(ast)
-#                                    cc = cc + 1
-#                                else:
-#                                    if ast == -999:
-#                                        ast = '-'
-#                                    atxt = atxt + ',' + str(ast)
-#                            
-#                            inputcsv_writer.writerow([num_sim,parms,InputDict[hruid]['SUBID'][0],'HRU',hruid,atxt])
-#            inputcsv.close()
                         
-                        
-        #self.run_SWAT()        
+        self.run_SWAT()        
             
-
+#%%
     def run_SWAT(self):
         cwdir = os.getcwd()
         os.chdir(self.swat_path + 'Scenarios/Default/TxtInOut')
