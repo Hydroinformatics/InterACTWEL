@@ -272,8 +272,8 @@ class LndMngOps(object):
                                     
                         iter_counter = iter_counter + 1
                              
-                    operations_linebool = 0
-                else:
+                    operations_linebool = 2
+                elif operations_linebool == 0 and operations_linebool != 2:
                     wrt.write(line)
                 
                 if 'Operation Schedule' in line:
