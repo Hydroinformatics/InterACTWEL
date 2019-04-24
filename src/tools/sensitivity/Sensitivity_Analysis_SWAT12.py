@@ -37,7 +37,7 @@ class SensitivityAnalysis():
             sys.exit(0)
          
         for i in range(num_sim):
-            self.SA(num_sim)
+            self.SA(i)
         
             for outfile in self.output_vars:
                 tfile = self.output_vars[outfile]['File']
