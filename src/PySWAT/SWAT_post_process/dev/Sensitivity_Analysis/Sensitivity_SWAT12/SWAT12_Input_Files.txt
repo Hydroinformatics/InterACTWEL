@@ -1,7 +1,0 @@
-zipswat_path = C:\Users\sammy\Documents\Research\SWAT\QSWATplus\WillowSWAT12\WillowSWAT12_test.zip
-unzip_path = C:\Users\sammy\Documents\GitHub\InterACTWEL\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Test_Nick
-crop_hru_seq = C:\Users\sammy\Documents\GitHub\InterACTWEL\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Test_Nick\HRU_Crop_Rotations.csv
-
-new_mng_ops = C:\Users\sammy\Documents\GitHub\InterACTWEL\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\NewMngOps.txt
-new_ops_sched = C:\Users\sammy\Documents\GitHub\InterACTWEL\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\NewOpsSchd.txt
-no_change_lum_path = C:\Users\sammy\Documents\GitHub\InterACTWEL\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12/no_changeLU_SWAT12.txt
