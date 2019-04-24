@@ -7,7 +7,7 @@ from tools.sensitivity.Sensitivity_Analysis_SWAT12 import SensitivityAnalysis
 
 
 #%%
-input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
+input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
 sensitivity = SensitivityAnalysis(input_files)
 sensitivity.outputcsv = 0
 sensitivity.inputcsv = 1
