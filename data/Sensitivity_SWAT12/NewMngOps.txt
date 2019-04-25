@@ -1,16 +1,16 @@
 #Fertilizer: [11, fert.dat, FT]
-Elem-n = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
-Elem-p = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
-31-13-00 = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
-04-08-00 = {A_NAPP: range(5,5,100); FEFF: [0.8]; ASUR: [0.8]}
+Elem-n = {A_NAPP: range(5.00,5,100.00); FEFF: [0.80]; ASUR: [0.80]}
+Elem-p = {A_NAPP: range(5.00,5,100.00); FEFF: [0.80]; ASUR: [0.80]}
+31-13-00 = {A_NAPP: range(5.00,5,100.00); FEFF: [0.80]; ASUR: [0.80]}
+04-08-00 = {A_NAPP: range(5.00,5,100.00); FEFF: [0.80]; ASUR: [0.80]}
 
 #Tillage: [6, till.dat, TLID]
-Fldclt15 = {CNOP: [45]}
-Dskplw36 = {CNOP: [50]}
-Beddhipr = {CNOP: [55]}
+Fldclt15 = {CNOP: [45.00000]}
+Dskplw36 = {CNOP: [50.00000]}
+Beddhipr = {CNOP: [55.00000]}
 
 #Irrigation: [10, irr.dat, I]
-surface = {A_WSTRS: [0.85]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5,1,10); IASQ: [0.5]; B: []}
+surface = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []}
 
 #Crops: [1, plant.dat, CROP]
 CORN = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [2500.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}

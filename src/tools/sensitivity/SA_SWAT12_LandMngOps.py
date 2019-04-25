@@ -93,10 +93,13 @@ class LndMngOps(object):
                             temp_dict4 = dict()
                             if '.' not in temprange[0] and temprange[0].isdigit():
                                 temp_dict4['values'] = range(int(temprange[0]),int(temprange[2]),int(temprange[1]))
+                                temp_dict4['DecSpaces'] = 0
                                 #temp_dict4['max'] = int(temprange[1])
                                 
                             else:
-                                temp_dict4['values'] = range(float(temprange[0]),float(temprange[2]),float(temprange[1]))
+                                temp_dict4['values'] = range(int(float(temprange[0])),int(float(temprange[2])),int(float(temprange[1])))
+                                tempdec = temprange[0].split('.')
+                                temp_dict4['DecSpaces'] = len(tempdec[1])
                                 #temp_dict4['min'] = float(temprange[0])
                                 #temp_dict4['max'] = float(temprange[1])
                         
@@ -115,8 +118,14 @@ class LndMngOps(object):
                                     else:
                                         var_range.extend([tempval])
                                 temp_dict4['values'] = var_range
+                                if '.' in tempval:
+                                    tempdec = temprange[0].split('.')
+                                    temp_dict4['DecSpaces'] = len(tempdec[1])
+                                else:
+                                    temp_dict4['DecSpaces'] = 0
                             else:
                                 temp_dict4['values'] = []
+                                temp_dict4['DecSpaces'] = 0
                             
                         temp_dict3[temp_var[0]] = temp_dict4
                     
@@ -180,6 +189,25 @@ class LndMngOps(object):
 
 
 #%%
+    def CheckAddDecimal(self, val, decneed, opvar):
+        strval = str(val)
+        if '.' in strval:
+            declen = strval.split('.')
+            declen = declen[1]
+        else:
+            declen = 0
+        
+        if declen < decneed and '.' in strval:
+            strval = strval + '0'*abs(decneed-declen)
+        elif declen < decneed and '.' not in strval:
+            strval = strval + '.' + '0'*abs(decneed-declen)
+        elif declen > decneed:
+            declen = strval.split('.')
+            decstr = declen[1]
+            strval = declen[0] + '.' + decstr[0:decneed+1]
+        
+        return strval
+    
     def AddParamsToLine(self, line, mngpardict, sub_basin, cropid=None):
         newline = line
         
@@ -201,9 +229,20 @@ class LndMngOps(object):
         for opvar in mngpardict['options'][rnd_op].keys():
             if opvar != 'OP_SCHD' and len(mngpardict['options'][rnd_op][opvar]['values']) > 0:
                 rnd_val = random.choice(mngpardict['options'][rnd_op][opvar]['values'])
-                str_lendiff = abs(len(str(rnd_val)) - len(str(opvar)))
                 
-                newline = newline.replace(opvar,' ' * str_lendiff + str(rnd_val),1)
+                if mngpardict['options'][rnd_op][opvar]['DecSpaces'] > 0:
+                    rnd_val = self.CheckAddDecimal(rnd_val, mngpardict['options'][rnd_op][opvar]['DecSpaces'], opvar)
+                else:
+                    rnd_val = str(rnd_val)
+                    
+                if len(rnd_val) > len(str(opvar)):
+                    str_lendiff = abs(len(rnd_val) - len(str(opvar)))
+                    newline = newline.replace(' ' * str_lendiff + opvar,str(rnd_val),1)
+                    
+                elif len(rnd_val) <= len(str(opvar)):
+                    str_lendiff = abs(len(rnd_val) - len(str(opvar)))
+                    newline = newline.replace(opvar,' ' * str_lendiff + str(rnd_val),1)
+                    
                 #if len(mngpardict['options'][rnd_op][opvar]['values']) > 1:
                 ParamDict[opvar] = rnd_val
             else:
