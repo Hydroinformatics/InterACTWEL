@@ -14,6 +14,34 @@ class LndMngOps(object):
         self.water_rights = None
         
         #self.num_parms = []
+
+#%% 
+    def GetWaterRigthHRU(self, wrtfile):
+        wrdict = dict()
+        temp_dict = dict()
+        if os.path.isfile(self.model_path + 'Scenarios/Default/TxtInOut/' + wrtfile):
+            with open(self.model_path + 'Scenarios/Default/TxtInOut/' + wrtfile,'rb') as search:
+                for line in search:
+                    linesplit = re.split('\s',line)
+                    linesplit = [t for t in linesplit if len(t) > 0]
+                    if len(linesplit) > 0:
+                        wrdict[int(linesplit[0])] = linesplit[1]
+            search.close()
+        else:
+            sys.exit('File: ' + wrtfile + ' was not found.')
+        
+        if os.path.isfile(self.model_path + 'Scenarios/Default/TxtInOut/hruwr.dat'):
+            with open(self.model_path + 'Scenarios/Default/TxtInOut/hruwr.dat','rb') as search:
+                for line in search:
+                    linesplit = re.split('\s',line)
+                    linesplit = [t for t in linesplit if len(t) > 0]
+                    if len(linesplit) > 0:
+                        temp_dict[int(linesplit[0])] = wrdict[int(linesplit[1])]
+            search.close()
+        else:
+            sys.exit('File: hruwr.dat was not found.')
+        
+        return temp_dict
     
 #%%    
     def FindVarIds(self, mngpar):
@@ -103,6 +131,13 @@ class LndMngOps(object):
                                 #temp_dict4['min'] = float(temprange[0])
                                 #temp_dict4['max'] = float(temprange[1])
                         
+                        elif 'watrgt.dat' in temprange:  
+                            var_range = []
+                            temp_dict4 = dict()
+                            temprange = temprange.strip('[')
+                            temprange = temprange.strip(']')
+                            temp_dict4['WRdict'] = temprange
+                        
                         else:
                             var_range = []
                             temp_dict4 = dict()
@@ -113,7 +148,7 @@ class LndMngOps(object):
                                 for tempval in temprange:
                                     if '.' not in tempval and tempval.isdigit():
                                         var_range.extend([int(tempval)])
-                                    elif float(tempval):
+                                    elif '.' in tempval and tempval.isdigit():
                                         var_range.extend([float(tempval)])
                                     else:
                                         var_range.extend([tempval])
@@ -249,7 +284,8 @@ class LndMngOps(object):
                 newline = newline.replace(opvar,' ' * len(opvar))
                 
         return newline, ParamDict
-    
+
+#%%    
     def Write_MgtSchd(self, file_path, hruid, hru_crops):
     
         cline = 0

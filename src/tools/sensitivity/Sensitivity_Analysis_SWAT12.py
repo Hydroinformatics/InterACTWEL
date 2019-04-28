@@ -100,6 +100,12 @@ class SensitivityAnalysis():
         
         if not self.CheckActorGroups():
             self.HRU_ACTORS, self.hru_ids, self.total_area, self.no_change_lums = self.GetHRU_ACTORS()
+            
+        for mngpar in self.LndMngOps.MngParams.keys():
+            for opkeys in self.LndMngOps.MngParams[mngpar]['options'].keys():
+                for var in self.LndMngOps.MngParams[mngpar]['options'][opkeys]:
+                    if 'WRdict' in self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]:
+                        self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]['WRdict'] = self.LndMngOps.GetWaterRigthHRU(self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]['WRdict'])
         
         for mngpar in self.LndMngOps.MngParams.keys():
             self.LndMngOps.FindVarIds(mngpar)
@@ -117,7 +123,7 @@ class SensitivityAnalysis():
         InputDict = dict()
         InputDict = self.LndMngOps.ChangeHRU_Mgt(HRUids, self.HRUFiles ,self.HRUCrops)
         
-        if self.inputcsv == 1 and len(InputDict.keys()):
+        if self.inputcsv == 1 and len(InputDict.keys()) > 0:
             csv_file = self.swat_path + 'SA_Inputs.csv'
             filein = open(csv_file,'w')
             filein.write('ITER, INVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (YEAR) \n')

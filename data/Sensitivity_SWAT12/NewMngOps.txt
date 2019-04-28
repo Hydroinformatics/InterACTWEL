@@ -10,7 +10,10 @@ Dskplw36 = {CNOP: [50.00000]}
 Beddhipr = {CNOP: [55.00000]}
 
 #Irrigation: [10, irr.dat, I]
-surface = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []}
+surface = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+groundwater = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+outside = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+
 
 #Crops: [1, plant.dat, CROP]
 CORN = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [2500.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
