@@ -10,14 +10,10 @@ Dskplw36 = {CNOP: [50.00000]}
 Beddhipr = {CNOP: [55.00000]}
 
 #Irrigation: [10, irr.dat, I]
-<<<<<<< HEAD
-surface = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
-groundwater = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
-outside = {A_WSTRS: [0.85]; IEFF: [0.80000,0.90000]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
-
-=======
-surface = {A_WSTRS: [0.95]; IEFF: [0.80000,0.90000]; IRRI_AMTX: [0.50000]; IASQ: [0.50]; B: []}
->>>>>>> 1706e8299a67a1cc919616cd2b2f20fff49a6c71
+surface = {A_WSTRS: [0.95]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+groundwater = {A_WSTRS: [0.85]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+outside = {A_WSTRS: [0.85]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
+no_irr = {A_WSTRS: [0.85]; IEFF: [0.80,0.90]; IRRI_AMTX: range(5.00000,1,10.00000); IASQ: [0.50]; B: []; ISC:[watrgt.dat]}
 
 #Crops: [1, plant.dat, CROP]
 CORN = {OP_SCHD: [1,4,6,8]; HEATUN_MAT: [2500.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
