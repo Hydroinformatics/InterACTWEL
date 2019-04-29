@@ -21,6 +21,7 @@ class SensitivityAnalysis():
         self.LndMngOps = LandMngOps.LndMngOps()
         self.saoutputs = saoutputs.SA_Outputs()
         
+        print "Reading Input Files"
         #self.SAUtils = sautils.SAUtils()
         self.ReadInputs()
         
@@ -37,8 +38,10 @@ class SensitivityAnalysis():
             sys.exit(0)
          
         for i in range(num_sim):
+            print "Iteration :" + str(i)
             self.SA(i)
-        
+            self.output_vars_data = dict()
+            
             for outfile in self.output_vars:
                 tfile = self.output_vars[outfile]['File']
                 if tfile[len(tfile)-3:len(tfile)] == 'hru':
@@ -57,6 +60,7 @@ class SensitivityAnalysis():
                             self.output_vars_data[varkey] = self.saoutputs.Get_output_std(tfile, table, varkey, self.output_vars[outfile]['Vars'][varkey])
             
             if self.outputcsv == 1:
+                print "Writing Output Data CSV" 
                 csv_file = self.swat_path + '/' + 'SA_Outputs.csv'
                 fileout = open(csv_file,'w')
                 fileout.write('ITER, OUTVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (MON) \n')
@@ -112,6 +116,8 @@ class SensitivityAnalysis():
          
         self.HRUFiles = self.FindHRUMgtFiles()
         
+        print "Writing the Mngt Files"
+        
 #            for i in self.HRU_ACTORS.keys():
 #                self.LndMngOps.ChangeHRU_Mgt(self.HRU_ACTORS[i]['HRU_IDS'], self.HRUFiles ,self.HRUCrops)
         
@@ -124,6 +130,7 @@ class SensitivityAnalysis():
         InputDict = self.LndMngOps.ChangeHRU_Mgt(HRUids, self.HRUFiles ,self.HRUCrops)
         
         if self.inputcsv == 1 and len(InputDict.keys()) > 0:
+            print "Writing Input Data CSV"  
             csv_file = self.swat_path + 'SA_Inputs.csv'
             filein = open(csv_file,'w')
             filein.write('ITER, INVAR, SUBID, UNIT_TYPE, UNIT_ID, TIME (YEAR) \n')
@@ -147,7 +154,7 @@ class SensitivityAnalysis():
                         
             filein.close()
             
-                        
+        print "Running SWAT"               
         self.run_SWAT()        
             
 #%%
@@ -155,11 +162,15 @@ class SensitivityAnalysis():
         cwdir = os.getcwd()
         os.chdir(self.swat_path + 'Scenarios/Default/TxtInOut')
         exitflag = subprocess.check_call([self.swat_exe])
-        print exitflag
+        if exitflag == 0:
+            print "Successful SWAT run"
+        else:
+            print exitflag
         os.chdir(cwdir)
         
     #%% Unzip user SWAT model and run baseline scenario
     def UnzipModel(self,iterc):
+        print "Unzipping SWAT model"  
         folderpath = self.pathuzip + '/ITER_' + str(iterc) + '/'
         if os.path.isdir(folderpath):
             shutil.rmtree(folderpath)
