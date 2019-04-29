@@ -108,7 +108,7 @@ class SensitivityAnalysis():
         for mngpar in self.LndMngOps.MngParams.keys():
             for opkeys in self.LndMngOps.MngParams[mngpar]['options'].keys():
                 for var in self.LndMngOps.MngParams[mngpar]['options'][opkeys]:
-                    if 'WRdict' in self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]:
+                    if 'WRdict' in self.LndMngOps.MngParams[mngpar]['options'][opkeys][var] and type(self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]['WRdict']) is not dict:
                         self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]['WRdict'] = self.LndMngOps.GetWaterRigthHRU(self.LndMngOps.MngParams[mngpar]['options'][opkeys][var]['WRdict'])
         
         for mngpar in self.LndMngOps.MngParams.keys():
