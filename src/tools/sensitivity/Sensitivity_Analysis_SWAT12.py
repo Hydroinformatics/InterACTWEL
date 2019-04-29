@@ -38,7 +38,7 @@ class SensitivityAnalysis():
             sys.exit(0)
          
         for i in range(num_sim):
-            print "Iteration :" + str(i)
+            print "Iteration: " + str(i)
             self.SA(i)
             self.output_vars_data = dict()
             
