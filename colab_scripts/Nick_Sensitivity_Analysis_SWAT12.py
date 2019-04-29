@@ -16,4 +16,4 @@ sensitivity.inputcsv = 1
 
 sensitivity.swat_exe = 'swat_debug32.exe'
 for i in range(0,10):
-    sensitivity.RunAnalysis(1)
+    sensitivity.RunAnalysis(i)
