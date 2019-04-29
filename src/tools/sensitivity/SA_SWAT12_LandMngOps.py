@@ -12,6 +12,8 @@ class LndMngOps(object):
         self.mngops_parmt_file = ''
         self.model_path = ''
         self.water_rights = None
+        self.wrdict_bool = 0
+        self.wrvarname = ''
         
         #self.num_parms = []
 
@@ -41,6 +43,7 @@ class LndMngOps(object):
         else:
             sys.exit('File: hruwr.dat was not found.')
         
+        self.wrdict_bool = 1
         return temp_dict
     
 #%%    
@@ -137,7 +140,9 @@ class LndMngOps(object):
                             temprange = temprange.strip('[')
                             temprange = temprange.strip(']')
                             temp_dict4['WRdict'] = temprange
-                        
+                            self.wrvarname = temp_var[0]
+                            
+                            
                         else:
                             var_range = []
                             temp_dict4 = dict()
@@ -145,6 +150,7 @@ class LndMngOps(object):
                             temprange = temprange.strip(']')
                             if len(temprange) > 1:
                                 temprange = re.split(',',temprange)
+
                                 for tempval in temprange:
                                     if '.' not in tempval and tempval.isdigit():
                                         var_range.extend([int(tempval)])
@@ -242,8 +248,9 @@ class LndMngOps(object):
             strval = declen[0] + '.' + decstr[0:decneed+1]
         
         return strval
-    
-    def AddParamsToLine(self, line, mngpardict, sub_basin, cropid=None):
+            
+        
+    def AddParamsToLine(self, line, mngpardict, sub_basin, hruid, cropid=None):
         newline = line
         
         ParamDict = dict()
@@ -251,7 +258,11 @@ class LndMngOps(object):
         if cropid is not None:
             rnd_op = cropid
         else:
-            rnd_op = random.choice(mngpardict['options'].keys())
+            if mngpardict['opID'] == 10 and self.wrdict_bool == 1:
+                rnd_op = random.choice(mngpardict['options'].keys())
+                rnd_op = int(mngpardict['options'][rnd_op][self.wrvarname]['WRdict'][hruid])
+            else:
+                rnd_op = random.choice(mngpardict['options'].keys())
             
         if mngpardict['opID'] == 10:
             mngpardict['options'][rnd_op]['B']['values'] = [sub_basin]
@@ -262,26 +273,27 @@ class LndMngOps(object):
             
         #if decision_vars in line:
         for opvar in mngpardict['options'][rnd_op].keys():
-            if opvar != 'OP_SCHD' and len(mngpardict['options'][rnd_op][opvar]['values']) > 0:
-                rnd_val = random.choice(mngpardict['options'][rnd_op][opvar]['values'])
-                
-                if mngpardict['options'][rnd_op][opvar]['DecSpaces'] > 0:
-                    rnd_val = self.CheckAddDecimal(rnd_val, mngpardict['options'][rnd_op][opvar]['DecSpaces'], opvar)
+            if 'values' in mngpardict['options'][rnd_op][opvar].keys():
+                if opvar != 'OP_SCHD' and len(mngpardict['options'][rnd_op][opvar]['values']) > 0:
+                    rnd_val = random.choice(mngpardict['options'][rnd_op][opvar]['values'])
+                    
+                    if mngpardict['options'][rnd_op][opvar]['DecSpaces'] > 0:
+                        rnd_val = self.CheckAddDecimal(rnd_val, mngpardict['options'][rnd_op][opvar]['DecSpaces'], opvar)
+                    else:
+                        rnd_val = str(rnd_val)
+                    
+                    if len(rnd_val) > len(str(opvar)):
+                        str_lendiff = abs(len(rnd_val) - len(str(opvar)))
+                        newline = newline.replace(' ' * str_lendiff + opvar,str(rnd_val),1)
+                        
+                    elif len(rnd_val) <= len(str(opvar)):
+                        str_lendiff = abs(len(rnd_val) - len(str(opvar)))
+                        newline = newline.replace(opvar,' ' * str_lendiff + str(rnd_val),1)
+                    
+                    #if len(mngpardict['options'][rnd_op][opvar]['values']) > 1:
+                    ParamDict[opvar] = rnd_val
                 else:
-                    rnd_val = str(rnd_val)
-                    
-                if len(rnd_val) > len(str(opvar)):
-                    str_lendiff = abs(len(rnd_val) - len(str(opvar)))
-                    newline = newline.replace(' ' * str_lendiff + opvar,str(rnd_val),1)
-                    
-                elif len(rnd_val) <= len(str(opvar)):
-                    str_lendiff = abs(len(rnd_val) - len(str(opvar)))
-                    newline = newline.replace(opvar,' ' * str_lendiff + str(rnd_val),1)
-                    
-                #if len(mngpardict['options'][rnd_op][opvar]['values']) > 1:
-                ParamDict[opvar] = rnd_val
-            else:
-                newline = newline.replace(opvar,' ' * len(opvar))
+                    newline = newline.replace(opvar,' ' * len(opvar))
                 
         return newline, ParamDict
 
@@ -319,10 +331,10 @@ class LndMngOps(object):
                             opkey = [mngpar for mngpar in self.MngParams.keys() if self.MngParams[mngpar]['opID'] == schd_line]
                             paramdict = dict()
                             if len(opkey) > 0:
-                                if opkey[0].lower() == 'crops':
-                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin, crop_id)
+                                if self.MngParams[opkey[0]]['opID'] == 1 :
+                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin, hruid, crop_id)
                                 else:
-                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin)
+                                    temp_line, paramdict = self.AddParamsToLine(temp_line, self.MngParams[opkey[0]], sub_basin, hruid)
                                 wrt.write(temp_line + '\n')
                             else:
                                 wrt.write(temp_line + '\n')
@@ -347,8 +359,10 @@ class LndMngOps(object):
                                     
                         iter_counter = iter_counter + 1
                              
+                    operations_linebool = 0
                     operations_linebool = 2
                 elif operations_linebool == 0 and operations_linebool != 2:
+                #else:
                     wrt.write(line)
                 
                 if 'Operation Schedule' in line:
