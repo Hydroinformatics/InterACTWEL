@@ -40,7 +40,7 @@ class SensitivityAnalysis():
         for i in range(num_sim):
             print "Iteration: " + str(i)
             self.SA(i)
-            self.output_vars_data = dict()
+            #self.output_vars_data = dict()
             
             for outfile in self.output_vars:
                 tfile = self.output_vars[outfile]['File']
