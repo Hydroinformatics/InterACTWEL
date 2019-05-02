@@ -143,7 +143,7 @@
         read (105,*,iostat=eof) res_pvol(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) res_vol(i) 
-        WRITE(*,*) "res_vol:", res_vol(i)
+        !!WRITE(*,*) "res_vol:", res_vol(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) res_sed(i) 
         if (eof < 0) exit
@@ -158,22 +158,22 @@
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (oflowmx(mon,i), mon = 1, 6)
-        WRITE(*,*) "oflowmx(1-6):", oflowmx(1,i)
+        !!WRITE(*,*) "oflowmx(1-6):", oflowmx(1,i)
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (oflowmx(mon,i), mon = 7, 12)
-        WRITE(*,*) "oflowmx(7-12):", oflowmx(7,i)
+        !!WRITE(*,*) "oflowmx(7-12):", oflowmx(7,i)
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (oflowmn(mon,i), mon = 1, 6)
-        WRITE(*,*) "oflowmn(1-6):", oflowmn(1,i)
+        !!WRITE(*,*) "oflowmn(1-6):", oflowmn(1,i)
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (oflowmn(mon,i), mon = 7, 12)
-        WRITE(*,*) "oflowmn(7-12):", oflowmn(7,i)
+        !!WRITE(*,*) "oflowmn(7-12):", oflowmn(7,i)
         if (eof < 0) exit
         read (105,*,iostat=eof) res_rr(i)
         if (eof < 0) exit
@@ -188,34 +188,33 @@
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (starg(mon,i), mon = 1, 6)
-        WRITE(*,*) "starg(1-6):", starg(1,i)
+        !!WRITE(*,*) "starg(1):", starg(1,i)
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (starg(mon,i), mon = 7, 12)
-        WRITE(*,*) "starg(7-12):", starg(7,i)
         if (eof < 0) exit
         read (105,1100,iostat=eof) resdayo
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (wuresn(mon,i), mon = 1, 6)
-        WRITE(*,*) "wuresn(1-6):", wuresn(1,i)
+        !!WRITE(*,*) "wuresn(1-6):", wuresn(1,i)
         if (eof < 0) exit
         read (105,1000,iostat=eof) titldum
         if (eof < 0) exit
         read (105,*,iostat=eof) (wuresn(mon,i), mon = 7, 12)
-        WRITE(*,*) "wuresn(7-12):", wuresn(7,i)
+        !!WRITE(*,*) "wuresn(7-12):", wuresn(7,i)
         if (eof < 0) exit
         read (105,*,iostat=eof) wurtnf(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) evrsv(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) oflowmn_fps(i)
-        WRITE(*,*) "oflowmn_fps:", oflowmn_fps(i)
+        !!WRITE(*,*) "oflowmn_fps:", oflowmn_fps(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) starg_fps(i)
-        WRITE(*,*) "starg_fps:", starg_fps(i)
+        !!WRITE(*,*) "starg_fps:", starg_fps(i)
         if (eof < 0) exit
         read (105,*,iostat=eof) nostep
         if (eof < 0) exit
@@ -260,7 +259,7 @@
       if (res_esa(i) <= 0.0) res_esa(i) = 1.5 * res_psa(i) 
       targ = 0.
       targ = res_pvol(i) + 0.1 * (res_evol(i) - res_pvol(i))
-      WRITE(*,*) "targ:", targ
+      !!WRITE(*,*) "targ:", targ
       if (res_vol(i) > targ ) res_vol(i) = targ
       if (evrsv(i) <= 0.) evrsv(i) = 0.6
      
@@ -312,7 +311,7 @@
 !!    calculate shape parameters for surface area equation
       resdif = 0.
       resdif = res_evol(i) - res_pvol(i)
-      WRITE(*,*) "resdif:", resdif
+      !!WRITE(*,*) "resdif:", resdif
       if ((res_esa(i) - res_psa(i)) > 0. .and. resdif > 0.) then	
       lnvol = 0.
       lnvol = Log10(res_evol(i)) - Log10(res_pvol(i))
