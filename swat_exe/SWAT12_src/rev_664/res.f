@@ -133,14 +133,17 @@
 !! new water volume for day
       if (iresco(jres) /= 5) then 
        res_vol(jres) = res_vol(jres) + respcp + resflwi - resev - ressep
+	   WRITE (*,*) "res_vol(jres):", res_vol(jres)
       endif
       
 !! subtract consumptive water use from reservoir storage
         xx = 0.
         xx = wuresn(i_mo,jres)
+		WRITE(*,*) "xx:", xx
         res_vol(jres) = res_vol(jres) - xx
         if (res_vol(jres) < 0.) then
           xx = xx + res_vol(jres)
+		  WRITE(*,*) "xx if vol less than zero:", xx
           res_vol(jres) = 0.
         end if
 
@@ -168,13 +171,17 @@
             targ = 0.
             if (starg(i_mo,jres) > 0.) then
               targ = starg(i_mo,jres)
+			  WRITE(*,*) "targ:", targ
             else
               !! target storage based on flood season and soil water
-              if (iflod2r(jres) > iflod1r(jres)) then
+              WRITE(*,*) "using flood months"
+			  if (iflod2r(jres) > iflod1r(jres)) then
                 if (i_mo > iflod1r(jres) .and. i_mo < iflod2r(jres))    
      &                                                              then
                   targ = res_evol(jres)
+				  WRITE(*,*) "using flood months 1"
                 else
+				WRITE(*,*) "using flood months 2"
                 xx = Min(sub_sw(res_sub(jres))/sub_sumfc(res_sub(jres)),
      &                                                               1.)
                 targ = res_pvol(jres) + .5 * (1. - xx) *                
@@ -183,7 +190,9 @@
               else
                 if (i_mo > iflod1r(jres) .or. i_mo < iflod2r(jres)) then
                   targ = res_evol(jres)
+				  WRITE(*,*) "using flood months 3"
                 else
+				WRITE(*,*) "using flood months 4"
                 xx = Min(sub_sw(res_sub(jres))/sub_sumfc(res_sub(jres)),
      &                                                               1.)
                 targ = res_pvol(jres) + .5 * (1. - xx) *                
