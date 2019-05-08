@@ -48,6 +48,11 @@ class SensitivityAnalysis():
                 for varkey in self.output_vars[outfile]['Vars'].keys():
                     data_array, hru_sub = self.saoutputs.Get_output_hru(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
                     self.output_vars_data[varkey] = data_array
+            
+            elif tfile[len(tfile)-3:len(tfile)] == 'sub':
+                for varkey in self.output_vars[outfile]['Vars'].keys():
+                    data_array = self.saoutputs.Get_output_sub(tfile, varkey, self.output_vars[outfile]['Vars'][varkey])
+                    self.output_vars_data[varkey] = data_array
                    
             elif tfile[len(tfile)-3:len(tfile)] == 'rch':
                 for varkey in self.output_vars[outfile]['Vars'].keys():

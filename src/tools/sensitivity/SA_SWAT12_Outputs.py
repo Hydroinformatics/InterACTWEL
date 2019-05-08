@@ -38,9 +38,13 @@ class SA_Outputs(object):
                     #try:
                     if len(linesplit[5].split('.')) < 3: # NEEDS to be chceck the HRU file is not displaying a month. ERROR IN SWAT
                         if int(linesplit[5].split('.')[0]) < 13 and varcol == 6:
-                            data_array[linesplit[1]].append(float(linesplit[5].split('.')[1]))
+                            data_array[linesplit[1]].append(float('0.'+ linesplit[5].split('.')[1]))
                         elif int(linesplit[5].split('.')[0]) < 13 and varcol != 6:
-                            data_array[linesplit[1]].append(float(linesplit[varcol-1]))
+                            if varcol == 1:
+                                data_array[linesplit[1]].append(linesplit[varcol-1])
+                            else:
+                                data_array[linesplit[1]].append(float(linesplit[varcol-1]))
+                            
                         elif int(linesplit[5].split('.')[0]) not in data_array['Years']:
                             data_array['Years'].append(int(linesplit[5].split('.')[0]))
                     #except:
@@ -78,6 +82,37 @@ class SA_Outputs(object):
                             data_array['Years'].append(int(linesplit[3]))
                             
         #output_data[var] = data_array
+        return data_array
+    
+    #%%
+    def Get_output_sub(self, tfile, var, varcol):
+    
+        data_array = dict()
+        data_array['Years'] = []
+        data_array['Type'] = 'SUB'
+        varbool = 0
+        with open(self.model_path + tfile) as search:
+            for line in search:
+                if 'SUB'.lower() in line.lower():    
+                    varbool = 1
+                    
+                elif varbool == 1:
+                    linesplit = re.split('\s',line)
+                    linesplit = [e for e in linesplit if e != '']
+                    
+                    if linesplit[1] not in data_array.keys():
+                        data_array[linesplit[1]] = []
+    
+                    if len(linesplit[3].split('.')) < 3: # NEEDS to be chceck the HRU file is not displaying a month. ERROR IN SWAT
+                        if int(linesplit[3].split('.')[0]) < 13 and varcol == 6:
+                            data_array[linesplit[1]].append(float(linesplit[3].split('.')[1]))
+                            
+                        elif int(linesplit[3].split('.')[0]) < 13 and varcol != 6:
+                            data_array[linesplit[1]].append(float(linesplit[varcol-1]))
+                            
+                        elif int(linesplit[3].split('.')[0]) not in data_array['Years']:
+                            data_array['Years'].append(int(linesplit[3].split('.')[0]))
+
         return data_array
 
 #%%    
