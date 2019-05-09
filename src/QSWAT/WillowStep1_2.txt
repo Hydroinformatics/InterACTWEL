@@ -1,0 +1,6 @@
+swat_path = C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\WillowNLCD
+nlcdFile = C:\Users\sammy\Documents\Research\SWAT\Willow_Input_data/nlcd_proj_mfv2.tif
+cdlFile = C:\Users\sammy\Documents\Research\SWAT\willow_final\CDL_Data\CDL_2016_clip_20180821151150_mf.tif
+subbasinsFile = C:\Users\sammy\Documents\Research\SWAT\QSWATplus\WillowSWAT12\willow_v2\Source\Willow_Proj.shp
+landuseFile = C:\Users\sammy\Documents\Research\SWAT\willow_final\HRUs_LU.tif
+soilFile = C:\Users\sammy\Documents\Research\SWAT\willow_final\Soils_30m.tif

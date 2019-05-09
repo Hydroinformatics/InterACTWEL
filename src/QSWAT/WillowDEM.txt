@@ -1,0 +1,3 @@
+subbasinsFile = C:\Users\sammy\Documents\Research\SWAT\QSWATplus\WillowSWAT12\willow_v2\Source\Willow_Proj.shp
+demFile = C:\Users\sammy\Documents\Research\SWAT\willow_final\DEM_proj_30m.tif
+output_path = C:\Users\sammy\Documents\Research\SWAT\Willow_Input_data
