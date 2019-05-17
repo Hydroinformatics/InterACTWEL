@@ -37,6 +37,8 @@ SWGR = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; 
 FRST = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
 RNGE = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
 ORCD = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+AGRR = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+
 
 #HarvKill: [5, harv.dat, ]
 harvestkill = {CNOP_HAR: [50.0]}

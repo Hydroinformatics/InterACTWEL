@@ -423,7 +423,7 @@ class SensitivityAnalysis():
 
 #%%
     def GetHRUCropRot(self):
-        cropdict = self.CDLtoSWATdict()
+        #cropdict = self.CDLtoSWATdict()
         HRUCrops = dict()
         cline = 0
         with open(self.crop_rots, 'rb') as search:
@@ -434,8 +434,10 @@ class SensitivityAnalysis():
                     temp_data = []
                     ncld_bool = 0
                     for i in range(1,len(linesplit)):
-                        if int(linesplit[i]) > 0 and int(linesplit[i]) in cropdict.keys():
-                            temp_data.append(cropdict[int(linesplit[i])])
+                        #if int(linesplit[i]) > 0 and int(linesplit[i]) in cropdict.keys():
+                        if int(linesplit[i]) > 0:
+                            #temp_data.append(cropdict[int(linesplit[i])])
+                            temp_data.append(int(linesplit[i]))
                         else:
                             temp_data.append(int(linesplit[i]))
                             ncld_bool = 1
