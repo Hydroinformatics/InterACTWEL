@@ -49,3 +49,6 @@
           0.170 10    1   I         A_WSTRS   IEFF   IRRI_AMTX IASQ                        B
           1.200  5                 CNOP_HAR
                 17
+				
+#Operation Schedule: 9
+                17

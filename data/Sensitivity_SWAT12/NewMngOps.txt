@@ -38,6 +38,7 @@ FRST = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; 
 RNGE = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
 ORCD = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
 AGRR = {OP_SCHD: range(1,1,8); HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+BARR = {OP_SCHD: [9]; HEATUN_MAT: [2000.00000]; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
 
 
 #HarvKill: [5, harv.dat, ]
