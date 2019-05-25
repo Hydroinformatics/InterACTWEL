@@ -148,10 +148,11 @@ class LndMngOps(object):
                             temp_dict4 = dict()
                             temprange = temprange.strip('[')
                             temprange = temprange.strip(']')
-                            if len(temprange) > 1:
+                            if len(temprange) > 0:
                                 if ',' in temprange:
                                     temprange = re.split(',',temprange)
                                     
+                                print temprange
 
                                 for tempval in temprange:
                                     if '.' not in tempval and tempval.isdigit():
