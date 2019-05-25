@@ -152,7 +152,7 @@ class LndMngOps(object):
                                 if ',' in temprange:
                                     temprange = re.split(',',temprange)
                                     
-                                print temprange
+                                #print temprange
 
                                 for tempval in temprange:
                                     if '.' not in tempval and tempval.isdigit():
