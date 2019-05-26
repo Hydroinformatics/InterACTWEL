@@ -110,6 +110,9 @@ class LndMngOps(object):
                     linesplit = "".join(line.split())
                     temp_id = linesplit.find('=')
                     
+#                    if line[0:temp_id] == 'BARR':
+#                        print 'BARR'
+                    
                     param_values = sautils.FindString('{','}',linesplit)
                     param_values = re.split(';',param_values)
                     temp_dict3 = dict()
@@ -123,12 +126,12 @@ class LndMngOps(object):
                             temprange = re.split(',',temprange)
                             temp_dict4 = dict()
                             if '.' not in temprange[0] and temprange[0].isdigit():
-                                temp_dict4['values'] = range(int(temprange[0]),int(temprange[2]),int(temprange[1]))
+                                temp_dict4['values'] = range(int(temprange[0]),int(temprange[2])+1,int(temprange[1]))
                                 temp_dict4['DecSpaces'] = 0
                                 #temp_dict4['max'] = int(temprange[1])
                                 
                             else:
-                                temp_dict4['values'] = range(int(float(temprange[0])),int(float(temprange[2])),int(float(temprange[1])))
+                                temp_dict4['values'] = range(int(float(temprange[0])),int(float(temprange[2]))+1,int(float(temprange[1])))
                                 tempdec = temprange[0].split('.')
                                 temp_dict4['DecSpaces'] = len(tempdec[1])
                                 #temp_dict4['min'] = float(temprange[0])
@@ -148,9 +151,9 @@ class LndMngOps(object):
                             temp_dict4 = dict()
                             temprange = temprange.strip('[')
                             temprange = temprange.strip(']')
-                            if len(temprange) > 0:
-                                if ',' in temprange:
-                                    temprange = re.split(',',temprange)
+                            if len(temprange) >= 1:
+                                #if ',' in temprange:
+                                temprange = re.split(',',temprange)
                                     
                                 #print temprange
 
