@@ -1,0 +1,13 @@
+{
+    "Data type": "Yearly totals per crop",
+    "Data": {
+        "1": { "1": { "Data": 21664, "Name": "Surface water" }, "3": { "Data": 14466, "Name": "Groundwater" }, "5": { "Data": 2368, "Name": "Columbia River" } },
+        "2": { "1": { "Data": 254, "Name": "Surface water" }, "3": { "Data": 37755, "Name": "Groundwater" }, "5": { "Data": 13498, "Name": "Columbia River" } },
+        "3": { "1": { "Data": 25486, "Name": "Surface water" }, "3": { "Data": 19617, "Name": "Groundwater" }, "5": { "Data": 561, "Name": "Columbia River" } },
+        "4": { "1": { "Data": 7345, "Name": "Surface water" }, "3": { "Data": 47103, "Name": "Groundwater" }, "5": { "Data": 309, "Name": "Columbia River" } },
+        "5": { "1": { "Data": 0, "Name": "Surface water" }, "3": { "Data": 33025, "Name": "Groundwater" }, "5": { "Data": 64044, "Name": "Columbia River" } }
+    },
+    "Description": "Total water rights in sub-basin (acre-ft).",
+    "Graph type": "stacked bar graph",
+    "Legend": "Columbia River"
+}

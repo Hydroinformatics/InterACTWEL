@@ -13,16 +13,16 @@ from tools.sensitivity.Sensitivity_Analysis_SWAT12 import SensitivityAnalysis
 #input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
 input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\SWAT12_Input_Files.txt'
 
-for i in range(0,10):
+for i in range(0,11):
     sensitivity = SensitivityAnalysis(input_files)
-    sensitivity.outputcsv = 1
-    sensitivity.inputcsv = 1
+    sensitivity.outputcsv = 0
+    sensitivity.inputcsv = 0
 
-    sensitivity.swat_exe = 'swat_debug32.exe'
+    sensitivity.swat_exe = 'swat_debug32_gui.exe'
     sensitivity.RunAnalysis(i)
 
 #%%
-#
+
 #def FindString(startstr, endstr, line):
 #    
 #    temp_id_a = line.find(startstr) 
@@ -278,7 +278,7 @@ for i in range(0,10):
 #                wrsrc[int(linesplit[0])] = int(linesplit[1])
 #                temp_sum = temp_sum + int(linesplit[2])
 #    search.close()
-#    
+#    owrdict = wrdict
 #    hruwr = dict()
 #    with open(model_path + 'Scenarios/Default/TxtInOut/hruwr.dat','rb') as search:
 #        for line in search:
@@ -324,7 +324,7 @@ for i in range(0,10):
 #                
 #                twrfile.write(newline + '\n')
 #                
-#            elif int(linesplit[0]) == 999:
+#            else:
 #                twrfile.write(line)
 #                
 #    search.close()
@@ -359,7 +359,7 @@ for i in range(0,10):
 #                    output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
 #        
 #         
-#    return wrdict, wrsrc, hruwr, output_vars_data
+#    return wrdict, owrdict, wrsrc, hruwr, output_vars_data
 #
 ##%%
 #def run_SWAT(model_path, swat_exe):
@@ -400,10 +400,11 @@ for i in range(0,10):
 #    cropdict = dict()
 #    for row in crsr.fetchall():
 #        cropdict[str(row[2])] = row[4]
-#        
+#    
+#    cropdict['NOCR'] = 'No Crops'
 #    return cropdict
 #    
-#def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
+#def HRU_SUBDict(output_vars_data, cropnames, wrsrc, owrdict, hruwr, irr_dict):
 #    
 #    hru_sub = dict()
 #    
@@ -416,6 +417,38 @@ for i in range(0,10):
 #           
 #    temp_all = dict()
 #    temp_basin = dict()
+#    uwrsrc = []
+#    for wrid in wrsrc.keys():
+#        uwrsrc.append(wrsrc[wrid])
+#        
+#    uwrsrc = np.unique(uwrsrc)
+#    
+#    temp_dict = dict()
+#    for subi in hru_sub.keys():
+#        if subi not in temp_dict.keys():
+#            temp_dict[subi] = []
+#            
+#        temp_dict2 = dict()
+#        for uwr in uwrsrc:
+#            temp_dict2[uwr] = dict()
+#            temp_dict2[uwr]['Name'] = irr_dict[uwr]
+#            temp_dict2[uwr]['Data'] = 0
+#            
+#        for hrui in hru_sub[subi]:
+#            if hruwr[int(hrui)] != 999:
+#                temp_dict2[wrsrc[hruwr[int(hrui)]]]['Data'] = temp_dict2[wrsrc[hruwr[int(hrui)]]]['Data'] + owrdict[hruwr[int(hrui)]]
+#                
+#        temp_dict[subi] = temp_dict2
+#        
+#    
+#    temp_basin['Water Rights (acre-ft)'] = dict()
+#    temp_basin['Water Rights (acre-ft)']['Data'] = temp_dict
+#    temp_basin['Water Rights (acre-ft)']['Description'] = 'Total water rights in sub-basin (acre-ft).'
+#    temp_basin['Water Rights (acre-ft)']['Graph type'] = 'stacked bar graph'
+#    temp_basin['Water Rights (acre-ft)']['Data type'] = 'Yearly totals per crop'
+#    temp_array = []
+#    for uwr in uwrsrc:
+#        temp_basin['Water Rights (acre-ft)']['Legend'] = irr_dict[uwr]
 #    
 #    if 'LULC' in output_vars_data.keys() and 'AREAkm2' in output_vars_data.keys():
 #        temp_dict = dict()
@@ -1014,16 +1047,18 @@ for i in range(0,10):
 #    
 ##%%    
 #    
-#wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\watrgt.dat'
+##wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\watrgt.dat'
+#wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\watrgt.dat'
 #
 #output_vars_file =  'C:\Users\sammy\Documents\GitHub\InterACTWEL\data\Sensitivity_SWAT12\OutputVars_Arjan.txt'
 #output_vars = GetOutputVars(output_vars_file)
 #
-#iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Test_Nick'
+##iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Test_Nick'
+#iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\ITERS_TENyrs'
 #
 #ActPlan = dict()
 #plancount = 0
-#for i in range(5,6):
+#for i in range(0,1):
 #    #ActPlan['Plan ' + str(i)] = dict()
 #    
 #    model_path = iter_dir.replace('\\','/') + '/ITER_' + str(i) + '/'
@@ -1036,17 +1071,17 @@ for i in range(0,10):
 #    
 #    for ii in range(0,1): 
 #        print 'ITER_' + str(i) + ' - ADD: ' + str(ii) 
-#        wrdict, wrsrc, hruwr, output_vars_data = GetWaterRigthHRU(wr_path, model_path, 1, output_vars)
+#        wrdict, owrdict, wrsrc, hruwr, output_vars_data = GetWaterRigthHRU(wr_path, model_path, 1, output_vars)
 #    
 #        temp_dict = dict()
 #        temp_dict['REACH'] = ReachDict(output_vars_data)
-#        temp_all, temp_basin = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
+#        temp_all, temp_basin = HRU_SUBDict(output_vars_data, cropnames, wrsrc, owrdict, hruwr, irr_dict)
 #        temp_dict['SUB'] = temp_all
 #        temp_dict['BASIN'] = temp_basin
 #        
 #        Indiv_BASIN_json(temp_basin)
 #        
-#    
+#        
 #        ActPlan['Plan ' + str(i) + str(ii)] = temp_dict
 #     
 #    #ActPlan['Plan ' + str(i)]['SUB'] = ReachDict(output_vars_data)
@@ -1055,6 +1090,6 @@ for i in range(0,10):
 #with open(os.getcwd() + '/Mockup_data.json', 'w') as fp:
 #    json.dump(ActPlan, fp)
 #    
-##tte = Indiv_BASIN_json(temp_basin)
+#tte = Indiv_BASIN_json(temp_basin)
 #
 #    

@@ -4,11 +4,23 @@ import os, shutil, sys, re, subprocess, pyodbc
 import numpy as np
 import csv, json
 
+#os.chdir('..\src')
+#
+#from tools.sensitivity.Sensitivity_Analysis_SWAT12 import SensitivityAnalysis
+#
+#
+##%%
+##input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
+#input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
+#
+#for i in range(0,10):
+#    sensitivity = SensitivityAnalysis(input_files)
+#    sensitivity.outputcsv = 1
+#    sensitivity.inputcsv = 1
+#
+#    sensitivity.swat_exe = 'swat_debug32.exe'
+#    sensitivity.RunAnalysis(i)
 
-
-
-
-#%%
 def FindString(startstr, endstr, line):
     
     temp_id_a = line.find(startstr) 
@@ -296,11 +308,11 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
         temp_sum = temp_sum + wsrc_sum[i]
     
     scenario_wsrc = np.random.rand(len(wsrc_sum))
-    if np.random.rand(1) > 0.5:
+    if np.random.rand(1) > 0.7:
         wsrcK = wsrc_sum.keys()
         t = np.random.choice(range(0,3))
         scenario_wsrc[t] = float(wsrc_sum[wsrcK[t]])/temp_sum
-        extra = 1.0 - float(wsrc_sum[wsrcK[t]])/temp_sum
+        extra = 1.0 - wsrc_sum[wsrcK[t]]/temp_sum
         tt = np.random.choice(np.setdiff1d(range(0,3),t))
         scenario_wsrc[tt] = np.random.rand(1)*extra
         lt = np.random.choice(np.setdiff1d(range(0,3),[t,tt]))
@@ -309,16 +321,13 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
     else:
         scenario_wsrc  = scenario_wsrc/np.sum(scenario_wsrc)
     
-    scenario = np.zeros(len(wrdict))
+    scenario = np.random.rand(len(wrdict))
     cwsrc = 0
     for i in hru_wsrc.keys():
         temp_scenario = np.random.rand(len(hru_wsrc[i]))
-        #temp_scenario  = list([round(temp_scenario[jj]/np.sum(temp_scenario),2) for jj in range(len(hru_wsrc[i]))]) 
         temp_scenario  = temp_scenario/np.sum(temp_scenario)
-        print (np.sum(temp_scenario))
         
         for h in range(len(hru_wsrc[i])):
-            
             scenario[hru_wsrc[i][h]] = scenario_wsrc[cwsrc]*temp_scenario[h]
         
         cwsrc = cwsrc + 1
@@ -341,7 +350,7 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
                         wsrcK = wsrc_sum.keys()
                         t = np.random.choice(range(0,3))
                         scenario_wsrc[t] = float(wsrc_sum[wsrcK[t]])/temp_sum
-                        extra = 1.0 - float(wsrc_sum[wsrcK[t]])/temp_sum
+                        extra = 1.0 - wsrc_sum[wsrcK[t]]/temp_sum
                         tt = np.random.choice(np.setdiff1d(range(0,3),t))
                         scenario_wsrc[tt] = np.random.rand(1)*extra
                         lt = np.random.choice(np.setdiff1d(range(0,3),[t,tt]))
@@ -351,7 +360,7 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
                         scenario_wsrc  = scenario_wsrc/np.sum(scenario_wsrc)
                     #scenario_wsrc  = scenario_wsrc/np.sum(scenario_wsrc)
                     
-                    scenario = np.zeros(len(wrdict))
+                    scenario = np.random.rand(len(wrdict))
                     cwsrc = 0
                     for i in hru_wsrc.keys():
                         temp_scenario = np.random.rand(len(hru_wsrc[i]))
@@ -401,43 +410,35 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
     twrfile.close()
     
     shutil.copyfile(model_path + 'Scenarios/Default/TxtInOut/watrgtwm.dat', outpath + '/watrgtwm_' + str(itern) +'_'+ str(sim_num) + '.dat')
-    
-    #run_SWAT(model_path,'swat_debug32.exe')
     run_SWAT(model_path,'swat_debug32_gui.exe')
     
     for outfile in output_vars:
         tfile = model_path + 'Scenarios/Default/TxtInOut/' + output_vars[outfile]['File']
         shutil.copyfile(tfile, outpath + '/' + output_vars[outfile]['File'] + '_' + str(itern) +'_'+ str(sim_num) + '.' + tfile[len(tfile)-3:len(tfile)])
-        
-        if tfile[len(tfile)-3:len(tfile)] == 'hru':
-            print 'Reading output.hru'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                data_array, hru_sub = Get_output_hru(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-                output_vars_data[varkey] = data_array
-                
-        elif tfile[len(tfile)-3:len(tfile)] == 'sub':
-            print 'Reading output.sub'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                data_array = Get_output_sub(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-                output_vars_data[varkey] = data_array
-        
-        elif tfile[len(tfile)-3:len(tfile)] == 'rch':
-            print 'Reading output.rch'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                output_vars_data[varkey] = Get_output_rch(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-
-        elif tfile[len(tfile)-3:len(tfile)] == 'wql':
-            print 'Reading output.wql'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                output_vars_data[varkey] = Get_output_wql(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-
-        elif tfile[len(tfile)-3:len(tfile)] == 'std':
-            print 'Reading output.std'
-            table = output_vars[outfile]['Vars']['Table']
-            for varkey in output_vars[outfile]['Vars'].keys():
-                if varkey.lower() != 'table':
-                    output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
-        
+#        if tfile[len(tfile)-3:len(tfile)] == 'hru':
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                data_array, hru_sub = Get_output_hru(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#                output_vars_data[varkey] = data_array
+#                
+#        elif tfile[len(tfile)-3:len(tfile)] == 'sub':
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                data_array = Get_output_sub(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#                output_vars_data[varkey] = data_array
+#        
+#        elif tfile[len(tfile)-3:len(tfile)] == 'rch':
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                output_vars_data[varkey] = Get_output_rch(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#
+#        elif tfile[len(tfile)-3:len(tfile)] == 'wql':
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                output_vars_data[varkey] = Get_output_wql(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#
+#        elif tfile[len(tfile)-3:len(tfile)] == 'std':
+#            table = output_vars[outfile]['Vars']['Table']
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                if varkey.lower() != 'table':
+#                    output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
+#        
          
     return wrdict, wrsrc, hruwr, output_vars_data
 
@@ -445,6 +446,7 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
 def run_SWAT(model_path, swat_exe):
     cwdir = os.getcwd()
     os.chdir(model_path + 'Scenarios/Default/TxtInOut')
+    print "Running SWAT"
     exitflag = subprocess.check_call([swat_exe])
     if exitflag == 0:
         print "Successful SWAT run"
@@ -453,7 +455,6 @@ def run_SWAT(model_path, swat_exe):
     os.chdir(cwdir)
     
 #%%
-
 
 def FindVarIds(model_path):
     datpath = model_path + 'Scenarios/Default/TxtInOut/irr.dat'
@@ -480,8 +481,7 @@ def FindCropName(model_path):
     cropdict = dict()
     for row in crsr.fetchall():
         cropdict[str(row[2])] = row[4]
-    
-    cropdict['NOCR'] = 'No Crops'
+        
     return cropdict
     
 def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
@@ -781,124 +781,88 @@ def ReachDict(output_vars_data):
     
 #%%    
 
-build_models = 0
-model_num = 0
+wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\watrgtwm.dat'
+    
+output_vars_file =  'C:\Users\sammy\Documents\GitHub\InterACTWEL\data\Sensitivity_SWAT12\OutputVars_Arjan.txt'
+output_vars = GetOutputVars(output_vars_file)
 
-if build_models == 1:
+#iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Test_Nick'
+iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\ITERS_TENyrs'
 
-    os.chdir('..\src')
-    
-    from tools.sensitivity.Sensitivity_Analysis_SWAT12 import SensitivityAnalysis
-    
-    
-    #%%
-    #input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
-    input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\SWAT12_Input_Files.txt'
-    
-    for i in range(0,11):
-        sensitivity = SensitivityAnalysis(input_files)
-        sensitivity.outputcsv = 0
-        sensitivity.inputcsv = 0
-    
-        sensitivity.swat_exe = 'swat_debug32_gui.exe'
-        sensitivity.RunAnalysis(i)
+csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Arjan_Data_9.csv'
+filein = open(csv_file,'w')
 
-else:
+outpath = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\ITERS_TENyrs\Results'
 
-    #wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\watrgt.dat'
-    wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\watrgtwm.dat'
-       
-    output_vars_file =  'C:\Users\sammy\Documents\GitHub\InterACTWEL\data\Sensitivity_SWAT12\OutputVars_Arjan.txt'
-    output_vars = GetOutputVars(output_vars_file)
+num_sim = 1
+for i in range(0,1):
     
-    iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs'
+    model_path = iter_dir.replace('\\','/') + '/ITER_' + str(i) + '/'
+    cropnames = FindCropName(model_path)
+    irr_dict = {0: 'No irrigation',1: 'Surface water', 3: 'Groundwater', 5: 'Columbia River'}
     
-    csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
-    csv_file = csv_file + '\Arjan_Data_3.csv'
-    
-    filein = open(csv_file,'w')
-    
-    outpath = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
-    
-    num_sim = 1
-    
-    for i in range(model_num,model_num+1):
+    for ii in range(0,11):
+        if ii == 0:
+            print 'ITER_' + str(i) + ' - ADD: BASE'
+        else:
+            print 'ITER_' + str(i) + ' - ADD: ' + str(ii) 
         
-        model_path = iter_dir.replace('\\','/') + '/ITER_' + str(i) + '/'
-        cropnames = FindCropName(model_path)
-        irr_dict = {0: 'No irrigation',1: 'Surface water', 3: 'Groundwater', 5: 'Columbia River'}
+        wrdict, wrsrc, hruwr, output_vars_data = GetWaterRigthHRU(wr_path, model_path, output_vars, outpath, i, ii)
         
-        for ii in range(0,2):
-            if ii == 0:
-                print 'ITER_' + str(i) + ' - ADD: BASE'
-            else:
-                print 'ITER_' + str(i) + ' - ADD: ' + str(ii) 
-            
-            wrdict, wrsrc, hruwr, output_vars_data = GetWaterRigthHRU(wr_path, model_path, output_vars, outpath, i, ii)
-            
-            
-            temp_dict = dict()
-            #temp_dict['REACH'] = ReachDict(output_vars_data)
-            temp_all, temp_basin = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
-           
-            ucrop = []
-            for hrui in output_vars_data['LULC'].keys():
-                if hrui is not 'Type' and hrui is not 'Years':
-                    for cropn in output_vars_data['LULC'][hrui]:
-                        if cropn.islower():
-                            cropn = 'AGRL'
-                        if cropn not in ucrop:
-                            ucrop.append(cropn)
-            
-            if num_sim == 1:
-                atxt = 'ITER, MODEL ID, WR ID, WR AMT, YEAR,'
-                for n in range(0,2):
-                    for u in ucrop:
-                        atxt = atxt + str(cropnames[u]) + ','
-                for irrid in irr_dict.keys():
-                    atxt = atxt + str(irr_dict[irrid]) + ','
-                
-                atxt = atxt + 'N Fertilizer, P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
-                for u in ucrop:
-                        atxt = atxt + 'Profit ' + str(cropnames[u]) + ','
-                
-                atxt = atxt + 'Crop Profit ($), Costs ($), Total Profit ($),'
-                filein.write(atxt + '\n')
-            
-            yr = 1
-            for iy in output_vars_data['LULC']['Years']:                
-                for wr in wrdict.keys():
-                    if ii == 0:
-                        temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
-                    else:
-                        temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
-                    
-                    for uc in ucrop:
-                        if uc in temp_all['Planted crops (ha)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][uc]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
-                            
-                    for uc in ucrop:
-                        if uc in temp_all['Crop yield (kg)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][uc]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
-                    
-                    for ir in irr_dict.keys():
-                        if ir in temp_all['Irrigation (acre-ft)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][ir]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
-                        
-                    temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][yr]) + ','
-                    temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][yr])
-                    
-                    filein.write(temptxt + '\n')
-                yr = yr + 1
-            num_sim = num_sim + 1
+        
+#        temp_dict = dict()
+#        #temp_dict['REACH'] = ReachDict(output_vars_data)
+#        temp_all, temp_basin = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
+#       
+#        ucrop = []
+#        for hrui in output_vars_data['LULC'].keys():
+#            if hrui is not 'Type' and hrui is not 'Years':
+#                for cropn in output_vars_data['LULC'][hrui]:
+#                    if cropn.islower():
+#                        cropn = 'AGRL'
+#                    if cropn not in ucrop:
+#                        ucrop.append(cropn)
+#        
+#        if num_sim == 1:
+#            atxt = ''
+#            for u in ucrop:
+#                atxt = atxt + str(cropnames[u]) + ','
+#            filein.write(atxt + '\n')
+#        
+#        yr = 1
+#        for iy in output_vars_data['LULC']['Years']:                
+#            for wr in wrdict.keys():
+#                if ii == 0:
+#                    temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
+#                else:
+#                    temptxt = str(num_sim) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
+#                
+#                for uc in ucrop:
+#                    if uc in temp_all['Planted crops (ha)'][wr].keys():
+#                        temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][uc]['Data'][yr]) + ','
+#                    else:
+#                        temptxt = temptxt + str(0.0) + ','
+#                        
+#                for uc in ucrop:
+#                    if uc in temp_all['Crop yield (kg)'][wr].keys():
+#                        temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][uc]['Data'][yr]) + ','
+#                    else:
+#                        temptxt = temptxt + str(0.0) + ','
+#                
+#                for ir in irr_dict.keys():
+#                    if ir in temp_all['Irrigation (acre-ft)'][wr].keys():
+#                        temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][ir]['Data'][yr]) + ','
+#                    else:
+#                        temptxt = temptxt + str(0.0) + ','
+#                    
+#                temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][yr]) + ','
+#                temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][yr])
+#                
+#                filein.write(temptxt + '\n')
+#            yr = yr + 1
+        num_sim = num_sim + 1
+
+#filein.close()
     
-    filein.close()
-        
+
     
-        
