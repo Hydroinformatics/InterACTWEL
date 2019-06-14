@@ -781,10 +781,10 @@ def ReachDict(output_vars_data):
     
 #%%    
 
-build_models = 0
+num_build_models = 0
 model_num = 0
 
-if build_models == 1:
+if num_build_models > 0:
 
     os.chdir('..\src')
     
@@ -795,7 +795,7 @@ if build_models == 1:
     #input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
     input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\SWAT12_Input_Files.txt'
     
-    for i in range(0,11):
+    for i in range(0,num_build_models+1):
         sensitivity = SensitivityAnalysis(input_files)
         sensitivity.outputcsv = 0
         sensitivity.inputcsv = 0
@@ -814,7 +814,7 @@ else:
     iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs'
     
     csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
-    csv_file = csv_file + '\Arjan_Data_3.csv'
+    csv_file = csv_file + '\Arjan_Data_' + str(model_num) + '.csv'
     
     filein = open(csv_file,'w')
     
@@ -828,7 +828,7 @@ else:
         cropnames = FindCropName(model_path)
         irr_dict = {0: 'No irrigation',1: 'Surface water', 3: 'Groundwater', 5: 'Columbia River'}
         
-        for ii in range(0,2):
+        for ii in range(0,11):
             if ii == 0:
                 print 'ITER_' + str(i) + ' - ADD: BASE'
             else:
