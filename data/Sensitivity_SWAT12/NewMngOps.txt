@@ -6,7 +6,7 @@ Elem-p = {A_NAPP: range(5.00,5,100.00); FEFF: [0.80]; ASUR: [0.80]}
 
 #Tillage: [6, till.dat, TLID]
 Fldclt15 = {CNOP: [45.00000]}
-Dskplw36 = {CNOP: [50.00000]}
+Dskplw36 = {CNOP: [55.00000]}
 Beddhipr = {CNOP: [55.00000]}
 
 #Irrigation: [10, irr.dat, I]
