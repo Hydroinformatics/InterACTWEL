@@ -488,6 +488,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
     
     hru_sub = dict()
     
+    
     for hrui in output_vars_data['SUB'].keys():
         if output_vars_data['SUB'][hrui][0] not in hru_sub.keys() and hrui is not 'Type' and hrui is not 'Years':
             hru_sub[int(output_vars_data['SUB'][hrui][0])] = []
@@ -503,22 +504,30 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][sub_id] = dict()
 
+
+            sub_id = output_vars_data['SUB'][str(hrui)][0]
+            
             cmons = 1
             cyear = 1
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cropn.islower():
                     cropn = 'AGRL'
-                if cropn not in temp_dict[hruwr[hrui]]:
-                    temp_dict[hruwr[hrui]][cropn] = dict()
-                    temp_dict[hruwr[hrui]][cropn]['Name'] = cropnames[cropn]
+                ##print temp_dict[hruwr[hrui]].keys()
+                if cropn not in temp_dict[hruwr[hrui]][sub_id]:
+                    temp_dict[hruwr[hrui]][sub_id][cropn] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Name'] = cropnames[cropn]
                     
 #                    temp_dict[hruwr[hrui]][cropn]['Data'] = 0
-                    temp_dict[hruwr[hrui]][cropn]['Data'] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Data'] = dict()
                     for i in range(len(output_vars_data['LULC']['Years'])):
-                        temp_dict[hruwr[hrui]][cropn]['Data'][i+1] = 0
+                        temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][i+1] = 0
                 if cmons <= 12:
-                    temp_dict[hruwr[hrui]][cropn]['Data'][cyear] =  temp_dict[hruwr[hrui]][cropn]['Data'][cyear] + round(output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear] =  temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear] + round(output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -534,22 +543,27 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
                 
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
             yieldc = 0
             cmons = 1
             cyear = 1
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cropn.islower():
                     cropn = 'AGRL'
-                if cropn not in temp_dict[hruwr[hrui]]:
-                    temp_dict[hruwr[hrui]][cropn] = dict()
-                    temp_dict[hruwr[hrui]][cropn]['Name'] = cropnames[cropn]
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
+                if cropn not in temp_dict[hruwr[hrui]][sub_id]:
+                    temp_dict[hruwr[hrui]][sub_id][cropn] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Name'] = cropnames[cropn]
                     
-                    temp_dict[hruwr[hrui]][cropn]['Data'] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Data'] = dict()
                     for i in range(len(output_vars_data['LULC']['Years'])):
-                        temp_dict[hruwr[hrui]][cropn]['Data'][i+1] = 0
+                        temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][i+1] = 0
                 
                 if cmons <= 12:
-                    temp_dict[hruwr[hrui]][cropn]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][cropn]['Data'][cyear],2) + round(output_vars_data['YLDt'][str(hrui)][yieldc]*907.185*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear],2) + round(output_vars_data['YLDt'][str(hrui)][yieldc]*907.185*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -567,15 +581,20 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
             cyear = 1
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cmons <= 12:
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(output_vars_data['NAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(output_vars_data['NAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -591,15 +610,21 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
             cyear = 1
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cmons <= 12:
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(output_vars_data['PAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(output_vars_data['PAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -623,13 +648,18 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
                 
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
             for uwr in uwrsrc:
-                if uwr not in temp_dict[hruwr[hrui]].keys():
-                    temp_dict[hruwr[hrui]][uwr] = dict()
-                    temp_dict[hruwr[hrui]][uwr]['Name'] = irr_dict[uwr]
-                    temp_dict[hruwr[hrui]][uwr]['Data'] = dict()
+                if uwr not in temp_dict[hruwr[hrui]][sub_id].keys():
+                    temp_dict[hruwr[hrui]][sub_id][uwr] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][uwr]['Name'] = irr_dict[uwr]
+                    temp_dict[hruwr[hrui]][sub_id][uwr]['Data'] = dict()
                     for i in range(len(output_vars_data['LULC']['Years'])):
-                        temp_dict[hruwr[hrui]][uwr]['Data'][i+1] = 0
+                        temp_dict[hruwr[hrui]][sub_id][uwr]['Data'][i+1] = 0
             
             cmons = 1
             cyear = 1
@@ -638,7 +668,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
                 if hruwr[hrui] != 999 and cmons <= 12:
                     temp_val = round(output_vars_data['IRRmm'][str(hrui)][counter]*0.001* output_vars_data['AREAkm2'][str(hrui)][0]*1000000.0, 2)
                     temp_val = temp_val * (35.3147 / 43560.)
-                    temp_dict[hruwr[hrui]][wrsrc[hruwr[hrui]]]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][wrsrc[hruwr[hrui]]]['Data'][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]]['Data'][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -657,8 +687,14 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
@@ -667,7 +703,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
                 if cmons <= 12:
                     temp_val = round(output_vars_data['GW_RCHGmm'][str(hrui)][yieldc] * output_vars_data['AREAkm2'][str(hrui)][0]*100.0*10.0, 2)
                     temp_val = temp_val * 35.3147 * (1. / 43560.)
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -683,8 +719,13 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
@@ -692,7 +733,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cmons <= 12:
                     temp_val = round(output_vars_data['NSURQ'][str(hrui)][yieldc] * output_vars_data['AREAkm2'][str(hrui)][0]*100.0, 2)
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -708,8 +749,13 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
@@ -717,7 +763,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cmons <= 12:
                     temp_val = round(output_vars_data['NLATQ'][str(hrui)][yieldc] * output_vars_data['AREAkm2'][str(hrui)][0]*100.0, 2)
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -733,8 +779,14 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
                 temp_dict[hruwr[hrui]] = dict()
+                
+            if output_vars_data['SUB'][str(hrui)][0] not in temp_dict[hruwr[hrui]].keys():
+                temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
+                
+                sub_id = output_vars_data['SUB'][str(hrui)][0]
+                
                 for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][i+1] = 0
+                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
                 
             yieldc = 0
             cmons = 1
@@ -742,7 +794,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
             for cropn in output_vars_data['LULC'][str(hrui)]:
                 if cmons <= 12:
                     temp_val = round(output_vars_data['NO3GW'][str(hrui)][yieldc] * output_vars_data['AREAkm2'][str(hrui)][0]*100.0, 2)
-                    temp_dict[hruwr[hrui]][cyear] =  round(temp_dict[hruwr[hrui]][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -752,7 +804,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
         temp_all['Groundwater Nitrate (kg N)'] = temp_dict
         temp_all['Groundwater Nitrate (kg N)']['Description'] = 'NO3 contributed by HRU in groundwater flow to reach (kg N)'
     
-    return temp_all, temp_basin
+    return temp_all, temp_basin, hru_sub
     
 def ReachDict(output_vars_data):
     
@@ -814,9 +866,14 @@ else:
     iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs'
     
     csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
-    csv_file = csv_file + '\Arjan_Data_' + str(model_num) + '.csv'
+    csv_file = csv_file + '\Shreyansh_Data_' + str(model_num) + '.csv'
     
     filein = open(csv_file,'w')
+    
+    csv_file_reach = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
+    csv_file_reach = csv_file_reach + '\Shreyansh_Data_Reach_' + str(model_num) + '.csv'
+    
+    filein_reach = open(csv_file_reach,'w')
     
     outpath = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
     
@@ -838,8 +895,9 @@ else:
             
             
             temp_dict = dict()
-            #temp_dict['REACH'] = ReachDict(output_vars_data)
-            temp_all, temp_basin = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
+
+            temp_reach = ReachDict(output_vars_data)
+            temp_all, temp_basin, hru_sub = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
            
             ucrop = []
             for hrui in output_vars_data['LULC'].keys():
@@ -851,7 +909,8 @@ else:
                             ucrop.append(cropn)
             
             if num_sim == 1:
-                atxt = 'ITER, MODEL ID, WR ID, WR AMT, YEAR,'
+                # Format of HRU and Sub-basin csv
+                atxt = 'ITER, MODEL ID, WR ID, WR AMT, YEAR, SUBBASIN ID,'
                 for n in range(0,2):
                     for u in ucrop:
                         atxt = atxt + str(cropnames[u]) + ','
@@ -864,41 +923,65 @@ else:
                 
                 atxt = atxt + 'Crop Profit ($), Costs ($), Total Profit ($),'
                 filein.write(atxt + '\n')
-            
+                
+                #Format of Reach csv
+                atxt = 'ITER, MODEL ID, REACH ID, PARAMETER,'
+                for year_name in temp_reach['Streamflow (cms)']['Years']:
+                    for month in range(1,13):
+                        atxt = atxt + str(month) + '/' + str(year_name) + ','
+                filein_reach.write(atxt + '\n')
+                
             yr = 1
             for iy in output_vars_data['LULC']['Years']:                
                 for wr in wrdict.keys():
-                    if ii == 0:
-                        temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
-                    else:
-                        temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ','
+                    for subid in hru_sub.keys():
                     
-                    for uc in ucrop:
-                        if uc in temp_all['Planted crops (ha)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][uc]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
+                        if subid in temp_all['Planted crops (ha)'][wr].keys():
+                            if ii == 0:
+                                temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
+                            else:
+                                temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
                             
-                    for uc in ucrop:
-                        if uc in temp_all['Crop yield (kg)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][uc]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
-                    
-                    for ir in irr_dict.keys():
-                        if ir in temp_all['Irrigation (acre-ft)'][wr].keys():
-                            temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][ir]['Data'][yr]) + ','
-                        else:
-                            temptxt = temptxt + str(0.0) + ','
-                        
-                    temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][yr]) + ','
-                    temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][yr])
-                    
-                    filein.write(temptxt + '\n')
+                            for uc in ucrop:
+                                if uc in temp_all['Planted crops (ha)'][wr][subid].keys():
+                                    temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][subid][uc]['Data'][yr]) + ','
+                                else:
+                                    temptxt = temptxt + str(0.0) + ','
+                                    
+                            for uc in ucrop:
+                                if uc in temp_all['Crop yield (kg)'][wr][subid].keys():
+                                    temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][subid][uc]['Data'][yr]) + ','
+                                else:
+                                    temptxt = temptxt + str(0.0) + ','
+                            
+                            for ir in irr_dict.keys():
+                                if ir in temp_all['Irrigation (acre-ft)'][wr][subid].keys():
+                                    temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir]['Data'][yr]) + ','
+                                else:
+                                    temptxt = temptxt + str(0.0) + ','
+                                
+                            temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
+                            temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][subid][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][subid][yr])
+                            
+                            filein.write(temptxt + '\n')
                 yr = yr + 1
+                
+            for key_name in temp_reach.keys():
+                for reachid in temp_reach[key_name].keys():
+                    if reachid is not 'Type' and reachid is not 'Years' and reachid is not 'Description':
+                        if ii == 0:
+                            temptxt = 'BASE,' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
+                        else:
+                            temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
+                    
+                        for valr in temp_reach[key_name][reachid]:
+                            temptxt = temptxt + str(valr) + ','
+                            
+                    filein_reach.write(temptxt + '\n')
+                            
             num_sim = num_sim + 1
     
     filein.close()
+    filein_reach.close()
         
-    
         
