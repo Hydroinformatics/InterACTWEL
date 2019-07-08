@@ -16,35 +16,39 @@ from SALib.util import read_param_file
 
 import numpy as np
 import pandas as pd
-import shutil
 import random
 
+
+data_path = os.getcwd() + '\\data_nick\\'
 # Read the parameter range file and generate samples
-pathtest = "data_nick\rbd_test_pars.txt" ################ This is where i'm testing the paths
-problem = read_param_file(pathtest)
+prob_path = data_path + 'rbd_test_pars.txt'
+
+problem = read_param_file(prob_path)
 
 #%% Generate samples
-num_iters = 100
+num_iters = 1000
 param_values = latin.sample(problem, num_iters)
-np.savetxt("param_values_lhc.txt", param_values)
+
+
+#np.savetxt(data_path+'param_values_lhc.txt', param_values)
 
 # Normalize Samples
 sums = np.sum(param_values, axis=1)
 param_values_norm = param_values / sums[:, None]
-np.savetxt("param_values_lch_norm.txt", param_values_norm)
+np.savetxt(data_path+'param_values_lhc_norm.txt', param_values_norm)
 
 
 #%% Rewrite watrgt.dat files
 
-wr_vars_path = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\wr_vars.csv"
+wr_vars_path = data_path+'wr_vars.csv'
 wr_vars = pd.read_csv(wr_vars_path)
-
-norm_coeffs = pd.read_csv("param_values_lch_norm.txt", sep='\s+', header=None)
-
+norm_coeffs_path = data_path+'param_values_lhc_norm.txt'
+norm_coeffs = pd.read_csv(norm_coeffs_path, sep='\s+', header=None)
+wrdat_path = data_path+'wrdat.csv'
 add_water_af = 20000
 r,c = wr_vars.shape
 for i in range(0,num_iters):
-    watrght_i = pd.read_csv("wrdat.csv")
+    watrght_i = pd.read_csv(wrdat_path)
     new_amt = pd.DataFrame(0, index=np.arange(len(wr_vars)), columns=['nAMT','AMT_AF','VAR'])
     new_amt['AMT_AF'] = wr_vars['AMT_AF']
     new_amt['VAR'] = wr_vars['VAR']
@@ -66,14 +70,14 @@ for i in range(0,num_iters):
     new_amt_2write['D1'] = new_amt_2write['D1'].str.pad(width=6)
     new_amt_2write['D2'] = new_amt_2write['D2'].str.pad(width=6)
     #Change to watrgt\
-    np.savetxt("D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\watrght_i\watrgt_"+str(i)+".txt", new_amt_2write, fmt='%s')
+    np.savetxt(data_path+'watrgt_i\watrgt_'+str(i)+'.txt', new_amt_2write, fmt='%s')
 
 #%% Rewrite HRU_Crop_Rotations.csv
 for i in range(0,num_iters):
-    watrgt_path = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\watrght_i\watrgt_"+str(i)+".txt"
-    wr_area_path = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\WR_area.csv"
-    hrudat_path = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\hruwr.csv"
-    crp_rots_path = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\crp_rots.csv"
+    watrgt_path = data_path+'watrgt_i\watrgt_'+str(i)+".txt"
+    wr_area_path = data_path+'WR_area.csv'
+    hrudat_path = data_path+'hruwr.csv'
+    crp_rots_path = data_path+'crp_rots.csv'
     
     watrgt = pd.read_csv(watrgt_path, sep='\s+', names=['WRID','SRC','AMT_AF','D1','D2'])
     hrudat = pd.read_csv(hrudat_path)
@@ -125,7 +129,7 @@ for i in range(0,num_iters):
     crp_rots_write['HRU_ID'] = crp_rots_temp['HRU_ID']
     crp_rots_write = crp_rots_write.astype(int)
     #Write crp_rot_i
-    path_crp_rot_i = "D:/Nick\Documents\INFEWS\Sensitivity/analysis\sens_analysis\HRU_Crop_Rots_i\crp_rot_"+str(i)+".csv"
+    path_crp_rot_i = data_path+'HRU_Crop_Rots_i\crp_rot_'+str(i)+'.csv'
     crp_rots_write.to_csv(path_crp_rot_i,index=False)
 
 #%% Run the "model" and save the output in a text file
