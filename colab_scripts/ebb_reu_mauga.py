@@ -1,10 +1,10 @@
 import os, argparse, re, subprocess, sys
 from osgeo import gdal
 
-os.chdir('../src/tools/QSWAT')
-
+os.chdir('..\src')
 sys.path.append(os.getcwd())
-import QSWAT_preprocess
+
+from tools.qswat import QSWAT_preprocess
 
 #%%
 def ClipDEM(file_path):
