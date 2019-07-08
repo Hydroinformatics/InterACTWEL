@@ -183,8 +183,8 @@ class SensitivityAnalysis():
         with zipfile.ZipFile(self.zipswat_path, "r") as z:
             z.extractall(folderpath)
         
-        data_path = os.getcwd() + '\\data_nick\\'
-        copy_path = data_path+'watrght_i\watrgt_'+str(iterc)+'.txt'
+        data_path = os.getcwd() + '\\tools\\sensitivity\\data_nick\\'
+        copy_path = data_path+'watrgt_i\watrgt_'+str(iterc)+'.txt'
         paste_path = folderpath+'Scenarios\Default\TxtInOut\watrgt.dat'
         shutil.copyfile(copy_path,paste_path)
         
