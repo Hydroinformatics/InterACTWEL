@@ -28,6 +28,7 @@ def ClipDEM(file_path):
     temp_ind = base.rfind('/')
     base_name = base[temp_ind+1:]
 
+    # Dissolves all sub-basins into one large regional boundary
     if suffix == '.shp':
         #processing.runalg('qgis:dissolve', self.watershed_lyr.replace('\\','/'), True, '', base + '_boundary.shp')
         boundary_shp = output_path + '/' + base_name + '_boundary.shp'
@@ -40,6 +41,7 @@ def ClipDEM(file_path):
         else:
             sys.exit()
     
+    # Uses the extent of the regional boundary to create a binary raster (uses the same CSR as the sub-basins shapefile)
     (base, suffix) = os.path.splitext(os.path.basename(subbasinsFile))
     SubbasinRaster = output_path.replace('\\','/') + '/' + base + '.tif'
     
@@ -49,6 +51,7 @@ def ClipDEM(file_path):
     exists = os.path.isfile(SubbasinRaster)
     print("Done creating Subbasin Raster")
     
+    # Uses the extent of the regional boundary/raster to clip DEM (and reproject if needed to the same CSR as the sub-basins shapefile)
     if exists:
         (base, suffix) = os.path.splitext(os.path.basename(demFile))
         CropDem = output_path.replace('\\','/') + '/' +  base + '_clp' + suffix
