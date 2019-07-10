@@ -1,0 +1,17 @@
+#Reach
+output.rch = {FLOW_OUTcms:[7]; ORGN_OUT:[14]; NO3_OUT:[18]; NH4_OUT:[20]; NO2_OUT:[22]; DISOX_OUT:[30]; WTMPdegc:[51]; TOT_Nkg:[48]; TOT_Pkg:[49]}
+
+#StandardO
+output.std = {Table:[Annual Summary for Watershed]; NO3_PERC:[15]; NO3_CROP:[16]}
+
+#StandardI
+input.std = {Table:[HRU CN Input Summary Table]; LULC:[3]}
+
+#HRUs
+output.hru = {LULC:[1]; SUB:[4]}
+
+#SUBs
+output.sub = {PRECIPmm:[5]; PERCmm: [10]; ORGNkg:[15]; ORGPkg:[16]}
+
+#WATQ
+output.wql = {DAYT:[3]; WTEMP_C:[4]}
