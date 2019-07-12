@@ -1,6 +1,41 @@
 import re, os, numpy, shutil
 from osgeo import gdal, ogr, osr
 
+#%%
+def Raster_row_boundaries(raster):
+    
+    row_sum_index = numpy.where(numpy.sum(raster,axis=1) != 0)
+    top_row = row_sum_index[0][0]
+    last_row = row_sum_index[0][-1]
+    
+    if top_row < 0:
+        top_row = 0
+    if last_row < 0:
+        last_row = 0
+        
+    return top_row, last_row
+
+def Raster_col_boundaries(raster):
+    
+    col_sum_index = numpy.where(numpy.sum(raster,axis=0) != 0)
+    left_col = col_sum_index[0][0]
+    right_col = col_sum_index[0][-1]
+    
+    if left_col < 0:
+        left_col = 0
+    if right_col < 0:
+        right_col = 0
+        
+    return left_col, right_col
+
+#%%
+def Read_Raster(raster_file, raster_NoData = -999):
+    
+    raster = gdal.Open(raster_file, gdal.GA_ReadOnly)
+    raster_NoData = raster.GetRasterBand(1).GetNoDataValue()
+    raster = raster.GetRasterBand(1).ReadAsArray()     
+    
+    return raster, raster_NoData
 
 #%%
 def copyshp(basefile,copyfile):
@@ -40,7 +75,7 @@ def Save_NewRaster(array, ds, old_raster, newRaster_name, raster_NoData):
     return
 
 #%%
-def Clipraster(InputRaster,OutputImage,RefImage,resample_method):
+def Clipraster(InputRaster, OutputImage, RefImage, resample_method):
     
     InputSrc = gdal.Open(InputRaster, gdal.GA_ReadOnly)
     gdalformat = 'GTiff'
@@ -83,21 +118,27 @@ def Clipraster(InputRaster,OutputImage,RefImage,resample_method):
     return
 
 #%%
-def CreateTiff(InputVector,OutputImage,RefImage):
+def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal = 1, RefInputVector = ''):
 
     gdalformat = 'GTiff'
     datatype = gdal.GDT_Byte
-    burnVal = 1 #value for the output image pixels
+    #burnVal = 1 #value for the output image pixels
     ##########################################################
     # Get projection info from reference image
     #print RefImage
     Image = gdal.Open(RefImage, gdal.GA_ReadOnly)
     tiffgeo_transform = Image.GetGeoTransform()
     pixel_width = tiffgeo_transform[1]
+    
     # Open Shapefile
     Shapefile = ogr.Open(InputVector)
     Shapefile_layer = Shapefile.GetLayer()
     geo_transform = Shapefile_layer.GetExtent()
+    
+    if RefInputVector != '':
+        temp_Shapefile = ogr.Open(RefInputVector)
+        temp_Shapefile_layer = temp_Shapefile.GetLayer()
+        geo_transform = temp_Shapefile_layer.GetExtent()
 
     x_min = geo_transform[0]
     y_max = geo_transform[3]
@@ -124,7 +165,11 @@ def CreateTiff(InputVector,OutputImage,RefImage):
     Band = Output.GetRasterBand(1)
     Band.SetNoDataValue(NoData_value)
     Band.FlushCache()
-    gdal.RasterizeLayer(Output, [1], Shapefile_layer, burn_values=[burnVal])
+    
+    if attribute_str == '':
+        gdal.RasterizeLayer(Output, [1], Shapefile_layer, burn_values=[burnVal])
+    else:
+        gdal.RasterizeLayer(Output, [1], Shapefile_layer, options=["ATTRIBUTE=" + attribute_str])
 
     # Close datasets
     Band = None

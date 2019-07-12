@@ -111,10 +111,21 @@ class Data_Preprocess:
             (base, suffix) = os.path.splitext(os.path.basename(self.watershed_file))
             SubbasinRaster = self.output_path + '/' + base + '.tif'
             
-            print("Rasterising subbasin shapefile...")
-            QSWAT_utils.CreateTiff(self.watershed_file, SubbasinRaster, self.dem_file)
+            boundary_buffer_shp = self.output_path + '/' + base_name + '_buffer.shp'
+            commandtxt = 'ogr2ogr ' + boundary_buffer_shp + ' ' + self.watershed_file + ' -dialect sqlite -sql "SELECT ST_Union(ST_buffer(geometry,500)) AS geometry FROM ' + base_name + '"'
+            exitflag = os.system(commandtxt)
             
-            self.boundary_raster = SubbasinRaster
+            self.boundary_lyr = boundary_buffer_shp
+            
+            print("Rasterising boundary shapefile...")
+            BoundaryRaster = self.output_path + '/' + base + '_boundary.tif'
+            QSWAT_utils.CreateTiff(self.boundary_lyr, BoundaryRaster, self.dem_file)
+            self.boundary_raster = BoundaryRaster
+            print("Done creating boundary Raster")
+            
+            print("Rasterising subbasin shapefile...")
+            QSWAT_utils.CreateTiff(self.watershed_file, SubbasinRaster, self.dem_file,'PolygonID',0, self.boundary_lyr)
+            self.watershed_raster = SubbasinRaster
             print("Done creating Subbasin Raster")
     
 #%%
@@ -148,6 +159,10 @@ class Data_Preprocess:
                 
             if self.cdl_path != '':
                 
+                if not os.path.isdir(self.output_path + '/CDL_Clip'):
+                    os.mkdir(self.output_path + '/CDL_Clip')
+                    
+                self.cld_clip_path = self.output_path + '/CDL_Clip'
                 fnames = os.listdir(self.cdl_path)
                 findex = []
                 c = 0        
@@ -162,9 +177,10 @@ class Data_Preprocess:
                 for year in years: 
                     print 'Clipping: ' + fnames[findex[findex[:,1]==year,0][0]]
                     (base, suffix) = os.path.splitext(os.path.basename(fnames[findex[findex[:,1]==year,0][0]]))
-                    CDLRaster = self.output_path + '/' + base + '_clp' + suffix
+                    CDLRaster = self.output_path + '/CDL_Clip/' + base + '_clp' + suffix
                     QSWAT_utils.Clipraster(self.cdl_path + '/' + fnames[findex[findex[:,1]==year,0][0]], CDLRaster, self.boundary_raster, gdal.GRA_Mode)
-        
+                
+                
         else:
             print("A raster of the region is needed to clip the DEM. Please use the DissolveWatersheds function to create a raster of the region.")
             sys.exit()
