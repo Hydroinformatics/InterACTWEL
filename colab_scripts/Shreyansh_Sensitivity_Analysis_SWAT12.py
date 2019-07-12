@@ -4,10 +4,6 @@ import os, shutil, sys, re, subprocess, pyodbc
 import numpy as np
 import csv, json
 
-
-
-
-
 #%%
 def FindString(startstr, endstr, line):
     
@@ -500,6 +496,7 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
     temp_basin = dict()
     
     if 'LULC' in output_vars_data.keys() and 'AREAkm2' in output_vars_data.keys():
+        
         temp_dict = dict()
         for hrui in hruwr.keys():
             if hruwr[hrui] not in temp_dict.keys():
@@ -657,18 +654,47 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
                 if uwr not in temp_dict[hruwr[hrui]][sub_id].keys():
                     temp_dict[hruwr[hrui]][sub_id][uwr] = dict()
                     temp_dict[hruwr[hrui]][sub_id][uwr]['Name'] = irr_dict[uwr]
-                    temp_dict[hruwr[hrui]][sub_id][uwr]['Data'] = dict()
-                    for i in range(len(output_vars_data['LULC']['Years'])):
-                        temp_dict[hruwr[hrui]][sub_id][uwr]['Data'][i+1] = 0
+                    
+            for cropn in output_vars_data['LULC'][str(hrui)]:
+                if cropn.islower():
+                    cropn = 'AGRL'
+                            
+                if cropn not in temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]]:
+                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn] = dict()
+                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn]['Name'] = cropnames[cropn]
             
+                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn]['Data'] = dict()
+                    
+                    for i in range(len(output_vars_data['LULC']['Years'])):
+                        temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn]['Data'][i+1] = 0
+        
+#                cmons = 1
+#                cyear = 1
+#                for cropn in output_vars_data['LULC'][str(hrui)]:
+#                    if cropn.islower():
+#                        cropn = 'AGRL'
+#                    ##print temp_dict[hruwr[hrui]].keys()
+#                    if cropn not in temp_dict[hruwr[hrui]][sub_id]:
+#                        temp_dict[hruwr[hrui]][sub_id][cropn] = dict()
+#                        temp_dict[hruwr[hrui]][sub_id][cropn]['Name'] = cropnames[cropn]
+#                        
+#    #                    temp_dict[hruwr[hrui]][cropn]['Data'] = 0
+#                        temp_dict[hruwr[hrui]][sub_id][cropn]['Data'] = dict()
+#                        for i in range(len(output_vars_data['LULC']['Years'])):
+#                            temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][i+1] = 0
+
             cmons = 1
             cyear = 1
             counter = 0
-            for irrsrc in output_vars_data['IRRmm'][str(hrui)]:
+            #for irrsrc in output_vars_data['IRRmm'][str(hrui)]:
+            for cropn in output_vars_data['LULC'][str(hrui)]:
+                if cropn.islower():
+                    cropn = 'AGRL'
+                    
                 if hruwr[hrui] != 999 and cmons <= 12:
                     temp_val = round(output_vars_data['IRRmm'][str(hrui)][counter]*0.001* output_vars_data['AREAkm2'][str(hrui)][0]*1000000.0, 2)
                     temp_val = temp_val * (35.3147 / 43560.)
-                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]]['Data'][cyear],2) + round(temp_val,2)
+                    temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][wrsrc[hruwr[hrui]]][cropn]['Data'][cyear],2) + round(temp_val,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
@@ -845,7 +871,7 @@ if num_build_models > 0:
     
     #%%
     #input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
-    input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\SWAT12_Input_Files.txt'
+    input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\SWAT12_Input_Files.txt'
     
     for i in range(0,num_build_models+1):
         sensitivity = SensitivityAnalysis(input_files)
@@ -858,24 +884,24 @@ if num_build_models > 0:
 else:
 
     #wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\Sensitivity_SWAT12\watrgt.dat'
-    wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\watrgtwm.dat'
+    wr_path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\watrgtwm.dat'
        
     output_vars_file =  'C:\Users\sammy\Documents\GitHub\InterACTWEL\data\Sensitivity_SWAT12\OutputVars_Arjan.txt'
     output_vars = GetOutputVars(output_vars_file)
     
-    iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs'
+    iter_dir = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs'
     
-    csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
+    csv_file = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
     csv_file = csv_file + '\Shreyansh_Data_' + str(model_num) + '.csv'
     
     filein = open(csv_file,'w')
     
-    csv_file_reach = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
+    csv_file_reach = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
     csv_file_reach = csv_file_reach + '\Shreyansh_Data_Reach_' + str(model_num) + '.csv'
     
     filein_reach = open(csv_file_reach,'w')
     
-    outpath = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
+    outpath = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\ITERS_TENyrs\Results'
     
     num_sim = 1
     
@@ -914,8 +940,9 @@ else:
                 for n in range(0,2):
                     for u in ucrop:
                         atxt = atxt + str(cropnames[u]) + ','
-                for irrid in irr_dict.keys():
-                    atxt = atxt + str(irr_dict[irrid]) + ','
+                for u in ucrop:
+                    for irrid in irr_dict.keys():
+                        atxt = atxt + cropnames[u] + '_' + str(irr_dict[irrid]) + ','
                 
                 atxt = atxt + 'N Fertilizer, P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
                 for u in ucrop:
@@ -956,9 +983,11 @@ else:
                             
                             for ir in irr_dict.keys():
                                 if ir in temp_all['Irrigation (acre-ft)'][wr][subid].keys():
-                                    temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir]['Data'][yr]) + ','
-                                else:
-                                    temptxt = temptxt + str(0.0) + ','
+                                    for uc in ucrop:
+                                        if uc in temp_all['Irrigation (acre-ft)'][wr][subid][ir].keys():
+                                            temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir][uc]['Data'][yr]) + ','
+                                        else:
+                                            temptxt = temptxt + str(0.0) + ','
                                 
                             temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
                             temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][subid][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][subid][yr])

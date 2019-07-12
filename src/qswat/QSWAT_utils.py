@@ -1,6 +1,27 @@
-import re, numpy
+import re, os, numpy, shutil
 from osgeo import gdal, ogr, osr
 
+
+#%%
+def copyshp(basefile,copyfile):
+    
+    shutil.copy2(basefile, copyfile)
+    
+    exist = os.path.isfile(basefile[:-4] +'.cpg')
+    if exist:
+        shutil.copy2(basefile[:-4] +'.cpg', copyfile[:-4] + '.cpg')
+    
+    exist = os.path.isfile(basefile[:-4] +'.dbf')
+    if exist:
+        shutil.copy2(basefile[:-4] +'.dbf', copyfile[:-4] + '.dbf')
+    
+    exist = os.path.isfile(basefile[:-4] +'.prj')
+    if exist:
+        shutil.copy2(basefile[:-4] +'.prj', copyfile[:-4] + '.prj')
+    
+    exist = os.path.isfile(basefile[:-4] +'.shx')
+    if exist:
+        shutil.copy2(basefile[:-4] +'.shx', copyfile[:-4] + '.shx')
 
 #%%
 def Save_NewRaster(array, ds, old_raster, newRaster_name, raster_NoData):
