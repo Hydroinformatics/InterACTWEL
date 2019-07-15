@@ -2,6 +2,7 @@ import os, argparse, re, subprocess, sys
 from osgeo import gdal
 
 os.chdir('..\src')
+print os.getcwd()
 sys.path.append(os.getcwd())
 
 from tools.qswat import QSWAT_preprocess
@@ -33,7 +34,7 @@ def ClipDEM(file_path):
         boundary_shp = output_path + '/' + base_name + '_boundary.shp'
         
         commandtxt = 'ogr2ogr ' + boundary_shp + ' ' + subbasinsFile + ' -dialect sqlite -sql "SELECT ST_Union(geometry) AS geometry FROM ' + base_name + '"'
-        
+        print commandtxt
         exitflag = os.system(commandtxt)
         if exitflag == 0:
             print("Successful Dissolve of subbasins")
