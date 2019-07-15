@@ -1,61 +1,12 @@
-import os, argparse, re, subprocess, sys
-from osgeo import gdal
+# -*- coding: utf-8 -*-
+import os, argparse, sys, numpy
 
 os.chdir('..\src')
 print os.getcwd()
 sys.path.append(os.getcwd())
 
-from tools.qswat import QSWAT_preprocess
-
-#%%
-def ClipDEM(file_path):
-    
-    with open(file_path,'rb') as search:
-        for line in search:
-            if 'subbasinsFile' in line:
-                linesplit = re.split('\s',line)
-                subbasinsFile = linesplit[2].replace('\\','/')
-            elif 'demFile' in line:
-                linesplit = re.split('\s',line)
-                demFile = linesplit[2].replace('\\','/')
-            elif 'output_path' in line:
-                linesplit = re.split('\s',line)
-                output_path = linesplit[2].replace('\\','/')
-                
-    search.close()
-    
-    (base,suffix) = os.path.splitext(subbasinsFile.replace('\\','/'))
-    
-    temp_ind = base.rfind('/')
-    base_name = base[temp_ind+1:]
-
-    if suffix == '.shp':
-        #processing.runalg('qgis:dissolve', self.watershed_lyr.replace('\\','/'), True, '', base + '_boundary.shp')
-        boundary_shp = output_path + '/' + base_name + '_boundary.shp'
-        
-        commandtxt = 'ogr2ogr ' + boundary_shp + ' ' + subbasinsFile + ' -dialect sqlite -sql "SELECT ST_Union(geometry) AS geometry FROM ' + base_name + '"'
-        print commandtxt
-        exitflag = os.system(commandtxt)
-        if exitflag == 0:
-            print("Successful Dissolve of subbasins")
-        else:
-            sys.exit()
-    
-    (base, suffix) = os.path.splitext(os.path.basename(subbasinsFile))
-    SubbasinRaster = output_path.replace('\\','/') + '/' + base + '.tif'
-    
-    print("Rasterising subbasin shapefile...")
-    print demFile
-    QSWAT_preprocess.CreateSubbasinTiff(subbasinsFile, SubbasinRaster, demFile)
-    exists = os.path.isfile(SubbasinRaster)
-    print("Done creating Subbasin Raster")
-    
-    if exists:
-        (base, suffix) = os.path.splitext(os.path.basename(demFile))
-        CropDem = output_path.replace('\\','/') + '/' +  base + '_clp' + suffix
-        print("Clipping DEM to subbasin extent")
-        QSWAT_preprocess.clipraster(demFile, CropDem, SubbasinRaster, gdal.GRA_Bilinear)
-        print("Done clipping")
+from qswat import QSWAT_preprocess, QSWAT_utils
+from tools.hru_creator.InterACTWEL_HRU_Creator import HRUs_Creator
 
 
 #%%    
@@ -68,9 +19,37 @@ if __name__ == '__main__':
     args = parser.parse_args()
     user_cwd = os.getcwd()
     
-    print args.path[0]
-    ClipDEM(args.path[0].replace('\\','/'))
+    preprocess = QSWAT_preprocess.Data_Preprocess()
+    preprocess.ReadInputFile(args.path[0].replace('\\','/'))
+    preprocess.DissolveWatersheds()
+    preprocess.Clip_Rasters()
     
-#path = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\parsers\WillowDEM.txt'
-#ClipDEM(path.replace('\\','/'))
-#    
+    # IHRUs = HRUs_Creator()
+    # IHRUs.swat_path = ''
+    # IHRUs.soil_file = preprocess.clip_soil
+    # IHRUs.landuse_file = ''
+    # IHRUs.nlcd_file = preprocess.clip_nlcd
+    # IHRUs.watershed_raster = preprocess.watershed_raster
+    # IHRUs.cdl_file = ''
+    # IHRUs.cdl_path = preprocess.cld_clip_path
+    # IHRUs.boundary_raster = preprocess.boundary_raster
+    
+    # IHRUs.Read_Watershed_Raster()
+    # for wid in range(5,6):
+        # IHRUs.temp_wid = wid
+        # temp_watershed = numpy.asarray(IHRUs.watersheds == wid, dtype=numpy.int64)
+        # left_col, right_col = QSWAT_utils.Raster_col_boundaries(temp_watershed)
+        # top_row, last_row = QSWAT_utils.Raster_row_boundaries(temp_watershed) 
+        # IHRUs.wdims = [top_row,last_row,left_col,right_col]
+        
+        # temp_watershed = temp_watershed[top_row:last_row+1,left_col:right_col+1]
+        # IHRUs.wid_array = temp_watershed
+        
+        # CDL_org = IHRUs.ReadCDL()
+        # #% Convert to background non-crop data. Required inputs: Raster values of no-crop data 
+        # for noncrop in IHRUs.no_crop_ids:
+            # CDL_org[CDL_org==noncrop] = 0
+            
+        # IHRUs.CDL_org = CDL_org
+        # IHRUs.CDL = IHRUs.Watershed_CDL()
+        # IHRUs.Create_Operation_timeseries()
