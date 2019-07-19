@@ -2,6 +2,7 @@
 import os, argparse, sys, numpy
 
 os.chdir('..\src')
+print os.getcwd()
 sys.path.append(os.getcwd())
 
 from qswat import QSWAT_preprocess, QSWAT_utils
