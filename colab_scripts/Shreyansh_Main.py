@@ -81,8 +81,13 @@ for i in range(model_num, model_num+1):
                                         temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir][uc]['Data'][yr]) + ','
                                     else:
                                         temptxt = temptxt + str(0.0) + ','
-                            
-                        temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
+                        for uc in ucrop:
+                            if uc in temp_all['N fertilizer (kg N)'][wr][subid].keys():
+                                temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][uc]['Data'][yr]) + ','
+                            else:
+                                temptxt = temptxt + str(0.0) + ','
+                                
+                        temptxt = temptxt + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
                         temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][subid][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][subid][yr])
                         
                         filein.write(temptxt + '\n')

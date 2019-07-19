@@ -174,8 +174,9 @@ def csv_file_write(filein, irr_dict, cropnames, ucrop):
     for u in ucrop:
         for irrid in irr_dict.keys():
             atxt = atxt + cropnames[u] + '_' + str(irr_dict[irrid]) + ','
-    
-    atxt = atxt + 'N Fertilizer, P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
+    for u in ucrop:
+        atxt = atxt + 'N Fertilizer' + '_' + cropnames[u] + ','
+    atxt = atxt + 'P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
     for u in ucrop:
             atxt = atxt + 'Profit ' + str(cropnames[u]) + ','
     

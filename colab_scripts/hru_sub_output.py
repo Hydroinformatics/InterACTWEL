@@ -102,15 +102,27 @@ def HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict):
                 temp_dict[hruwr[hrui]][output_vars_data['SUB'][str(hrui)][0]] = dict()
                 
                 sub_id = output_vars_data['SUB'][str(hrui)][0]
-                for i in range(len(output_vars_data['LULC']['Years'])):
-                    temp_dict[hruwr[hrui]][sub_id][i+1] = 0
+                
+                for cropn in output_vars_data['LULC'][str(hrui)]:
+                    if cropn.islower():
+                        cropn = 'AGRL'
+                    if cropn not in temp_dict[hruwr[hrui]][sub_id]:
+                        temp_dict[hruwr[hrui]][sub_id][cropn] = dict()
+                        temp_dict[hruwr[hrui]][sub_id][cropn]['Name'] = cropnames[cropn]
+                        temp_dict[hruwr[hrui]][sub_id][cropn]['Data'] = dict()
+                        
+                        for i in range(len(output_vars_data['LULC']['Years'])):
+                            temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][i+1] = 0
                 
             yieldc = 0
             cmons = 1
             cyear = 1
             for cropn in output_vars_data['LULC'][str(hrui)]:
+                if cropn.islower():
+                    cropn = 'AGRL'
+                    
                 if cmons <= 12:
-                    temp_dict[hruwr[hrui]][sub_id][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cyear],2) + round(output_vars_data['NAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
+                    temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear] =  round(temp_dict[hruwr[hrui]][sub_id][cropn]['Data'][cyear],2) + round(output_vars_data['NAUTO'][str(hrui)][yieldc]*output_vars_data['AREAkm2'][str(hrui)][0]*100.0,2)
                     cmons = cmons + 1
                 else:
                     cmons = 1
