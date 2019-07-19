@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #import rasterio, os
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import numpy as np
 #from dbfpy import dbf
 from scipy import stats, ndimage
@@ -15,6 +15,7 @@ from qswat import QSWAT_preprocess, QSWAT_utils
 class HRUs_Creator:
     
     def __init__(self):
+        
         # Max. landused ID in SWAT crop table
         self.landuseID_max = 148
         #self.ReadInputData()
@@ -24,6 +25,7 @@ class HRUs_Creator:
         
         # Max. number of HRUs
         self.max_hrus = 200
+        self.total_hrus = 0
         
         # Min. percentage of farmland represented by HRUs
         self.min_farmland_per = 0.95
@@ -89,18 +91,37 @@ class HRUs_Creator:
         
 
 #%%
+        
+    def MergeNewHRUs(self, new_raster, hrus):
+        
+        max_hrus = np.max(hrus)
+        
+        hrus = hrus.reshape(self.wid_array.shape)
+        temp_hrus = hrus + self.total_hrus
+        
+        temp_hrus[np.where(hrus == 0)] = 0
+        
+        new_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1] = temp_hrus
+        
+        self.total_hrus = self.total_hrus + max_hrus
+        
+        return new_raster
+        
+        
     def Create_HRUs(self):
         
         LSTtempb = self.LST_LlNd
         [ucrop_row, ucounts, icrops, junk] = np.unique(LSTtempb, axis=0, return_counts = True, return_index = True, return_inverse = True)
     
         # Eliminating rows with only background values
+        print 'Eliminating rows with only background values'
         uia = np.unique(icrops)
         if np.sum(ucrop_row[0,:], axis=0) == 0:
             uia = uia[1:]
         
         # Find and save area/cells of blobs of unique crop rotations (HRUs)
-        ccc = 0
+        print 'Finding and save area/cells of blobs of unique crop rotations (HRUs)'
+        ccc = 1
         icrop_ind = np.zeros(icrops.shape)
         ucrop_count = np.empty((0,3))
         ucrop_count_cells = dict()
@@ -110,13 +131,18 @@ class HRUs_Creator:
             labeled_array, num_features = ndimage.measurements.label(Ltemp)
             labeled_area = ndimage.measurements.sum(Ltemp,labeled_array,range(1,num_features+1))
             
+#            if np.size(labeled_area) > 5:
+#                print tuia, np.size(labeled_area)
+            
             for ti in range(0,len(labeled_area)):
                 ucrop_count = np.vstack((ucrop_count,[tuia,ccc,labeled_area[ti]]))
                 
-                icrop_ind[Ltemp.flatten() == ti+1] = ccc
-                ucrop_count_cells[ccc] = np.where(Ltemp.flatten() == ti+1)
+                icrop_ind[labeled_array.flatten() == ti+1] = ccc
+                ucrop_count_cells[ccc] = np.where(labeled_array.flatten() == ti+1)
                 ccc = ccc + 1
-                
+        
+        print 'Total # of Blobs: ' + str(ucrop_count.size)
+        
         if ucrop_count.size != 0:
             temp = ucrop_count[:,2]        
             sortid = temp.argsort()[::-1][:len(temp)]
@@ -142,7 +168,7 @@ class HRUs_Creator:
                         break
                     cc = cc + 1
             
-            print str(temp_area/np.sum(sort_counts[:,2]))
+            print 'Per. of total area: ' + str(temp_area/np.sum(sort_counts[:,2]))
             
             ids_non_major = np.setdiff1d(range(0,len(sort_counts)), temp_sortid)
             similarity = np.zeros((len(ids_non_major),len(temp_sortid)))
@@ -153,7 +179,9 @@ class HRUs_Creator:
                     for jjj in range(0,len(ucrop_row[0,:])):
                         temp.append(np.asarray(ucrop_row[int(sort_counts[ids_non_major[ii],0]),jjj] == ucrop_row[int(sort_counts[temp_sortid[jj],0]),jjj], dtype=np.int))
                     similarity[ii,jj] = np.sum(temp)
-            maxsim = similarity.argsort()[::-1][:len(temp)]
+            #maxsim = similarity.argsort()[::-1][:len(temp_sortid)]
+            maxsim = np.flip(similarity.argsort(),1)
+            
            
             temp_icropi = temp_icrop
             old_length = len(ids_non_major)
@@ -179,14 +207,18 @@ class HRUs_Creator:
                     if blobs.size != 0:
                         blobs_id = []
                         maxsim_id = []
+#                        print jj
+#                        if jj == 13:
+#                            stpr = 0
                         for ii in range(0,len(blobs)):
                             #blobs_id = np.vstack((blobs_id,np.where(blobs[ii] == sort_counts[:,1])[0]))
-                            blobs_id.append(np.where(blobs[ii] == sort_counts[:,1])[0])
+                            blobs_id.append(np.where(blobs[ii] == sort_counts[temp_sortid,1])[0])
                             #maxsim_id = np.vstack((maxsim_id,np.where(blobs_id[ii] == maxsim[jj])[0]))
-                            maxsim_id.append(np.where(blobs_id[ii] == maxsim[jj,:])[0])
+                            maxsim_id.append(np.where(blobs_id[ii][0] == maxsim[jj,:])[0])
+                        
                         blob_sortingid = np.argsort(maxsim_id)
+                        
                         maxsim_id = maxsim_id[int(blob_sortingid[0])]
-                       
                         blobs_id = blobs_id[int(blob_sortingid[0])]
                        
                         for ii in range(0,len(blobs_id)):
@@ -206,6 +238,7 @@ class HRUs_Creator:
                                 ids_non_major_rem = np.hstack((ids_non_major_rem,ids_non_major[jj]))
                                 ids_rem_max = np.hstack((ids_rem_max,jj))
                                 break
+                            
                 ids_rem_max = np.setdiff1d(range(0,len(ids_non_major)), ids_rem_max)
                 ids_non_major = np.setdiff1d(ids_non_major, ids_non_major_rem)
                 
@@ -239,7 +272,7 @@ class HRUs_Creator:
             
             temp_areab = temp_area
             chru = np.max(np.unique(temp_icropb))+1
-            if not np.isempty(min_area):
+            if not np.size(min_area) > 0:
                 for ii in range(0,len(min_area)):
                     temp_areab = temp_areab + labeled_area[min_area[sidsL[ii]]]
                     temp_icropb[np.where(Ltemp.flatten() == min_area[sidsL[ii]])] = chru
@@ -258,9 +291,11 @@ class HRUs_Creator:
         
         ucounts = ucounts[np.where(ucrops[:,0] != 0)]
         ucrops = ucrops[np.where(ucrops[:,0] != 0)]
+        
         ucounts = ucounts[np.where(~np.isnan(ucrops[:,0]))]
         ucrops = ucrops[np.where(~np.isnan(ucrops[:,0]))]
         
+
         # Eliminating blobs of major crops with area < min_hru_area and re-create time series matrix of land unit/management areas
         print 'Eliminating blobs of major crops with area < min_hru_area'
         LST_LlN = np.zeros(self.CDL.shape)
@@ -269,7 +304,9 @@ class HRUs_Creator:
             LST_Ll = dict()
             LST_area = []
             temp_CDL = self.CDL[:,i].reshape(self.wid_array.shape)
-                    
+            #plt.matshow(np.flip(temp_CDL, 0))
+            #plt.show()
+            
             for crop in ucrops:
                 labeled_array, num_features = ndimage.measurements.label(np.asarray(temp_CDL == crop[0], dtype=np.int))
                 labeled_area = ndimage.measurements.sum(np.asarray(temp_CDL == crop[0], dtype=np.int),labeled_array,range(1,num_features+1))
@@ -330,8 +367,8 @@ class HRUs_Creator:
         
         temp_per = 0
         temp_CDL = icrops.reshape(self.wid_array.shape)
-        #plt.matshow(temp_CDL)
-        #plt.show()
+#        plt.matshow(temp_CDL)
+#        plt.show()
         
         for i in range(1,len(ucounts)):
             labeled_array, num_features = ndimage.measurements.label(np.asarray(temp_CDL == i, dtype=np.int))
@@ -341,14 +378,14 @@ class HRUs_Creator:
             #print 'Num. of Blobs: ' + str(np.size(blobs_min_area))
             if np.size(blobs_min_area) > 0:
                     for j in blobs_min_area:
-                        icrops[temp_CDL.flatten() == j] = 0
-                        LST_LlNd[temp_CDL.flatten() == j,:] = 0
+                        icrops[labeled_array.flatten() == j+1] = 0
+                        LST_LlNd[labeled_array.flatten() == j+1,:] = 0
             
             if round((float(i)/len(ucounts))*100) > temp_per:
                 print 'Progress: ' + str(temp_per) + '%'
                 temp_per = temp_per + 10
                 
-                
+        #[ucrop_row, ucounts, icrops, junk] = np.unique(LST_LlNd, axis=0, return_counts = True, return_index = True, return_inverse = True) 
         sio.savemat('PythonCDL.mat', {'LST_LlNp':LST_LlN,'LST_LlNpb':LST_LlNb,'LST_LlNpc':LST_LlNc,'LST_LlNpd':LST_LlNd})
         
         self.LST_Ll = LST_Ll
@@ -533,11 +570,15 @@ class HRUs_Creator:
         c=0
         for year in years: 
             print 'Reading: ' + fnames[findex[findex[:,1]==year,0][0]]
+            if year == years[-1]:
+                self.cdl_file = self.cdl_path + '\\' + fnames[findex[findex[:,1]==year,0][0]]
             new_raster, new_raster_NoData = QSWAT_utils.Read_Raster(self.cdl_path + '\\' + fnames[findex[findex[:,1]==year,0][0]])
-            
+            new_raster = np.flip(new_raster,0)
             new_raster = np.asarray(new_raster,dtype=float)
             new_raster[new_raster == new_raster_NoData] = np.float('nan')
             new_raster[new_raster == 0.0] = np.float('nan')
+
+            
             new_raster = new_raster[self.bdims[0]:self.bdims[1]+1,self.bdims[2]:self.bdims[3]+1]
             new_raster[self.bnd_array == 0] = np.float('nan')
             
@@ -557,13 +598,26 @@ class HRUs_Creator:
         for year in self.cdl_years: 
             print 'Extracting CDL for watershed ' + str(self.temp_wid) + ' :' + self.fnames[self.findex[self.findex[:,1]==year,0][0]]
             new_raster = self.CDL_org[:,c].reshape(self.bnd_array.shape)
+            
+            #temp_CDL = self.CDL_org[:,c].reshape(self.bnd_array.shape)
+            #temp_CDL[self.watersheds==self.temp_wid] = 999
+            #plt.matshow(temp_CDL)
+            #plt.show()
+            
             new_raster = new_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1]
             
             #apply the mask to limit the collection of data to only the specify region by the mask's raster  
+                        
+            #plt.matshow(new_raster)
+            #plt.show()
+                        
+            #plt.matshow(self.wid_array)
+            #plt.show()
             CDL[:,c] = new_raster.flatten()*self.wid_array.flatten()
             c += 1
             
         return CDL
+
     
     #%% Read System boundary mask (raster: 0-no data, 1-area of study)
     def ReadInputData(self):  
@@ -591,7 +645,7 @@ class HRUs_Creator:
                
         self.bdims = [top_row,last_row,left_col,right_col]
         self.bnd_array = boundary[top_row:last_row+1,left_col:right_col+1]
-        #bnd_array = boundary.flatten()            
+        #bnd_array = boundary.flatten()     
         
         #watersheds = rasterio.open(self.rootpath + '\\' + self.watershed_lyr)
         #watersheds = np.asarray(watersheds.read(1), dtype = np.int64)
@@ -607,7 +661,7 @@ class HRUs_Creator:
         watersheds[watersheds < 0] = 0
         watersheds[self.bnd_array == boundary_NoData] = 0
         self.watersheds = watersheds
-                
+
 #        #watersheds = watersheds.flatten()
 #        # Find CDL raster files (.tif) in given directory & read .ddf (feature properties) table
 #        rootpath_zip = 'Z:\Projects\INFEWS\Modeling\FEW_Data\Crops\USDA_CDL\Region_CDL\Projected';
@@ -627,6 +681,9 @@ class HRUs_Creator:
         self.bdims = [top_row, last_row, left_col, right_col]
         self.bnd_array = boundary[top_row:last_row+1, left_col:right_col+1]
         
+        #plt.matshow(self.bnd_array)
+        #plt.show()
+        
         watersheds, watersheds_NoData = QSWAT_utils.Read_Raster(self.watershed_raster)
         watersheds[watersheds == watersheds_NoData] = -999 # Needed because of different GIS tools data convertion steps
         
@@ -635,6 +692,8 @@ class HRUs_Creator:
         watersheds[self.bnd_array == boundary_NoData] = 0
         
         self.watersheds = watersheds
+        #plt.matshow(self.watersheds)
+        #plt.show()
 
 #%%          
     def SimplifySoils(self):
