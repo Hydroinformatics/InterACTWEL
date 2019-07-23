@@ -1,0 +1,5 @@
+output_path = C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Zonal_Statistics
+cdl_path = C:\Users\sammy\Documents\Research\SWAT\willow_final\CDL_Data
+hru_file = C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Watershed\Shapes\hru1.shp
+landuse_file = C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Source\crop\InterACTWEL_landuse.tif
+nlcd_file = C:\Users\sammy\Documents\Research\SWAT\willow_final\NLCD_proj.tif

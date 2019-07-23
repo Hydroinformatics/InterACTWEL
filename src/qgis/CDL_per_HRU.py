@@ -277,14 +277,47 @@ def Get_No_Crop_Ids():
     return no_crop_ids
 
 #%%
+def ReadInputFile(file_path):
+    files = dict() 
+    
+    with open(file_path,'rb') as search:
+        for line in search:
+            if 'output_path' in line:
+                linesplit = re.split('\s',line)
+                files['output_path'] = linesplit[2].replace('\\','/')
+                
+            elif 'nlcd_file' in line:
+                linesplit = re.split('\s',line)
+                files['nlcd_file'] = linesplit[2].replace('\\','/')
+                
+            elif 'hru_file' in line:
+                linesplit = re.split('\s',line)
+                files['hru_file'] = linesplit[2].replace('\\','/')
+                
+            elif 'landuse_file' in line:
+                linesplit = re.split('\s',line)
+                files['landuse_file'] = linesplit[2].replace('\\','/')
+                
+            elif 'cdl_path' in line:
+                linesplit = re.split('\s',line)
+                files['cdl_path'] = linesplit[2].replace('\\','/')
+     
+    if 'hru_file' not in files:
+        print('Error: An HRU shapefile must be provided.')
+        sys.exit()      
+        
+    if 'output_path' not in files:
+        print('Warning: An output path was not provided. The results will be saved at: ' + os.getcwd())
+        files['output_path'] = os.getcwd()
+            
+    search.close()
+    return files
 
-files = dict()        
+#%%
+files = None
+file_path = input('Please enter the File Path with input data layers: ')
 
-files['output_path'] = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Zonal_Statistics'
-files['cdl_path'] = 'C:\Users\sammy\Documents\Research\SWAT\willow_final\CDL_Data'
-files['hru_file'] = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Watershed\Shapes\hru1.shp'
-files['landuse_file'] = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\src\PySWAT\SWAT_post_process\dev\Sensitivity_Analysis\willow_update_v2\Source\crop\InterACTWEL_landuse.tif'
-files['nlcd_file'] = 'C:\Users\sammy\Documents\Research\SWAT\willow_final\NLCD_proj.tif'
+files = ReadInputFile(file_path)
 
 years = range(2012,2017)
 
