@@ -685,7 +685,10 @@ class HRUs_Creator:
         #plt.show()
         
         watersheds, watersheds_NoData = QSWAT_utils.Read_Raster(self.watershed_raster)
+        watersheds = np.asarray(watersheds, dtype = np.int64)
         watersheds[watersheds == watersheds_NoData] = -999 # Needed because of different GIS tools data convertion steps
+        
+        watersheds[watersheds <= 0] = -999
         
         watersheds = watersheds[top_row:last_row+1,left_col:right_col+1] + 1 #added +1 to avoid confusion if watershed ID = 0
         watersheds[watersheds < 0] = 0

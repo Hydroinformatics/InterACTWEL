@@ -51,7 +51,11 @@ for noncrop in IHRUs.no_crop_ids:
    
 IHRUs.CDL_org = CDL_org
 
-for wid in range(5,7):
+un_water = numpy.unique(IHRUs.watersheds.flatten())
+un_water = un_water[numpy.where(un_water != 0)]
+
+#for wid in range(5,7):
+for wid in un_water:
     IHRUs.temp_wid = wid
     temp_watershed = numpy.asarray(IHRUs.watersheds == wid, dtype=numpy.int64)
     
@@ -79,10 +83,13 @@ for wid in range(5,7):
 #        plt.matshow(temp_mat)
 #        plt.show()
     
-    temp_icrop, temp_icropb = IHRUs.Create_HRUs()
-    newHRUs = IHRUs.MergeNewHRUs(newHRUs, temp_icrop)
-    newHRUs_B = IHRUs.MergeNewHRUs(newHRUs_B, temp_icropb)
+    if numpy.sum(IHRUs.LST_LlNd.flatten()) > 0:
+        temp_icrop, temp_icropb = IHRUs.Create_HRUs()
+        newHRUs = IHRUs.MergeNewHRUs(newHRUs, temp_icrop)
+        newHRUs_B = IHRUs.MergeNewHRUs(newHRUs_B, temp_icropb)
+        
+        plt.matshow(newHRUs)
+        plt.show()
     
-    plt.matshow(newHRUs)
-    plt.show()
-    
+sio.savemat('PythonHRUs.mat', {'newHRUs':newHRUs,'newHRUs_B':newHRUs_B})
+        

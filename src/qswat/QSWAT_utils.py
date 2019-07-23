@@ -159,10 +159,11 @@ def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal =
     Output.SetProjection(Image.GetProjectionRef())
     Output.SetGeoTransform((x_min, pixel_width, 0, y_min, 0, pixel_width))
 
-    NoData_value = -999999
+    NoData_value = -999
 
     # Write data to band 1
     Band = Output.GetRasterBand(1)
+    Band.Fill(NoData_value)
     Band.SetNoDataValue(NoData_value)
     Band.FlushCache()
     
