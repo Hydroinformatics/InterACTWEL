@@ -11,7 +11,7 @@ import numpy as np
 
 import processing 
 from qgis.analysis import QgsZonalStatistics
-from PyQt4.QtCore import QFileInfo
+from qgis.PyQt.QtCore import QFileInfo
 from qgis.core import *
 
 #sys.path.append('C:/Program Files/QGIS 2.18/apps/qgis-ltr/python/qgis/PyQt')
@@ -60,8 +60,8 @@ def Zonal_Statistic_CDL(files, years):
     HRU_NLCDdict = None
     hrusid_cdl = None
     
-    if 'hru_file' in files:
-        print 'Zonal_Stats of InterACTWEL_Landuse'
+    if 'landuse_file' in files:
+        print ('Zonal_Stats of InterACTWEL_Landuse')
         zonal_shape = files['output_path'] + '\zonal_shape_HRUids.shp'
         copyshp(files['hru_file'],zonal_shape)
     
@@ -78,19 +78,23 @@ def Zonal_Statistic_CDL(files, years):
                 hrusid_cdl.append(attrs[6]) 
     
     if 'nlcd_file' in files:
-        print 'Zonal_Stats of NLCD'
+        print ('Zonal_Stats of NLCD')
         zonal_shape = files['output_path'] + '\zonal_shape_NLCD.shp'
         copyshp(files['hru_file'],zonal_shape)
         
         zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_NLCD', 'ogr')
         landuse_lyr = files['nlcd_file'].replace('\\','/')
-        zoneStat = QgsZonalStatistics(zonal_lyr,landuse_lyr,"", 1, QgsZonalStatistics.Majority)
+        landuse_lyr = QgsRasterLayer(landuse_lyr)
+        zoneStat = QgsZonalStatistics(zonal_lyr, landuse_lyr,"", 1, QgsZonalStatistics.Majority)
         zoneStat.calculateStatistics(None)
     
         HRU_NLCDdict = dict()
         lyr = QgsVectorLayer(zonal_shape, '', 'ogr')
         for feat in lyr.getFeatures():
             attrs = feat.attributes()
+            if str(attrs[len(attrs)-1]) == 'NULL':
+                attrs[len(attrs)-1] = -999
+           
             HRU_NLCDdict[attrs[6]] = int(attrs[len(attrs)-1])
     
     if 'cdl_path' in files:
@@ -100,7 +104,7 @@ def Zonal_Statistic_CDL(files, years):
         c = 0
         
         for fname in fnames:
-            if '.tif.' not in fname and '.tfw' not in fname and '_mf.tif' in fname:
+            if '.tif.' not in fname and '.tfw' not in fname and '_mfv2.tif' in fname:
                 findex.append((c,int(fname[4:8])))
             c += 1    
     
@@ -109,7 +113,8 @@ def Zonal_Statistic_CDL(files, years):
         HRU_CDLdict = dict()
     
         for year in years: 
-            print 'Zonal_Stats of ' + fnames[findex[findex[:,1]==year,0][0]]
+            
+            print ('Zonal_Stats of ' + fnames[findex[findex[:,1]==year,0][0]])
             cdl_raster = files['cdl_path'] + '\\' + fnames[findex[findex[:,1]==year,0][0]]            
             
             zonal_shape = files['output_path'] + '\zonal_shape_' + str(year) + '.shp'
@@ -117,6 +122,7 @@ def Zonal_Statistic_CDL(files, years):
             copyshp(files['hru_file'],zonal_shape)
             zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_' + str(year), 'ogr')
             landuse_lyr = cdl_raster.replace('\\','/')
+            landuse_lyr = QgsRasterLayer(landuse_lyr)
             zoneStat = QgsZonalStatistics(zonal_lyr,landuse_lyr,"", 1, QgsZonalStatistics.Majority)
             zoneStat.calculateStatistics(None)
             
@@ -126,6 +132,8 @@ def Zonal_Statistic_CDL(files, years):
                 attrs = feat.attributes()
                 #print 'Attr' + str(attrs[len(attrs)-1])
                 #print attrs[6], attrs[len(attrs)-1]
+                if str(attrs[len(attrs)-1]) == 'NULL':
+                    attrs[len(attrs)-1] = -999
                 temp_dict[attrs[6]] = int(attrs[len(attrs)-1])
             HRU_CDLdict[year] = temp_dict 
         
@@ -282,6 +290,7 @@ def ReadInputFile(file_path):
     
     with open(file_path,'rb') as search:
         for line in search:
+            line = line.decode('ascii')
             if 'output_path' in line:
                 linesplit = re.split('\s',line)
                 files['output_path'] = linesplit[2].replace('\\','/')
@@ -315,12 +324,12 @@ def ReadInputFile(file_path):
 
 #%%
 files = None
-file_path = input('Please enter the File Path with input data layers: ')
-
-files = ReadInputFile(file_path)
+#file_path = input("Please enter the File Path with input data layers: ")
+file_path ='D:/Umatilla_Input_data/Umatilla_cdl_hru.txt'
+files = ReadInputFile(file_path.replace('\\','/'))
 
 years = range(2012,2017)
-
+print (years)
 hru_name_dict = FindHRUMgtFiles(files['hru_file'][0:files['hru_file'].find('Watershed')-1].replace('\\','/'))
 
 HRU_CDLdict, HRU_NLCDdict, hrusid_cdl = Zonal_Statistic_CDL(files, years)
@@ -354,7 +363,7 @@ for hru in  HRU_CDLdict.keys():
         
 
 #%%
-print 'Writing CSV'
+print ('Writing CSV')
 output_file = files['output_path'].replace('\\','/') + '/HRU_CDL_mode.csv'
 with open(output_file, mode='wb') as outputcsv:
     outputcsv_writer = csv.writer(outputcsv, delimiter = ',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)        
@@ -384,6 +393,6 @@ with open(output_file, mode='wb') as outputcsv:
         
 outputcsv.close()
 
-print 'Finish writing CSV'
+print ('Finish writing CSV')
 
       
