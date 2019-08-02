@@ -171,8 +171,8 @@ def csv_file_write(filein, irr_dict, cropnames, ucrop):
     for n in range(0,2):
         for u in ucrop:
             atxt = atxt + str(cropnames[u]) + ','
-    for u in ucrop:
-        for irrid in irr_dict.keys():
+    for irrid in irr_dict.keys():
+        for u in ucrop:
             atxt = atxt + cropnames[u] + '_' + str(irr_dict[irrid]) + ','
     for u in ucrop:
         atxt = atxt + 'N Fertilizer' + '_' + cropnames[u] + ','
