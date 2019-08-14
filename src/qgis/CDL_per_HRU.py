@@ -11,7 +11,7 @@ import numpy as np
 
 import processing 
 from qgis.analysis import QgsZonalStatistics
-from qgis.PyQt.QtCore import QFileInfo
+from PyQt4.QtCore import QFileInfo
 from qgis.core import *
 
 #sys.path.append('C:/Program Files/QGIS 2.18/apps/qgis-ltr/python/qgis/PyQt')
@@ -80,11 +80,11 @@ def Zonal_Statistic_CDL(files, years):
     if 'nlcd_file' in files:
         print ('Zonal_Stats of NLCD')
         zonal_shape = files['output_path'] + '\zonal_shape_NLCD.shp'
-        copyshp(files['hru_file'],zonal_shape)
+        copyshp(files['hru_file'], zonal_shape)
         
         zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_NLCD', 'ogr')
         landuse_lyr = files['nlcd_file'].replace('\\','/')
-        landuse_lyr = QgsRasterLayer(landuse_lyr)
+        # landuse_lyr = QgsRasterLayer(landuse_lyr)
         zoneStat = QgsZonalStatistics(zonal_lyr, landuse_lyr,"", 1, QgsZonalStatistics.Majority)
         zoneStat.calculateStatistics(None)
     
@@ -122,7 +122,7 @@ def Zonal_Statistic_CDL(files, years):
             copyshp(files['hru_file'],zonal_shape)
             zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_' + str(year), 'ogr')
             landuse_lyr = cdl_raster.replace('\\','/')
-            landuse_lyr = QgsRasterLayer(landuse_lyr)
+            # landuse_lyr = QgsRasterLayer(landuse_lyr)
             zoneStat = QgsZonalStatistics(zonal_lyr,landuse_lyr,"", 1, QgsZonalStatistics.Majority)
             zoneStat.calculateStatistics(None)
             
@@ -192,7 +192,7 @@ def FindCropSeq(HRU_CDLdict, hru_ids, colid, target_hru):
 def FindHRUMgtFiles(swat_path):
     
     swat_files  = os.listdir(swat_path + '/Scenarios/Default/TxtInOut/')
-    hru_files = [f for f in swat_files if '.mgt' in f and f != 'output.mgt']
+    hru_files = [f for f in swat_files if '.hru' in f and f != 'output.hru']
     
     HRUFiles = dict()
     #hrufile = []
@@ -205,7 +205,7 @@ def FindHRUMgtFiles(swat_path):
                     for sptline in linesplit:
                         if 'HRU' in sptline and cline == 0:
                             sptline = re.split(':',sptline)
-                            HRUFiles[hfile.strip('.mgt')] = int(sptline[1])
+                            HRUFiles[hfile.strip('.hru')] = int(sptline[1])
                             #hrufile.append((int(sptline[1]),int(hfile.strip('.mgt'))))
                             cline = cline + 1
                      
@@ -370,15 +370,10 @@ with open(output_file, mode='wb') as outputcsv:
     outputcsv_writer.writerow(['HRU_ID','2012','2013','2014','2015','2016'])
     
     for hru in HRU_CDLdict.keys():
-        #if hru in hrusid_cdl and hru not in temp_hrus_nans:
         if hru not in temp_hrus_nans:
             outputcsv_writer.writerow([hru_name_dict[str(hru)],str(HRU_CDLdict[hru][0]),str(HRU_CDLdict[hru][1]),str(HRU_CDLdict[hru][2]),
                                    str(HRU_CDLdict[hru][3]),str(HRU_CDLdict[hru][4])])
         else:
-#            if HRU_NLCDdict[hru] == 81 or HRU_NLCDdict[hru] == 82:
-#                temp_hru = str(random.choice(hrus_complete_seq))
-#                outputcsv_writer.writerow([str(hru),str(HRU_CDLdict[temp_hru][0]),str(HRU_CDLdict[temp_hru][1]),str(HRU_CDLdict[temp_hru][2]),
-#                                   str(HRU_CDLdict[temp_hru][3]),str(HRU_CDLdict[temp_hru][4])])
             if HRU_NLCDdict[hru] == 81:
                 outputcsv_writer.writerow([hru_name_dict[str(hru)],'5','5','5','5','5'])
                 
@@ -389,8 +384,7 @@ with open(output_file, mode='wb') as outputcsv:
                     outputcsv_writer.writerow([hru_name_dict[str(hru)],str(nlcd_cropdict[HRU_NLCDdict[hru]]['value']),'-999','-999','-999','-999'])
                 else:
                     outputcsv_writer.writerow([hru_name_dict[str(hru)],'-999','-999','-999','-999','-999'])
-        
-        
+
 outputcsv.close()
 
 print ('Finish writing CSV')
