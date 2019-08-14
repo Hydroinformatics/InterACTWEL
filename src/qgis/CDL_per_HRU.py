@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, shutil, csv, random, pyodbc, re
+import os, shutil, csv, random, pyodbc, re, sys
 from osgeo import gdal
 from scipy import stats
 import numpy as np
@@ -84,7 +84,7 @@ def Zonal_Statistic_CDL(files, years):
         
         zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_NLCD', 'ogr')
         landuse_lyr = files['nlcd_file'].replace('\\','/')
-        # landuse_lyr = QgsRasterLayer(landuse_lyr)
+
         zoneStat = QgsZonalStatistics(zonal_lyr, landuse_lyr,"", 1, QgsZonalStatistics.Majority)
         zoneStat.calculateStatistics(None)
     
@@ -122,7 +122,7 @@ def Zonal_Statistic_CDL(files, years):
             copyshp(files['hru_file'],zonal_shape)
             zonal_lyr = QgsVectorLayer(zonal_shape, 'zonal_shape_' + str(year), 'ogr')
             landuse_lyr = cdl_raster.replace('\\','/')
-            # landuse_lyr = QgsRasterLayer(landuse_lyr)
+
             zoneStat = QgsZonalStatistics(zonal_lyr,landuse_lyr,"", 1, QgsZonalStatistics.Majority)
             zoneStat.calculateStatistics(None)
             
@@ -325,7 +325,7 @@ def ReadInputFile(file_path):
 #%%
 files = None
 #file_path = input("Please enter the File Path with input data layers: ")
-file_path ='D:/Umatilla_Input_data/Umatilla_cdl_hru.txt'
+file_path ='C:\Users\sammy\Documents\Research\SWAT\Umatilla_cdl_hru.txt'
 files = ReadInputFile(file_path.replace('\\','/'))
 
 years = range(2012,2017)
