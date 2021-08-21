@@ -1,0 +1,33 @@
+#Irrigation: [10, irr.dat, I]
+surface = {A_WSTRS: [0.95000]; IEFF: [0.85]; IRRI_AMTX: [5.00000]; IASQ: [0.20]; B: []; ISC:[wrdata.dat]}
+groundwater = {A_WSTRS: [0.95000]; IEFF: [0.85]; IRRI_AMTX: [5.00000]; IASQ: [0.20]; B: []; ISC:[wrdata.dat]}
+outside = {A_WSTRS: [0.95000]; IEFF: [0.85]; IRRI_AMTX: [5.00000]; IASQ: [0.20]; B: []; ISC:[wrdata.dat]}
+no_irr = {A_WSTRS: [0.95000]; IEFF: [0.85]; IRRI_AMTX: [5.00000]; IASQ: [0.20]; B: []; ISC:[wrdata.dat]}
+
+#Crops: [1, plant.dat, CROP]
+AGRL = {OP_SCHD: [3]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ORCD = {OP_SCHD: [26]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+HAY = {OP_SCHD: [18]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+FRST = {OP_SCHD: [35]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+FRSE = {OP_SCHD: [36]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+WETF = {OP_SCHD: [41]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+WETN = {OP_SCHD: [42]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+RNGE = {OP_SCHD: [38]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+RNGB = {OP_SCHD: [39]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+CORN = {OP_SCHD: [6]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SCRN = {OP_SCHD: [33]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SWHT = {OP_SCHD: [8]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+WWHT = {OP_SCHD: [10]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+BARL = {OP_SCHD: [16]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SWGR = {OP_SCHD: [25]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ALFA = {OP_SCHD: [14]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+PEAS = {OP_SCHD: [23]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+POTA = {OP_SCHD: [4]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+ONIO = {OP_SCHD: [5]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+CANP = {OP_SCHD: [17]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+CELR = {OP_SCHD: [24]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+STRW = {OP_SCHD: [2]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+MINT = {OP_SCHD: [1]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+SOYB = {OP_SCHD: [43]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+FRSD = {OP_SCHD: [37]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}
+PAST = {OP_SCHD: [44]; HEATUN_MAT: []; LIAI: []; BIO_INI: []; HI_T: []; BI_T: []; CNOC: []}

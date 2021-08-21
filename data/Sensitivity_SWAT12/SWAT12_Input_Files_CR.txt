@@ -1,0 +1,8 @@
+zipswat_path = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\Txtinout_v4_Iter11\Test_SWAT.zip
+unzip_path = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\Txtinout_v4_Iter11_01212021
+
+crop_hru_seq = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Zonal_Stats\CDL_per_HRU\HRU_CDL_mode_NoSeq.csv
+swat_exe = swat_debug32.exe
+new_mng_ops = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\NewMngOps_v2.txt
+new_ops_sched = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\NewOpsSchd.txt
+no_change_lum_path = C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations/no_changeLU_SWAT12.txt
