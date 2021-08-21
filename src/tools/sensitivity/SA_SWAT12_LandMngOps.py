@@ -27,7 +27,7 @@ class LndMngOps(object):
                     linesplit = re.split('\s',line)
                     linesplit = [t for t in linesplit if len(t) > 0]
                     if len(linesplit) > 0:
-                        wrdict[int(linesplit[0])] = linesplit[1]
+                        wrdict[int(linesplit[1])] = linesplit[2]
             search.close()
         else:
             sys.exit('File: ' + wrtfile + ' was not found.')
@@ -37,7 +37,7 @@ class LndMngOps(object):
                 for line in search:
                     linesplit = re.split('\s',line)
                     linesplit = [t for t in linesplit if len(t) > 0]
-                    if len(linesplit) > 0:
+                    if len(linesplit) > 0 and int(linesplit[3]) == 1:
                         temp_dict[int(linesplit[0])] = wrdict[int(linesplit[1])]
             search.close()
         else:
@@ -137,7 +137,7 @@ class LndMngOps(object):
                                 #temp_dict4['min'] = float(temprange[0])
                                 #temp_dict4['max'] = float(temprange[1])
                         
-                        elif 'watrgt.dat' in temprange:  
+                        elif 'wrdata.dat' in temprange:  
                             var_range = []
                             temp_dict4 = dict()
                             temprange = temprange.strip('[')
@@ -209,7 +209,8 @@ class LndMngOps(object):
                     #opschd_counter = 0
                 
                 elif '#' not in line and sched_bool == 1 and len(line.strip()) > 0:
-                    linesplit = line.split(' ')
+                    linesplit = line.lstrip()
+                    linesplit = linesplit.split(' ')
                     linesplit = [l for l in linesplit if len(l) >0]
                     if len(linesplit) > 1:
                         temp_dict[int(linesplit[1])] = line.strip('\r\n')
@@ -326,6 +327,7 @@ class LndMngOps(object):
                 if operations_linebool == 1:
                     iter_counter = 1
                     for crop_id in hru_crops[hruid]:
+                        #print hruid
                         schd_oper = random.choice(self.MngParams['Crops']['options'][crop_id]['OP_SCHD']['values'])
                         InputVars['CROPS'].append(crop_id)
                         InputVars['SCHOP'].append(schd_oper)
@@ -365,8 +367,9 @@ class LndMngOps(object):
                                     
                         iter_counter = iter_counter + 1
                              
-                    operations_linebool = 0
+                    #operations_linebool = 0
                     operations_linebool = 2
+                    
                 elif operations_linebool == 0 and operations_linebool != 2:
                 #else:
                     wrt.write(line)
@@ -374,18 +377,60 @@ class LndMngOps(object):
                 if 'Operation Schedule' in line:
                     operations_linebool = 1
             
-            cline = cline + 1
+                cline = cline + 1
 
                 
-            search.close()
-            wrt.close()
-            shutil.copyfile(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt', file_path)
-            os.remove(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt')
+        search.close()
+        wrt.close()
+        shutil.copyfile(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt', file_path)
+        os.remove(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt')
             
-            return InputVars
+        return InputVars
+        
+
+    def Write_MgtSchd_NoCrops(self, file_path, hruid, hru_non_crops):
+    
+        cline = 0
+        operations_linebool = 0
+        InputVars = dict()
+        InputVars['CROPS'] = []
+        InputVars['SCHOP'] = []
+
+        with open(file_path) as search, open(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt','w') as wrt:
+            for line in search:
+                if cline == 0:
+                    linesplit = re.split('\s',line)
+                    for sptline in linesplit:
+                        if 'Subbasin' in sptline:
+                            sptline = re.split(':',sptline)
+                            sub_basin = int(sptline[1])
+                            InputVars['SUBID'] = []
+                            InputVars['SUBID'].append(sub_basin)
+                    
+                    if unicode(hru_non_crops[hruid], 'utf-8').isnumeric() == False:
+                        luse_id = line.find('Luse:')
+                        print hruid, line[luse_id+5:luse_id+9], hru_non_crops[hruid]
+                        line[luse_id+5:luse_id+9] = hru_non_crops[hruid]
+                        
+                            
+                if operations_linebool == 0:
+                    wrt.write(line)
+                
+                if 'Operation Schedule' in line:
+                    operations_linebool = 1
+            
+                cline = cline + 1
+
+                
+        search.close()
+        wrt.close()
+        shutil.copyfile(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt', file_path)
+        os.remove(self.model_path + 'Scenarios/Default/TxtInOut/Tempfile.txt')
+            
+        return InputVars
 
 #%%    
-    def ChangeHRU_Mgt(self, hruids, hru_files, hru_crops):
+    def ChangeHRU_Mgt(self, hruids, hruids_nocrop, hru_files, hru_crops, hru_non_crops):
         
         InputDict = dict()
         
@@ -395,6 +440,11 @@ class LndMngOps(object):
             file_path = self.model_path + 'Scenarios/Default/TxtInOut/' + hru_files[hru]
             temp_dict = self.Write_MgtSchd(file_path, hru, hru_crops)
             InputDict[hru] = temp_dict
+        
+        for hru in hruids_nocrop:
+            file_path = self.model_path + 'Scenarios/Default/TxtInOut/' + hru_files[hru]
+            temp_dict = self.Write_MgtSchd_NoCrops(file_path, hru, hru_non_crops)
+            
             
         return InputDict
     

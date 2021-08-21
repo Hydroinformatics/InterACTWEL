@@ -70,8 +70,8 @@ def FilterNLCD(nlcd_filen, wsize):
 #%%
 # Willow
 #nlcd_filen = 'C:\Users\sammy\Documents\Research\SWAT\Willow_Input_data/nlcd_proj.tif '
-nlcd_filen = 'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input/nlcd_proj.tif '
-FilterNLCD(nlcd_filen, 3)
+#nlcd_filen = 'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input/nlcd_proj.tif '
+#FilterNLCD(nlcd_filen, 3)
 
-rootpath_zip = 'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input\CDL_Data'
+rootpath_zip = r'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\Umatilla_Input_data\CDL_Data'
 FilterCDL(rootpath_zip, 3)

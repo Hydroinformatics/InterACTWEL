@@ -438,7 +438,6 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
                 if varkey.lower() != 'table':
                     output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
         
-         
     return wrdict, wrsrc, hruwr, output_vars_data
 
 #%%
@@ -453,7 +452,6 @@ def run_SWAT(model_path, swat_exe):
     os.chdir(cwdir)
     
 #%%
-
 
 def FindVarIds(model_path):
     datpath = model_path + 'Scenarios/Default/TxtInOut/irr.dat'

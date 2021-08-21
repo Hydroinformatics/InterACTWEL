@@ -3,8 +3,8 @@ import re, os, sys
 from osgeo import gdal, ogr, osr
 import numpy as np
 
-os.chdir('..\src')
-sys.path.append(os.getcwd())
+#os.chdir('..\src')
+#sys.path.append(os.getcwd())
 
 import QSWAT_utils
 
@@ -27,6 +27,8 @@ class Data_Preprocess:
         self.soil_file = ''
         self.watershed_file = ''
         self.output_path = ''
+#        self.swat_path = ''
+        self.landuse_file = ''
         
         ## Find CDL raster files (.tif) in given directory & read .ddf (feature properties) table
         self.cdl_path = ''
@@ -35,6 +37,7 @@ class Data_Preprocess:
         self.clip_dem = ''
         self.clip_nlcd = ''
         self.clip_soil = ''
+        self.clip_landuse = ''
 
 #%%
 # Parse file paths of data that needs pre-processing.
@@ -69,6 +72,14 @@ class Data_Preprocess:
                 elif 'output_path' in line:
                     linesplit = re.split('\s',line)
                     self.output_path = linesplit[2].replace('\\','/')
+                
+#                elif 'swat_path' in line:
+#                    linesplit = re.split('\s',line)
+#                    self.swat_path = linesplit[2].replace('\\','/')
+                
+                elif 'landuseFile' in line:
+                    linesplit = re.split('\s',line)
+                    self.landuse_file = linesplit[2].replace('\\','/')
                         
         search.close()
     
@@ -118,6 +129,7 @@ class Data_Preprocess:
             self.boundary_lyr = boundary_buffer_shp
             
             print("Rasterising boundary shapefile...")
+            
             BoundaryRaster = self.output_path + '/' + base + '_boundary.tif'
             QSWAT_utils.CreateTiff(self.boundary_lyr, BoundaryRaster, self.dem_file)
             self.boundary_raster = BoundaryRaster
@@ -133,7 +145,7 @@ class Data_Preprocess:
         exists = os.path.isfile(self.boundary_raster)
         # Uses the extent of the regional boundary/raster to clip DEM (and reproject if needed to the same CSR as the sub-basins shapefile)
         if exists:
-            if self.dem_file != '':
+            if self.dem_file != '' and self.clip_dem == '':
                 (base, suffix) = os.path.splitext(os.path.basename(self.dem_file))
                 ClipDem = self.output_path + '/' +  base + '_clp' + suffix
                 print("Clipping DEM to subbasin extent")
@@ -141,7 +153,7 @@ class Data_Preprocess:
                 print("Done clipping DEM")
                 self.clip_dem = ClipDem
             
-            if self.nlcd_file != '':
+            if self.nlcd_file != '' and self.clip_nlcd == '':
                 (base, suffix) = os.path.splitext(os.path.basename(self.nlcd_file))
                 landuseRaster = self.output_path + '/' +  base + '_clp' + suffix
                 print("Clipping NLCD to subbasin extent")
@@ -149,13 +161,21 @@ class Data_Preprocess:
                 print("Done clipping NLCD")
                 self.clip_nlcd = landuseRaster
         
-            if self.soil_file != '':
+            if self.soil_file != '' and self.clip_soil == '':
                 (base, suffix) = os.path.splitext(os.path.basename(self.soil_file))
                 SoilRaster = self.output_path + '/' + base + '_clp' + suffix
                 print("Clipping Soil to subbasin extent")
                 QSWAT_utils.Clipraster(self.soil_file, SoilRaster, self.boundary_raster, gdal.GRA_Mode)
                 print("Done clipping Soil Raster")
                 self.clip_soil = SoilRaster 
+            
+            if self.landuse_file != '' and self.clip_landuse == '':
+                (base, suffix) = os.path.splitext(os.path.basename(self.landuse_file))
+                landuseRaster = self.output_path + '/' + base + '_clp' + suffix
+                print("Clipping InterACTWEL land use to subbasin extent")
+                QSWAT_utils.Clipraster(self.landuse_file, landuseRaster, self.boundary_raster, gdal.GRA_Mode)
+                print("Done clipping InterACTWEL land use Raster")
+                self.clip_landuse = landuseRaster 
                 
             if self.cdl_path != '':
                 

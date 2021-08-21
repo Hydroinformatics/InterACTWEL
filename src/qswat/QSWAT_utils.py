@@ -31,11 +31,11 @@ def Raster_col_boundaries(raster):
 #%%
 def Read_Raster(raster_file, raster_NoData = -999):
     
-    raster = gdal.Open(raster_file, gdal.GA_ReadOnly)
-    raster_NoData = raster.GetRasterBand(1).GetNoDataValue()
-    raster = raster.GetRasterBand(1).ReadAsArray()     
+    raster_ds = gdal.Open(raster_file, gdal.GA_ReadOnly)
+    raster_NoData = raster_ds.GetRasterBand(1).GetNoDataValue()
+    raster = raster_ds.GetRasterBand(1).ReadAsArray()     
     
-    return raster, raster_NoData
+    return raster, raster_NoData, raster_ds
 
 #%%
 def copyshp(basefile,copyfile):
@@ -80,7 +80,9 @@ def Clipraster(InputRaster, OutputImage, RefImage, resample_method):
     InputSrc = gdal.Open(InputRaster, gdal.GA_ReadOnly)
     gdalformat = 'GTiff'
     datatype = InputSrc.GetRasterBand(1).DataType
-    NoData_value = -999999
+    NoData_value = InputSrc.GetRasterBand(1).GetNoDataValue()
+    if NoData_value == None:
+        NoData_value = -9999
     ##########################################################
     RasterSrc = gdal.Open(RefImage, gdal.GA_ReadOnly)
     upx, xres, xskew, upy, yskew, yres = RasterSrc.GetGeoTransform()
@@ -99,16 +101,22 @@ def Clipraster(InputRaster, OutputImage, RefImage, resample_method):
     urx = upx + cols*xres + 0*xskew
     lly = upy + cols*yskew + 0*yres
     ##########################################################
-    RasterSrcClip = gdal.Open(RefImage, gdal.GA_ReadOnly)
+    #RasterSrcClip = gdal.Open(RefImage, gdal.GA_ReadOnly)
     Projection = RasterSrc.GetProjectionRef()
-
+    
+    if lly > ury:
+        old_ury = ury
+        ury = lly
+        lly = old_ury
+        
     warp_opts = gdal.WarpOptions(
-            format=gdalformat,
-            outputType=datatype, 
-            outputBounds=[llx, lly, urx, ury], 
-            xRes=xres, 
-            yRes=yres, 
-            dstSRS=Projection, 
+            format = gdalformat,
+            outputType = datatype, 
+            outputBounds = [llx, lly, urx, ury], 
+            xRes = xres, 
+            yRes = yres, 
+            dstSRS = Projection,
+            dstNodata = NoData_value,
             resampleAlg = resample_method)  
     # resampleAlg = gdal.GRA_NearestNeighbour)
 
@@ -118,10 +126,9 @@ def Clipraster(InputRaster, OutputImage, RefImage, resample_method):
     return
 
 #%%
-def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal = 1, RefInputVector = ''):
+def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal = 1, RefInputVector = '', tiffExtent = '', datatype = gdal.GDT_Byte):
 
     gdalformat = 'GTiff'
-    datatype = gdal.GDT_Byte
     #burnVal = 1 #value for the output image pixels
     ##########################################################
     # Get projection info from reference image
@@ -140,21 +147,35 @@ def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal =
         temp_Shapefile_layer = temp_Shapefile.GetLayer()
         geo_transform = temp_Shapefile_layer.GetExtent()
 
-    x_min = geo_transform[0]
-    y_max = geo_transform[3]
-    #x_max = x_min + geo_transform[1] * Image.RasterXSize
-    #y_min = y_max + geo_transform[5] * Image.RasterYSize
-    x_max = geo_transform[1]
-    y_min = geo_transform[2]
-
-    x_res = int(numpy.round((x_max - x_min)/pixel_width))
-    y_res = int(numpy.round((y_max - y_min)/pixel_width))
+    if tiffExtent != '':        
+        x_min = tiffgeo_transform[0]
+        y_max = tiffgeo_transform[3]
+        x_max = x_min + tiffgeo_transform[1] * Image.RasterXSize
+        y_min = y_max + tiffgeo_transform[5] * Image.RasterYSize
+        
+        #x_max = tiffgeo_transform[1]
+        #y_min = tiffgeo_transform[2]
+    
+        x_res = int(numpy.round((x_max - x_min)/pixel_width))
+        y_res = int(numpy.round((y_max - y_min)/pixel_width))
+        
+    else:
+        x_min = geo_transform[0]
+        y_max = geo_transform[3]
+        #x_max = x_min + geo_transform[1] * Image.RasterXSize
+        #y_min = y_max + geo_transform[5] * Image.RasterYSize
+        x_max = geo_transform[1]
+        y_min = geo_transform[2]
+    
+        x_res = int(numpy.round((x_max - x_min)/pixel_width))
+        y_res = int(numpy.round((y_max - y_min)/pixel_width))
 
     if tiffgeo_transform[0] > x_min or tiffgeo_transform[3] < y_max:
         msg = 'Spatial extent of DEM is smaller than subbasin shapefile. RefRaster: ' + str(OutputImage) + ' Xlims: ' + str(tiffgeo_transform[0]) + '>' + str(x_min) + 'Ylims: ' + str(tiffgeo_transform[3]) + '<' + str(y_max)
         print(msg)
         
     # Rasterise
+    #print x_res, y_res
     Output = gdal.GetDriverByName(gdalformat).Create(OutputImage, x_res, y_res, 1, datatype, options=['COMPRESS=DEFLATE'])
     Output.SetProjection(Image.GetProjectionRef())
     Output.SetGeoTransform((x_min, pixel_width, 0, y_min, 0, pixel_width))
@@ -180,4 +201,3 @@ def CreateTiff(InputVector, OutputImage, RefImage, attribute_str = '', burnVal =
 
     return    
 #%%
-    

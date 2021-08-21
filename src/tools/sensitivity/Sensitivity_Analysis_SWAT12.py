@@ -15,6 +15,8 @@ class SensitivityAnalysis():
         self.inputcsv = 1
         self.swat_exe = ''
         
+        self.zipswat_path = None
+        
         
         self.output_vars = dict()
         self.input_file = input_files.replace('\\','/')
@@ -97,7 +99,9 @@ class SensitivityAnalysis():
                     
 #%%
     def SA(self,num_sim):
-        self.swat_path = self.UnzipModel(num_sim)
+        
+        #self.swat_path = self.UnzipModel(num_sim) 
+        self.swat_path = r'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\Txtinout_v4_Iter11_01212021' + '/'
         self.LndMngOps.model_path = self.swat_path
         self.saoutputs.model_path = self.swat_path + 'Scenarios/Default/TxtInOut/'
         self.saoutputs.output_path = self.pathuzip
@@ -105,10 +109,10 @@ class SensitivityAnalysis():
                     
         
         if self.crop_rots:
-            self.HRUCrops = self.GetHRUCropRot()
+            self.HRUCrops, self.HRUNonCrops = self.GetHRUCropRot()
         
         if not self.CheckActorGroups():
-            self.HRU_ACTORS, self.hru_ids, self.total_area, self.no_change_lums = self.GetHRU_ACTORS()
+            self.HRU_ACTORS, self.HRU_NOCROP, self.hru_ids, self.total_area, self.no_change_lums = self.GetHRU_ACTORS()
             
         for mngpar in self.LndMngOps.MngParams.keys():
             for opkeys in self.LndMngOps.MngParams[mngpar]['options'].keys():
@@ -130,9 +134,17 @@ class SensitivityAnalysis():
         for i in self.HRU_ACTORS.keys():
             for j in self.HRU_ACTORS[i]['HRU_IDS']:
                 HRUids.append(j)
+        
+        HRUids_nocrop = []
+        for i in self.HRU_NOCROP.keys():
+            for j in self.HRU_NOCROP[i]['HRU_IDS']:
+                HRUids_nocrop.append(j)
                 
         InputDict = dict()
-        InputDict = self.LndMngOps.ChangeHRU_Mgt(HRUids, self.HRUFiles ,self.HRUCrops)
+        InputDict = self.LndMngOps.ChangeHRU_Mgt(HRUids, HRUids_nocrop, self.HRUFiles, self.HRUCrops, self.HRUNonCrops)
+        
+        print "Exiting for Debugging"
+        exit() # For Debugging
         
         if self.inputcsv == 1 and len(InputDict.keys()) > 0:
             print "Writing Input Data CSV"  
@@ -192,6 +204,10 @@ class SensitivityAnalysis():
                 if 'zipswat_path' in line:
                     linesplit = re.split('\s',line)
                     self.zipswat_path = linesplit[2].replace('\\','/')
+                
+                elif 'swat_path' in line:
+                    linesplit = re.split('\s',line)
+                    self.swat_path = linesplit[2].replace('\\','/')
                     
                 elif 'no_change_lum_path' in line:
                     linesplit = re.split('\s',line)
@@ -292,6 +308,7 @@ class SensitivityAnalysis():
         file_path = self.swat_path + '/Scenarios/Default/TxtInOut/' + 'input.std'
         
         hru_ids = []
+        hru_ids_nocrop = []
         linebool = 0
         total_area = 0
         with open(file_path,'rb') as search:
@@ -312,35 +329,60 @@ class SensitivityAnalysis():
                                 if len(self.HRUCrops[int(linesplit[1])]) > 0:
                                     hru_ids.append((int(linesplit[1]),int(linesplit[0]),float(linesplit[2])))
                                     total_area = total_area + float(linesplit[2])
+                            else:
+                                hru_ids_nocrop.append((int(linesplit[1]),int(linesplit[0]),float(linesplit[2])))
         search.close()
         
         hru_counter = 0
         HRU_ACTORS = dict()
-        temp_array = []
+        HRU_NOCROP = dict()
+#        temp_array = []
+        
+#        for i in range(len(hru_ids)):
+#            if hru_counter == 0 :
+#                temp_sum = float(hru_ids[i][2])
+#                temp_array.append(int(hru_ids[i][0]))
+#                hru_counter = hru_counter + 1
+#            else:
+#                if (temp_sum/total_area)*100 > 5:
+#                    temp_dict = dict()
+#                    temp_dict['HRU_IDS'] = temp_array
+#                    temp_dict['Area'] = temp_sum
+#                    temp_dict['Area_Per'] = (temp_sum/total_area)*100
+#                    HRU_ACTORS[hru_counter-1] = temp_dict
+#                    hru_counter = hru_counter + 1
+#                    temp_array = []
+#                    temp_sum = float(hru_ids[i][2])
+#                    temp_array.append(int(hru_ids[i][0]))
+#                else:
+#                    temp_sum = temp_sum + float(hru_ids[i][2])
+#                    temp_array.append(int(hru_ids[i][0]))
         
         for i in range(len(hru_ids)):
-            if hru_counter == 0 :
-                temp_sum = float(hru_ids[i][2])
-                temp_array.append(int(hru_ids[i][0]))
-                hru_counter = hru_counter + 1
-            else:
-                if (temp_sum/total_area)*100 > 5:
-                    temp_dict = dict()
-                    temp_dict['HRU_IDS'] = temp_array
-                    temp_dict['Area'] = temp_sum
-                    temp_dict['Area_Per'] = (temp_sum/total_area)*100
-                    HRU_ACTORS[hru_counter-1] = temp_dict
-                    hru_counter = hru_counter + 1
-                    temp_array = []
-                    temp_sum = float(hru_ids[i][2])
-                    temp_array.append(int(hru_ids[i][0]))
-                else:
-                    temp_sum = temp_sum + float(hru_ids[i][2])
-                    temp_array.append(int(hru_ids[i][0]))
-                                
-        search.close()
+            temp_array = []
+            temp_array.append(int(hru_ids[i][0]))
             
-        return HRU_ACTORS, hru_ids, total_area, no_change_lums
+            temp_dict = dict()
+            temp_dict['HRU_IDS'] = temp_array
+            temp_dict['Area'] = float(hru_ids[i][2])
+            temp_dict['Area_Per'] = (float(hru_ids[i][2])/total_area)*100
+            HRU_ACTORS[hru_counter] = temp_dict
+            hru_counter = hru_counter + 1
+            
+        hru_counter = 0
+        for i in range(len(hru_ids_nocrop)):
+            temp_array = []
+            temp_array.append(int(hru_ids_nocrop[i][0]))
+            
+            temp_dict = dict()
+            temp_dict['HRU_IDS'] = temp_array
+            temp_dict['Area'] = float(hru_ids_nocrop[i][2])
+            temp_dict['Area_Per'] = (float(hru_ids_nocrop[i][2])/total_area)*100
+            HRU_NOCROP[hru_counter] = temp_dict
+            hru_counter = hru_counter + 1
+
+            
+        return HRU_ACTORS, HRU_NOCROP, hru_ids, total_area, no_change_lums
 
 #%%
     def GetOutputVars(self):
@@ -425,7 +467,9 @@ class SensitivityAnalysis():
     def GetHRUCropRot(self):
         #cropdict = self.CDLtoSWATdict()
         HRUCrops = dict()
+        HRUNonCrops = dict()
         cline = 0
+        
         with open(self.crop_rots, 'rb') as search:
             for line in search:
                 if cline != 0:
@@ -435,21 +479,28 @@ class SensitivityAnalysis():
                     ncld_bool = 0
                     for i in range(1,len(linesplit)):
                         #if int(linesplit[i]) > 0 and int(linesplit[i]) in cropdict.keys():
-                        if int(linesplit[i]) > 0:
-                            #temp_data.append(cropdict[int(linesplit[i])])
-                            temp_data.append(int(linesplit[i]))
+                        #print linesplit[i]
+                        if unicode(linesplit[i], 'utf-8').isnumeric():
+                            if int(linesplit[i]) > 0:
+                                #temp_data.append(cropdict[int(linesplit[i])])
+                                temp_data.append(int(linesplit[i]))
+                            else:
+                                temp_data.append(int(linesplit[i]))
+                                ncld_bool = 1
                         else:
-                            temp_data.append(int(linesplit[i]))
+                            temp_data.append(linesplit[i])
                             ncld_bool = 1
+                                
                     if ncld_bool == 0:
                         HRUCrops[int(linesplit[0])] = temp_data
                     else:
                         HRUCrops[int(linesplit[0])] = []
+                        HRUNonCrops[int(linesplit[0])] = linesplit[1]
                 cline += 1
         
         search.close()
         
-        return HRUCrops
+        return HRUCrops, HRUNonCrops
     
     def CDLtoSWATdict(self):
         db_path = self.swat_path + 'QSWATRef2012.mdb'
@@ -474,11 +525,20 @@ class SensitivityAnalysis():
         crsr = cnxn.cursor()
     
         crsr.execute('select * from CDL_lu')
-    
+        
+        # Requested by Meghna        
+        CDL_lu_mods = dict()
+        CDL_lu_mods[14] = 'MINT'
+        CDL_lu_mods[44] = 'AGRL'
+        CDL_lu_mods[61] = 'AGRL'
+        
         cdl_cropdict = dict()
         for row in crsr.fetchall():
+            if row[1] in CDL_lu_mods.keys():
+                row[2] = CDL_lu_mods[row[1]]
+#        cdl_cropdict = dict()
+#        for row in crsr.fetchall():
             if str(row[2]) in cropdict.keys():
                 cdl_cropdict[row[1]] = cropdict[str(row[2])]
+                
         return cdl_cropdict
-    
-    

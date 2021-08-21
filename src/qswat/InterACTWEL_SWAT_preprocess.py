@@ -5,8 +5,10 @@ import numpy as np
 #from dbfpy import dbf
 from scipy import stats, ndimage
 import scipy.io as sio
-import os, sys, re, argparse, pyodbc, csv, QSWAT_preprocess
+import os, sys, re, argparse, pyodbc, csv
 from osgeo import gdal, osr, ogr
+
+import QSWAT_preprocess, QSWAT_utils
 
 ##%%
 #def UnzipData(path,pathuzip):
@@ -1126,7 +1128,7 @@ if __name__ == '__main__':
     
     if not exists:
         print("Rasterising subbasin shapefile...")
-        QSWAT_preprocess.CreateSubbasinTiff(InterACTWEL_HRUs.watershed_path, SubbasinRaster, InterACTWEL_HRUs.slope_file)
+        QSWAT_utils.CreateTiff(InterACTWEL_HRUs.watershed_path, SubbasinRaster, InterACTWEL_HRUs.slope_file)
         exists = os.path.isfile(SubbasinRaster)
         print("Done creating Subbasin Raster")
     
@@ -1175,12 +1177,10 @@ if __name__ == '__main__':
     #    if '.tif' == f[-4:]:
     #        InterACTWEL_HRUs.soil_file = swat_path + '/Source/soil/' + f
             
-    #%% 
-    ## Simplify Slopes and Soils
-    InterACTWEL_HRUs.SimplifySoils()
-    InterACTWEL_HRUs.SimplifySlopes()
+    #%% Simplify Slopes and Soils
+    #InterACTWEL_HRUs.SimplifySoils()
+    #InterACTWEL_HRUs.SimplifySlopes()
     
     #%% Create LU Lookup 
-    
-    InterACTWEL_HRUs.CreateLU_LookupTable()
+    #InterACTWEL_HRUs.CreateLU_LookupTable()
 

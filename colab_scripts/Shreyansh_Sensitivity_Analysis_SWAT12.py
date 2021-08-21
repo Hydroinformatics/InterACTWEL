@@ -405,34 +405,34 @@ def GetWaterRigthHRU(wrtfile, model_path, output_vars, outpath, itern, sim_num):
         tfile = model_path + 'Scenarios/Default/TxtInOut/' + output_vars[outfile]['File']
         shutil.copyfile(tfile, outpath + '/' + output_vars[outfile]['File'] + '_' + str(itern) +'_'+ str(sim_num) + '.' + tfile[len(tfile)-3:len(tfile)])
         
-        if tfile[len(tfile)-3:len(tfile)] == 'hru':
-            print 'Reading output.hru'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                data_array, hru_sub = Get_output_hru(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-                output_vars_data[varkey] = data_array
-                
-        elif tfile[len(tfile)-3:len(tfile)] == 'sub':
-            print 'Reading output.sub'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                data_array = Get_output_sub(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-                output_vars_data[varkey] = data_array
-        
-        elif tfile[len(tfile)-3:len(tfile)] == 'rch':
-            print 'Reading output.rch'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                output_vars_data[varkey] = Get_output_rch(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-
-        elif tfile[len(tfile)-3:len(tfile)] == 'wql':
-            print 'Reading output.wql'
-            for varkey in output_vars[outfile]['Vars'].keys():
-                output_vars_data[varkey] = Get_output_wql(tfile, varkey, output_vars[outfile]['Vars'][varkey])
-
-        elif tfile[len(tfile)-3:len(tfile)] == 'std':
-            print 'Reading output.std'
-            table = output_vars[outfile]['Vars']['Table']
-            for varkey in output_vars[outfile]['Vars'].keys():
-                if varkey.lower() != 'table':
-                    output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
+#        if tfile[len(tfile)-3:len(tfile)] == 'hru':
+#            print 'Reading output.hru'
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                data_array, hru_sub = Get_output_hru(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#                output_vars_data[varkey] = data_array
+#                
+#        elif tfile[len(tfile)-3:len(tfile)] == 'sub':
+#            print 'Reading output.sub'
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                data_array = Get_output_sub(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#                output_vars_data[varkey] = data_array
+#        
+#        elif tfile[len(tfile)-3:len(tfile)] == 'rch':
+#            print 'Reading output.rch'
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                output_vars_data[varkey] = Get_output_rch(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#
+#        elif tfile[len(tfile)-3:len(tfile)] == 'wql':
+#            print 'Reading output.wql'
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                output_vars_data[varkey] = Get_output_wql(tfile, varkey, output_vars[outfile]['Vars'][varkey])
+#
+#        elif tfile[len(tfile)-3:len(tfile)] == 'std':
+#            print 'Reading output.std'
+#            table = output_vars[outfile]['Vars']['Table']
+#            for varkey in output_vars[outfile]['Vars'].keys():
+#                if varkey.lower() != 'table':
+#                    output_vars_data[varkey] = Get_output_std(tfile, table, varkey, output_vars[outfile]['Vars'][varkey])
         
          
     return wrdict, wrsrc, hruwr, output_vars_data
@@ -449,7 +449,6 @@ def run_SWAT(model_path, swat_exe):
     os.chdir(cwdir)
     
 #%%
-
 
 def FindVarIds(model_path):
     datpath = model_path + 'Scenarios/Default/TxtInOut/irr.dat'
@@ -860,7 +859,7 @@ def ReachDict(output_vars_data):
 #%%    
 
 num_build_models = 0
-model_num = 0
+model_num = 8
 
 if num_build_models > 0:
 
@@ -873,7 +872,7 @@ if num_build_models > 0:
     #input_files = '..\data\Sensitivity_SWAT12\SWAT12_Input_Files.txt'
     input_files = 'C:\Users\sammy\Documents\GitHub\InterACTWEL_Dev\PySWAT\SWAT_post_process\Sensitivity_Analysis\willow_update_v3\SWAT12_Input_Files.txt'
     
-    for i in range(0,num_build_models+1):
+    for i in range(num_build_models,num_build_models+1):
         sensitivity = SensitivityAnalysis(input_files)
         sensitivity.outputcsv = 0
         sensitivity.inputcsv = 0
@@ -919,98 +918,98 @@ else:
             
             wrdict, wrsrc, hruwr, output_vars_data = GetWaterRigthHRU(wr_path, model_path, output_vars, outpath, i, ii)
             
-            
-            temp_dict = dict()
-
-            temp_reach = ReachDict(output_vars_data)
-            temp_all, temp_basin, hru_sub = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
-           
-            ucrop = []
-            for hrui in output_vars_data['LULC'].keys():
-                if hrui is not 'Type' and hrui is not 'Years':
-                    for cropn in output_vars_data['LULC'][hrui]:
-                        if cropn.islower():
-                            cropn = 'AGRL'
-                        if cropn not in ucrop:
-                            ucrop.append(cropn)
-            
-            if num_sim == 1:
-                # Format of HRU and Sub-basin csv
-                atxt = 'ITER, MODEL ID, WR ID, WR AMT, YEAR, SUBBASIN ID,'
-                for n in range(0,2):
-                    for u in ucrop:
-                        atxt = atxt + str(cropnames[u]) + ','
-                for u in ucrop:
-                    for irrid in irr_dict.keys():
-                        atxt = atxt + cropnames[u] + '_' + str(irr_dict[irrid]) + ','
-                
-                atxt = atxt + 'N Fertilizer, P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
-                for u in ucrop:
-                        atxt = atxt + 'Profit ' + str(cropnames[u]) + ','
-                
-                atxt = atxt + 'Crop Profit ($), Costs ($), Total Profit ($),'
-                filein.write(atxt + '\n')
-                
-                #Format of Reach csv
-                atxt = 'ITER, MODEL ID, REACH ID, PARAMETER,'
-                for year_name in temp_reach['Streamflow (cms)']['Years']:
-                    for month in range(1,13):
-                        atxt = atxt + str(month) + '/' + str(year_name) + ','
-                filein_reach.write(atxt + '\n')
-                
-            yr = 1
-            for iy in output_vars_data['LULC']['Years']:                
-                for wr in wrdict.keys():
-                    for subid in hru_sub.keys():
-                    
-                        if subid in temp_all['Planted crops (ha)'][wr].keys():
-                            if ii == 0:
-                                temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
-                            else:
-                                temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
-                            
-                            for uc in ucrop:
-                                if uc in temp_all['Planted crops (ha)'][wr][subid].keys():
-                                    temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][subid][uc]['Data'][yr]) + ','
-                                else:
-                                    temptxt = temptxt + str(0.0) + ','
-                                    
-                            for uc in ucrop:
-                                if uc in temp_all['Crop yield (kg)'][wr][subid].keys():
-                                    temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][subid][uc]['Data'][yr]) + ','
-                                else:
-                                    temptxt = temptxt + str(0.0) + ','
-                            
-                            for ir in irr_dict.keys():
-                                if ir in temp_all['Irrigation (acre-ft)'][wr][subid].keys():
-                                    for uc in ucrop:
-                                        if uc in temp_all['Irrigation (acre-ft)'][wr][subid][ir].keys():
-                                            temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir][uc]['Data'][yr]) + ','
-                                        else:
-                                            temptxt = temptxt + str(0.0) + ','
-                                
-                            temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
-                            temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][subid][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][subid][yr])
-                            
-                            filein.write(temptxt + '\n')
-                yr = yr + 1
-                
-            for key_name in temp_reach.keys():
-                for reachid in temp_reach[key_name].keys():
-                    if reachid is not 'Type' and reachid is not 'Years' and reachid is not 'Description':
-                        if ii == 0:
-                            temptxt = 'BASE,' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
-                        else:
-                            temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
-                    
-                        for valr in temp_reach[key_name][reachid]:
-                            temptxt = temptxt + str(valr) + ','
-                            
-                    filein_reach.write(temptxt + '\n')
-                            
-            num_sim = num_sim + 1
-    
-    filein.close()
-    filein_reach.close()
+#            
+#            temp_dict = dict()
+#
+#            temp_reach = ReachDict(output_vars_data)
+#            temp_all, temp_basin, hru_sub = HRU_SUBDict(output_vars_data, cropnames, wrsrc, hruwr, irr_dict)
+#           
+#            ucrop = []
+#            for hrui in output_vars_data['LULC'].keys():
+#                if hrui is not 'Type' and hrui is not 'Years':
+#                    for cropn in output_vars_data['LULC'][hrui]:
+#                        if cropn.islower():
+#                            cropn = 'AGRL'
+#                        if cropn not in ucrop:
+#                            ucrop.append(cropn)
+#            
+#            if num_sim == 1:
+#                # Format of HRU and Sub-basin csv
+#                atxt = 'ITER, MODEL ID, WR ID, WR AMT, YEAR, SUBBASIN ID,'
+#                for n in range(0,2):
+#                    for u in ucrop:
+#                        atxt = atxt + str(cropnames[u]) + ','
+#                for u in ucrop:
+#                    for irrid in irr_dict.keys():
+#                        atxt = atxt + cropnames[u] + '_' + str(irr_dict[irrid]) + ','
+#                
+#                atxt = atxt + 'N Fertilizer, P Fertilizer, Groundwater Recharge (acre-ft),	Surface runoff Nitrate (kg N), Lateral flow Nitrate (kg N), Groundwater Nitrate (kg N),'
+#                for u in ucrop:
+#                        atxt = atxt + 'Profit ' + str(cropnames[u]) + ','
+#                
+#                atxt = atxt + 'Crop Profit ($), Costs ($), Total Profit ($),'
+#                filein.write(atxt + '\n')
+#                
+#                #Format of Reach csv
+#                atxt = 'ITER, MODEL ID, REACH ID, PARAMETER,'
+#                for year_name in temp_reach['Streamflow (cms)']['Years']:
+#                    for month in range(1,13):
+#                        atxt = atxt + str(month) + '/' + str(year_name) + ','
+#                filein_reach.write(atxt + '\n')
+#                
+#            yr = 1
+#            for iy in output_vars_data['LULC']['Years']:                
+#                for wr in wrdict.keys():
+#                    for subid in hru_sub.keys():
+#                    
+#                        if subid in temp_all['Planted crops (ha)'][wr].keys():
+#                            if ii == 0:
+#                                temptxt = 'BASE,' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
+#                            else:
+#                                temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(wr) + ',' + str(wrdict[wr]) + ',' + str(iy) + ',' + str(subid) + ','
+#                            
+#                            for uc in ucrop:
+#                                if uc in temp_all['Planted crops (ha)'][wr][subid].keys():
+#                                    temptxt = temptxt + str(temp_all['Planted crops (ha)'][wr][subid][uc]['Data'][yr]) + ','
+#                                else:
+#                                    temptxt = temptxt + str(0.0) + ','
+#                                    
+#                            for uc in ucrop:
+#                                if uc in temp_all['Crop yield (kg)'][wr][subid].keys():
+#                                    temptxt = temptxt + str(temp_all['Crop yield (kg)'][wr][subid][uc]['Data'][yr]) + ','
+#                                else:
+#                                    temptxt = temptxt + str(0.0) + ','
+#                            
+#                            for ir in irr_dict.keys():
+#                                if ir in temp_all['Irrigation (acre-ft)'][wr][subid].keys():
+#                                    for uc in ucrop:
+#                                        if uc in temp_all['Irrigation (acre-ft)'][wr][subid][ir].keys():
+#                                            temptxt = temptxt + str(temp_all['Irrigation (acre-ft)'][wr][subid][ir][uc]['Data'][yr]) + ','
+#                                        else:
+#                                            temptxt = temptxt + str(0.0) + ','
+#                                
+#                            temptxt = temptxt + str(temp_all['N fertilizer (kg N)'][wr][subid][yr]) + ',' + str(temp_all['P fertilizer (kg N)'][wr][subid][yr]) + ','
+#                            temptxt = temptxt + str(temp_all['Groundwater Recharge (acre-ft)'][wr][subid][yr]) + ',' + str(temp_all['Surface runoff Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Lateral flow Nitrate (kg N)'][wr][subid][yr]) + ',' + str(temp_all['Groundwater Nitrate (kg N)'][wr][subid][yr])
+#                            
+#                            filein.write(temptxt + '\n')
+#                yr = yr + 1
+#                
+#            for key_name in temp_reach.keys():
+#                for reachid in temp_reach[key_name].keys():
+#                    if reachid is not 'Type' and reachid is not 'Years' and reachid is not 'Description':
+#                        if ii == 0:
+#                            temptxt = 'BASE,' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
+#                        else:
+#                            temptxt = str(num_sim-1) + ',' + str(i) + ',' + str(reachid) + ',' + str(key_name) + ','
+#                    
+#                        for valr in temp_reach[key_name][reachid]:
+#                            temptxt = temptxt + str(valr) + ','
+#                            
+#                    filein_reach.write(temptxt + '\n')
+#                            
+#            num_sim = num_sim + 1
+#    
+#    filein.close()
+#    filein_reach.close()
         
         

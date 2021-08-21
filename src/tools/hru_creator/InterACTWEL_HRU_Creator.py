@@ -5,7 +5,7 @@ import numpy as np
 #from dbfpy import dbf
 from scipy import stats, ndimage
 import scipy.io as sio
-import os, sys, re, pyodbc, csv
+import os, sys, re, pyodbc, csv, shutil
 from osgeo import gdal, osr, ogr
 
 os.chdir('..\..')
@@ -44,8 +44,30 @@ class HRUs_Creator:
                    
         # Only consider major Crops
         no_crop_ids =[no_crop_ids,range(2,7),10,11,13,22,range(25,31),range(32,36),38,39,
-                      41,42,45,46,47,48,50,51,52,54,55,56,58,60,range(67,71),72,74,
+                      41,42,45,46,47,48,50,51,52,54,55,56,58,range(67,71),72,74,
                       75,76,77,204,range(206,215),range(216,228),range(229,251),254]
+        
+#        no_crop_ids =[no_crop_ids,range(2,7),10,11,13,22,range(25,31),range(32,36),38,39,
+#                      41,42,45,46,47,48,50,51,52,54,55,56,58,60,range(67,71),72,74,
+#                      75,76,77,204,range(206,215),range(216,228),range(229,251),254]
+        
+        
+        # Requested by Meghna
+        no_crop_ids.remove(5)
+        no_crop_ids.remove(27)
+        no_crop_ids.remove(22)
+        no_crop_ids.remove(13)
+        no_crop_ids.remove(143)
+        no_crop_ids.remove(142)
+        no_crop_ids.remove(141)
+        no_crop_ids.remove(152)
+        no_crop_ids.remove(64)
+        no_crop_ids.remove(131)
+        no_crop_ids.remove(65)
+        no_crop_ids.remove(190)
+        no_crop_ids.remove(195)
+        no_crop_ids.remove(176)
+    
         
         temp = []
         for i in no_crop_ids:
@@ -89,6 +111,14 @@ class HRUs_Creator:
         self.wid_array = None
         self.temp_wid = None
         
+        self.newHRUs = None
+        self.newHRUs_B = None
+        
+        # Area tresholds for simplification of soils and slopes
+        # (i.e., max area of HRU where simplification is desired)
+        self.soil_area_tresh = 700
+        self.slope_area_tresh = 700
+        
 
 #%%
         
@@ -101,7 +131,12 @@ class HRUs_Creator:
         
         temp_hrus[np.where(hrus == 0)] = 0
         
-        new_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1] = temp_hrus
+        #new_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1] = temp_hrus
+        
+        temp_raster = np.zeros(new_raster.shape, dtype=np.float)
+        temp_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1] = temp_hrus
+        
+        new_raster[np.where(temp_raster != 0)] = temp_raster[np.where(temp_raster != 0)]
         
         self.total_hrus = self.total_hrus + max_hrus
         
@@ -433,77 +468,92 @@ class HRUs_Creator:
         crsr = cnxn.cursor()
     
         crsr.execute('select * from CDL_lu')
-    
+        
+        CDL_lu_mods = dict()
+        CDL_lu_mods[14] = 'MINT'
+        CDL_lu_mods[44] = 'AGRL'
+        CDL_lu_mods[61] = 'AGRL'
+        
+        
         cdl_cropdict = dict()
         for row in crsr.fetchall():
+            if row[1] in CDL_lu_mods.keys():
+                row[2] = CDL_lu_mods[row[1]]
+                        
             if str(row[2]) in cropdict.keys():
                 cdl_cropdict[row[1]] = cropdict[str(row[2])]
     
+        self.cropdict = cropdict
         self.nlcd_cropdict = nlcd_cropdict
         self.cdl_cropdict = cdl_cropdict
 
+#%%
     def MergeNLCD_HRU(self):
-        #print(self.nlcd_file)
         
         self.CDL_NLCDtoSWATdict()
-        nlcd_raster_ds = gdal.Open(self.nlcd_file, gdal.GA_ReadOnly)
-        nlcd_raster_NoData = nlcd_raster_ds.GetRasterBand(1).GetNoDataValue()
-        
+        nlcd_raster, nlcd_raster_NoData, nlcd_raster_ds = QSWAT_utils.Read_Raster(self.nlcd_file)
+        nlcd_raster = np.asarray(nlcd_raster,dtype=float)
+        self.nlcd_raster_ds = nlcd_raster_ds
         nlcd_newRaster_name = 'InterACTWEL_landuse.tif'
-
-        nlcd_raster = np.asarray(nlcd_raster_ds.GetRasterBand(1).ReadAsArray(),dtype=float)
+        
         if nlcd_raster_NoData != None:
             nlcd_raster[nlcd_raster == nlcd_raster_NoData] = np.float('nan')
         nlcd_raster_NoData = -999.0
-        #else:
-        #    soil_raster_NoData = int(soil_raster_NoData)
-        
+
         print ('Merging CDL & NLCD and HRU raster')
         nlcd_raster[nlcd_raster == 0.0] = np.float('nan')
         nlcd_raster[nlcd_raster > 95.0] = np.float('nan')
         
-        cdl_raster_ds = gdal.Open(self.cdl_file, gdal.GA_ReadOnly)
-        cdl_raster_NoData = cdl_raster_ds.GetRasterBand(1).GetNoDataValue()
-        cdl_raster = np.asarray(cdl_raster_ds.GetRasterBand(1).ReadAsArray(),dtype=float)
+        cdl_raster, cdl_raster_NoData, cdl_raster_ds = QSWAT_utils.Read_Raster(self.cdl_file)
+        cdl_raster = np.asarray(cdl_raster,dtype=float)
+        
         if cdl_raster_NoData != None:
             cdl_raster[cdl_raster == cdl_raster_NoData] = np.float('nan')
+            
         cdl_raster[cdl_raster == 0.0] = np.float('nan')
-        
         cdl_raster_org = cdl_raster
+        
         # Convert from CDL to SWAT IDs
-        ucdl= np.unique(cdl_raster.flatten())
+        ucdl = np.unique(cdl_raster.flatten())
         ucdl = ucdl[np.where(np.isnan(ucdl) == False)]
         for ud in ucdl:
             if ud in self.cdl_cropdict.keys():
-                cdl_raster[np.where(cdl_raster_org == ud)] = float(self.cdl_cropdict[ud]) 
+                cdl_raster[cdl_raster_org == ud] = float(self.cdl_cropdict[ud]) 
         
         # Capture NLCD pixels that are agriculture and could have CDL values
         cdl_nlcd_bin = np.zeros(nlcd_raster.shape, dtype=np.float)
         for unlcd in self.nlcd_to_cdl_classes:
-            cdl_nlcd_bin[np.where(nlcd_raster == unlcd)] = 1.0
+            cdl_nlcd_bin[nlcd_raster == unlcd] = 1.0
         
         # Convert NLCD to SWAT IDS and retain the classes that didn't have a crop ID (e.g., NLCD = 21)
         unlcd = np.unique(nlcd_raster.flatten())
         unlcd = unlcd[np.where(np.isnan(unlcd) == False)]
-        #print unlcd
+        
+#        print unlcd
         nlcd_raster_org = nlcd_raster
         missing_nlcd_classes = []
         for un in unlcd:
             if un in self.nlcd_cropdict.keys() and 'value' in self.nlcd_cropdict[un].keys():
-                nlcd_raster[np.where(nlcd_raster_org == un)] = float(self.nlcd_cropdict[un]['value']) 
+                nlcd_raster[nlcd_raster_org == un] = float(self.nlcd_cropdict[un]['value']) 
             else:
                 print un
                 missing_nlcd_classes.append(un)
 
-        
         # Add SWAT-CDL IDS to NLCD agriculture pixels
-        nlcd_raster[np.where(cdl_nlcd_bin == 1.0)] = cdl_raster[np.where(cdl_nlcd_bin == 1.0)]
-
-        #nlcd_raster_flat = nlcd_raster.flatten()
+        nlcd_raster[cdl_nlcd_bin == 1.0] = cdl_raster[cdl_nlcd_bin == 1.0]
         
-        hru_raster = gdal.Open(self.landuse_file, gdal.GA_ReadOnly)
-        hru_raster_NoData = hru_raster.GetRasterBand(1).GetNoDataValue()
-        hru_raster = np.asarray(hru_raster.GetRasterBand(1).ReadAsArray(),dtype=float)
+#        nlcd_newRaster_name = self.swat_path + '/Intermidiate_NLCD.tif'
+#        print nlcd_newRaster_name
+#        print ('Writing intermidiate HRU raster')
+#        QSWAT_utils.Save_NewRaster(nlcd_raster, nlcd_raster_ds, nlcd_raster, nlcd_newRaster_name, nlcd_raster_NoData)
+
+        
+        #nlcd_raster_flat = nlcd_raster.flatten()
+        hru_raster, hru_raster_NoData, hru_raster_ds = QSWAT_utils.Read_Raster(self.landuse_file)
+        
+        # CHECK WHY HRU IS BEING FLIP - THE FLIP should not be needed
+        #hru_raster = np.asarray(np.flip(hru_raster,0),dtype=float)
+        
         hru_raster[hru_raster == hru_raster_NoData] = np.float('nan')
         hru_raster[hru_raster < 0] = np.float('nan')
         hru_raster[hru_raster == 0.0] = np.float('nan')
@@ -513,32 +563,36 @@ class HRUs_Creator:
         #new_soil = np.ones(soil_raster.shape, dtype=np.int64)*-999
         new_hrus = np.zeros(hru_raster.shape, dtype=np.float)
         hru_counter = 1
+        new_hrus_dict = []
         for hru_id in uhrus:
             new_hrus[hru_raster == hru_id] = hru_counter
+            new_hrus_dict.append([hru_id, hru_counter + self.landuseID_max])
             hru_counter = hru_counter + 1
         
         new_hrus[new_hrus == 0.0] = np.float('nan')
         
         #hru_raster_flat = hru_raster.flatten()        
-        nlcd_raster[np.where(np.isnan(new_hrus)==False)] = new_hrus[np.where(np.isnan(new_hrus)==False)] + self.landuseID_max
+        nlcd_raster[np.isnan(new_hrus)==False] = new_hrus[np.isnan(new_hrus)==False] + self.landuseID_max
         
         nlcd_raster_maxval = np.nanmax(nlcd_raster.flatten()) + 1
         
         self.missing_nlcd_classes = dict()
         for unm in missing_nlcd_classes:
-            nlcd_raster[np.where(nlcd_raster == unm)] = nlcd_raster_maxval
+            nlcd_raster[nlcd_raster == unm] = nlcd_raster_maxval
             self.missing_nlcd_classes[nlcd_raster_maxval] = dict()
             self.missing_nlcd_classes[nlcd_raster_maxval]['Name'] = self.nlcd_cropdict[unm]['Name']
             self.missing_nlcd_classes[nlcd_raster_maxval]['value'] = unm
             nlcd_raster_maxval = nlcd_raster_maxval + 1
         
-        nlcd_raster[np.where(np.isnan(nlcd_raster)==True)] = nlcd_raster_NoData
-        nlcd_raster[np.where(nlcd_raster < 0)] = nlcd_raster_NoData
+        nlcd_raster[np.isnan(nlcd_raster)==True] = nlcd_raster_NoData
+        nlcd_raster[nlcd_raster < 0] = nlcd_raster_NoData
         
         nlcd_newRaster_name = self.swat_path + '/' + nlcd_newRaster_name
+        print nlcd_newRaster_name
         print ('Writing new HRU raster')
         QSWAT_utils.Save_NewRaster(nlcd_raster, nlcd_raster_ds, nlcd_raster, nlcd_newRaster_name, nlcd_raster_NoData)
-        self.landuse_file = nlcd_newRaster_name     
+        self.landuse_file = nlcd_newRaster_name
+        self.new_hrus_dict = new_hrus_dict
 
 #%%
     def ReadCDL(self):
@@ -572,7 +626,7 @@ class HRUs_Creator:
             print 'Reading: ' + fnames[findex[findex[:,1]==year,0][0]]
             if year == years[-1]:
                 self.cdl_file = self.cdl_path + '\\' + fnames[findex[findex[:,1]==year,0][0]]
-            new_raster, new_raster_NoData = QSWAT_utils.Read_Raster(self.cdl_path + '\\' + fnames[findex[findex[:,1]==year,0][0]])
+            new_raster, new_raster_NoData, new_raster_ds = QSWAT_utils.Read_Raster(self.cdl_path + '\\' + fnames[findex[findex[:,1]==year,0][0]])
             new_raster = np.flip(new_raster,0)
             new_raster = np.asarray(new_raster,dtype=float)
             new_raster[new_raster == new_raster_NoData] = np.float('nan')
@@ -599,92 +653,78 @@ class HRUs_Creator:
             print 'Extracting CDL for watershed ' + str(self.temp_wid) + ' :' + self.fnames[self.findex[self.findex[:,1]==year,0][0]]
             new_raster = self.CDL_org[:,c].reshape(self.bnd_array.shape)
             
-            #temp_CDL = self.CDL_org[:,c].reshape(self.bnd_array.shape)
-            #temp_CDL[self.watersheds==self.temp_wid] = 999
-            #plt.matshow(temp_CDL)
-            #plt.show()
-            
             new_raster = new_raster[self.wdims[0]:self.wdims[1]+1,self.wdims[2]:self.wdims[3]+1]
             
-            #apply the mask to limit the collection of data to only the specify region by the mask's raster  
-                        
-            #plt.matshow(new_raster)
-            #plt.show()
-                        
-            #plt.matshow(self.wid_array)
-            #plt.show()
+            #apply the mask to limit the collection of data to only the specify region by the mask's raster
             CDL[:,c] = new_raster.flatten()*self.wid_array.flatten()
             c += 1
             
         return CDL
-
     
-    #%% Read System boundary mask (raster: 0-no data, 1-area of study)
-    def ReadInputData(self):  
+#%% Read System boundary mask (raster: 0-no data, 1-area of study)
+#    def ReadInputData(self):  
+#
+#        (base,suffix) = os.path.splitext(self.watershed_lyr.replace('\\','/'))
+#        if suffix == '.shp':
+#            #processing.runalg('qgis:dissolve', self.watershed_lyr.replace('\\','/'), True, '', base + '_boundary.shp')
+#            # ogr2ogr output_dissolved.shp input.shp -dialect sqlite -sql "SELECT ST_Union(geometry) AS geometry FROM input"
+#            fnames = os.listdir(self.cdl_path)
+#            findex = []
+#            c = 0
+#            for fname in fnames:
+#                if '.tif.' not in fname and '.tfw' not in fname and c == 0:
+#                    findex = fname
+#                c = c + 1
+#        QSWAT_preprocess.CreateSubbasinTiff(base + '_boundary.shp',base + '.tif',self.cdl_path + '/' + fname)
+#            
+#        print self.boundary_lyr.replace('\\','/')
+#        boundary = gdal.Open(self.boundary_lyr.replace('\\','/'), gdal.GA_ReadOnly)
+#        boundary_NoData = boundary.GetRasterBand(1).GetNoDataValue()
+#        boundary = boundary.GetRasterBand(1).ReadAsArray()
+#        
+#        top_row, last_row = self.Raster_row_boundaries(boundary)   
+#        left_col, right_col = self.Raster_col_boundaries(boundary)
+#               
+#        self.bdims = [top_row,last_row,left_col,right_col]
+#        self.bnd_array = boundary[top_row:last_row+1,left_col:right_col+1]
+#        #bnd_array = boundary.flatten()     
+#        
+#        #watersheds = rasterio.open(self.rootpath + '\\' + self.watershed_lyr)
+#        #watersheds = np.asarray(watersheds.read(1), dtype = np.int64)
+#        #watersheds[watersheds == 127] = -999 # Needed because of ArcGis data convertion steps
+#        #watersheds = gdal.Open(self.rootpath + '\\' + self.watershed_lyr)
+#        
+#        watersheds = gdal.Open(self.watershed_raster.replace('\\','/'))
+#        watersheds_NoData = watersheds.GetRasterBand(1).GetNoDataValue()
+#        watersheds = np.asarray(watersheds.GetRasterBand(1).ReadAsArray(), dtype = np.int64)
+#        watersheds[watersheds == watersheds_NoData] = -999 # Needed because of ArcGis data convertion steps
+#        
+#        watersheds = watersheds[top_row:last_row+1,left_col:right_col+1] + 1 #added +1 to avoid confusion if watershed ID = 0
+#        watersheds[watersheds < 0] = 0
+#        watersheds[self.bnd_array == boundary_NoData] = 0
+#        self.watersheds = watersheds
+#
+##        #watersheds = watersheds.flatten()
+##        # Find CDL raster files (.tif) in given directory & read .ddf (feature properties) table
+##        rootpath_zip = 'Z:\Projects\INFEWS\Modeling\FEW_Data\Crops\USDA_CDL\Region_CDL\Projected';
+##        #try:
+##        #    print 'Unziping data to: ' + str(pathuzip)
+##        #except:
+##        #    print 'Unziping data to: ' + str(path)
+##        #    pathunzip = path
+##        #    
 
-        (base,suffix) = os.path.splitext(self.watershed_lyr.replace('\\','/'))
-        if suffix == '.shp':
-            #processing.runalg('qgis:dissolve', self.watershed_lyr.replace('\\','/'), True, '', base + '_boundary.shp')
-            # ogr2ogr output_dissolved.shp input.shp -dialect sqlite -sql "SELECT ST_Union(geometry) AS geometry FROM input"
-            fnames = os.listdir(self.cdl_path)
-            findex = []
-            c = 0
-            for fname in fnames:
-                if '.tif.' not in fname and '.tfw' not in fname and c == 0:
-                    findex = fname
-                c = c + 1
-        QSWAT_preprocess.CreateSubbasinTiff(base + '_boundary.shp',base + '.tif',self.cdl_path + '/' + fname)
-            
-        print self.boundary_lyr.replace('\\','/')
-        boundary = gdal.Open(self.boundary_lyr.replace('\\','/'), gdal.GA_ReadOnly)
-        boundary_NoData = boundary.GetRasterBand(1).GetNoDataValue()
-        boundary = boundary.GetRasterBand(1).ReadAsArray()
-        
-        top_row, last_row = self.Raster_row_boundaries(boundary)   
-        left_col, right_col = self.Raster_col_boundaries(boundary)
-               
-        self.bdims = [top_row,last_row,left_col,right_col]
-        self.bnd_array = boundary[top_row:last_row+1,left_col:right_col+1]
-        #bnd_array = boundary.flatten()     
-        
-        #watersheds = rasterio.open(self.rootpath + '\\' + self.watershed_lyr)
-        #watersheds = np.asarray(watersheds.read(1), dtype = np.int64)
-        #watersheds[watersheds == 127] = -999 # Needed because of ArcGis data convertion steps
-        #watersheds = gdal.Open(self.rootpath + '\\' + self.watershed_lyr)
-        
-        watersheds = gdal.Open(self.watershed_raster.replace('\\','/'))
-        watersheds_NoData = watersheds.GetRasterBand(1).GetNoDataValue()
-        watersheds = np.asarray(watersheds.GetRasterBand(1).ReadAsArray(), dtype = np.int64)
-        watersheds[watersheds == watersheds_NoData] = -999 # Needed because of ArcGis data convertion steps
-        
-        watersheds = watersheds[top_row:last_row+1,left_col:right_col+1] + 1 #added +1 to avoid confusion if watershed ID = 0
-        watersheds[watersheds < 0] = 0
-        watersheds[self.bnd_array == boundary_NoData] = 0
-        self.watersheds = watersheds
-
-#        #watersheds = watersheds.flatten()
-#        # Find CDL raster files (.tif) in given directory & read .ddf (feature properties) table
-#        rootpath_zip = 'Z:\Projects\INFEWS\Modeling\FEW_Data\Crops\USDA_CDL\Region_CDL\Projected';
-#        #try:
-#        #    print 'Unziping data to: ' + str(pathuzip)
-#        #except:
-#        #    print 'Unziping data to: ' + str(path)
-#        #    pathunzip = path
-#        #    
-
+#%%
     def Read_Watershed_Raster(self):
         
-        boundary, boundary_NoData = QSWAT_utils.Read_Raster(self.boundary_raster)
+        boundary, boundary_NoData, boundary_ds = QSWAT_utils.Read_Raster(self.boundary_raster)
         top_row, last_row = QSWAT_utils.Raster_row_boundaries(boundary)   
         left_col, right_col = QSWAT_utils.Raster_col_boundaries(boundary)
                
         self.bdims = [top_row, last_row, left_col, right_col]
         self.bnd_array = boundary[top_row:last_row+1, left_col:right_col+1]
-        
-        #plt.matshow(self.bnd_array)
-        #plt.show()
-        
-        watersheds, watersheds_NoData = QSWAT_utils.Read_Raster(self.watershed_raster)
+
+        watersheds, watersheds_NoData, watersheds_ds = QSWAT_utils.Read_Raster(self.watershed_raster)
         watersheds = np.asarray(watersheds, dtype = np.int64)
         watersheds[watersheds == watersheds_NoData] = -999 # Needed because of different GIS tools data convertion steps
         
@@ -695,67 +735,74 @@ class HRUs_Creator:
         watersheds[self.bnd_array == boundary_NoData] = 0
         
         self.watersheds = watersheds
-        #plt.matshow(self.watersheds)
-        #plt.show()
+        self.newHRUs = np.zeros(watersheds.shape)
+        self.newHRUs_B = np.zeros(watersheds.shape)
+
 
 #%%          
     def SimplifySoils(self):
         
-        soil_raster_ds = gdal.Open(self.soil_file, gdal.GA_ReadOnly)
-        soil_raster_NoData = soil_raster_ds.GetRasterBand(1).GetNoDataValue()
-        #print str(self.soil_file)
+        print ('Reading old soil raster')
+        soil_raster, soil_raster_NoData, soil_raster_ds = QSWAT_utils.Read_Raster(self.soil_file)
+        soil_raster = np.asarray(soil_raster,dtype=float)
         
-        soil_newRaster_name = 'InterACTWEL_soils.tif'
-        if sys.platform.startswith('win'):
-            slash_index = [i for i in range(len(self.soil_file)) if self.soil_file.startswith('/', i)]
-        else:
-            slash_index = [i for i in range(len(self.soil_file)) if self.soil_file.startswith('\\', i)]
-        
-        soil_raster = np.asarray(soil_raster_ds.GetRasterBand(1).ReadAsArray(),dtype=float)
         if soil_raster_NoData != None:
             soil_raster[soil_raster == soil_raster_NoData] = np.float('nan')
-        soil_raster_NoData = -999.0
-        #else:
-        #    soil_raster_NoData = int(soil_raster_NoData)
-        print ('Reading old soil raster')
-        soil_raster[soil_raster == 0.0] = np.float('nan')
-        #soil_raster = soil_raster[self.bdims[0]:self.bdims[1]+1,self.bdims[2]:self.bdims[3]+1]
-        #soil_raster[self.bnd_array == 0] = np.float('nan')
-        soil_raster_flat = soil_raster.flatten()
         
-        hru_raster = gdal.Open(self.landuse_file, gdal.GA_ReadOnly)
-        hru_raster_NoData = hru_raster.GetRasterBand(1).GetNoDataValue()
-        hru_raster = np.asarray(hru_raster.GetRasterBand(1).ReadAsArray(),dtype=float)
+        soil_raster_NoData = -999.0
+        soil_raster[soil_raster == 0.0] = np.float('nan')
+        soil_raster_flat = soil_raster.flatten()
+
+        soil_newRaster_name = 'InterACTWEL_soils.tif'
+        if sys.platform.startswith('win'):
+            #slash_index = [i for i in range(len(self.soil_file)) if self.soil_file.startswith('/', i)]
+            slash_index = [i for i in range(len(self.slope_file)) if self.slope_file.startswith('/', i)]
+        else:
+            #slash_index = [i for i in range(len(self.soil_file)) if self.soil_file.startswith('\\', i)]
+            slash_index = [i for i in range(len(self.slope_file)) if self.slope_file.startswith('\\', i)]
+
+        hru_raster, hru_raster_NoData, hru_raster_ds = QSWAT_utils.Read_Raster(self.landuse_file)
+        # CHECK WHY HRU IS BEING FLIP - THE FLIP should not be needed
+        #hru_raster = np.asarray(np.flip(hru_raster,0),dtype=float)
+        
         hru_raster[hru_raster == hru_raster_NoData] = np.float('nan')
         hru_raster[hru_raster == 0.0] = np.float('nan')
-        #hru_raster = hru_raster[self.bdims[0]:self.bdims[1]+1,self.bdims[2]:self.bdims[3]+1]
-        #hru_raster[self.bnd_array == 0] = np.float('nan')
         hru_raster_flat = hru_raster.flatten()
         
         uhrus = np.unique(hru_raster.flatten())
-        uhrus = uhrus[np.where(uhrus > self.landuseID_max)]
+        #uhrus = uhrus[np.where(uhrus > self.landuseID_max)]
+        uhrus = uhrus[uhrus > self.landuseID_max]
         #new_soil = np.ones(soil_raster.shape, dtype=np.int64)*-999
+        
         new_soil = np.zeros(soil_raster.shape, dtype=np.int64)
-        new_soil[np.where(np.isnan(soil_raster)==False)] = soil_raster[np.where(np.isnan(soil_raster)==False)]
+        new_soil[np.isnan(soil_raster)==False] = soil_raster[np.isnan(soil_raster)==False]
+        
         for hru_id in uhrus:
-            temp_soils = stats.mode(soil_raster_flat[np.where(hru_raster_flat == hru_id)], axis=None, nan_policy = 'omit')
-            #temp_soils = stats.mode(soil_raster_flat[np.where(hru_raster_flat == hru_id)], axis=None)
-            #mode_temp_soils = temp_soils[0]
-            new_soil[hru_raster == hru_id] = temp_soils[0]
+            if len(np.where(hru_raster_flat == hru_id)[0]) < self.soil_area_tresh:
+                #temp_soils = stats.mode(soil_raster_flat[np.where(hru_raster_flat == hru_id)], axis=None, nan_policy = 'omit')
+                temp_soils = stats.mode(soil_raster_flat[hru_raster_flat == hru_id], axis=None, nan_policy = 'omit')
+                #temp_soils = stats.mode(soil_raster_flat[np.where(hru_raster_flat == hru_id)], axis=None)
+                #mode_temp_soils = temp_soils[0]
+                new_soil[hru_raster == hru_id] = temp_soils[0]
         
         new_soil[new_soil == 0.0] = soil_raster_NoData
-        new_soil[np.where(np.isnan(hru_raster)==True)] = soil_raster_NoData
+        #new_soil[np.where(np.isnan(hru_raster)==True)] = soil_raster_NoData
         
-        soil_newRaster_name = self.soil_file[0:slash_index[-1]+1] + soil_newRaster_name
-        print ('Writing new simplified soil raster')
+        #soil_newRaster_name = self.soil_file[0:slash_index[-1]+1] + soil_newRaster_name
+        soil_newRaster_name = self.slope_file[0:slash_index[-1]+1] + soil_newRaster_name
+        print ('Writing new simplified soil raster: ' + soil_newRaster_name)
         QSWAT_utils.Save_NewRaster(new_soil, soil_raster_ds, soil_raster, soil_newRaster_name, soil_raster_NoData)
         self.soil_file = soil_newRaster_name
         
     def SimplifySlopes(self):
-    
-        slope_raster_ds = gdal.Open(self.slope_file, gdal.GA_ReadOnly)
-        slope_raster_NoData = slope_raster_ds.GetRasterBand(1).GetNoDataValue()
-        #print str(self.slope_file)
+        
+        print ('Reading old slope raster')
+        slope_raster, slope_raster_NoData, slope_raster_ds = QSWAT_utils.Read_Raster(self.slope_file)
+        slope_raster = np.asarray(slope_raster,dtype=float)
+        
+        if slope_raster_NoData != None:
+            slope_raster[slope_raster == slope_raster_NoData] = np.float('nan')
+        slope_raster_NoData = -999.0
         
         slope_newRaster_name = 'InterACTWEL_slopes.tif'
         if sys.platform.startswith('win'):
@@ -763,40 +810,39 @@ class HRUs_Creator:
         else:
             slash_index = [i for i in range(len(self.slope_file)) if self.slope_file.startswith('\\', i)]
 
-        slope_raster = np.asarray(slope_raster_ds.GetRasterBand(1).ReadAsArray(),dtype=float)
-        if slope_raster_NoData != None:
-            slope_raster[slope_raster == slope_raster_NoData] = np.float('nan')
-        slope_raster_NoData = -999.0
-
 #        slope_raster[slope_raster == 0.0] = np.float('nan')
         slope_raster_flat = slope_raster.flatten()
         
-        hru_raster = gdal.Open(self.landuse_file, gdal.GA_ReadOnly)
-        hru_raster_NoData = hru_raster.GetRasterBand(1).GetNoDataValue()
-        hru_raster = np.asarray(hru_raster.GetRasterBand(1).ReadAsArray(),dtype=float)
+        hru_raster, hru_raster_NoData, hru_raster_ds = QSWAT_utils.Read_Raster(self.landuse_file)
+        # CHECK WHY HRU IS BEING FLIP - THE FLIP should not be needed
+        #hru_raster = np.asarray(np.flip(hru_raster,0),dtype=float)
+        
         hru_raster[hru_raster == hru_raster_NoData] = np.float('nan')
         hru_raster[hru_raster == 0.0] = np.float('nan')
         hru_raster_flat = hru_raster.flatten()
         
         uhrus = np.unique(hru_raster.flatten())
-        uhrus = uhrus[np.where(uhrus > self.landuseID_max)]
+#        uhrus = uhrus[np.where(uhrus > self.landuseID_max)]
+        uhrus = uhrus[uhrus > self.landuseID_max]
         
         new_slope = np.ones(slope_raster.shape, dtype=np.float)*slope_raster_NoData
         #new_slope[new_slope == slope_raster_NoData] = np.float('nan')
-        new_slope[np.where(np.isnan(slope_raster)==False)] = slope_raster[np.where(np.isnan(slope_raster)==False)]
+        new_slope[np.isnan(slope_raster)==False] = slope_raster[np.isnan(slope_raster)==False]
         
         for hru_id in uhrus:
-            #print slope_raster_flat[np.where(hru_raster_flat == hru_id)]
-            temp_slope = np.nanmean(slope_raster_flat[np.where(hru_raster_flat == hru_id)])
-            #temp_slope = [np.mean([l for l in slope_raster_flat[np.where(hru_raster_flat == hru_id)] if not np.isnan(l)]) ]
-            #mode_temp_soils = temp_soils[0]
-            new_slope[hru_raster == hru_id] = temp_slope
+            if len(np.where(hru_raster_flat == hru_id)[0]) < self.slope_area_tresh:
+                #print slope_raster_flat[np.where(hru_raster_flat == hru_id)]
+                #temp_slope = np.nanmean(slope_raster_flat[np.where(hru_raster_flat == hru_id)])
+                temp_slope = np.nanmean(slope_raster_flat[hru_raster_flat == hru_id])
+                #temp_slope = [np.mean([l for l in slope_raster_flat[np.where(hru_raster_flat == hru_id)] if not np.isnan(l)]) ]
+                #mode_temp_soils = temp_soils[0]
+                new_slope[hru_raster == hru_id] = temp_slope
             
-        new_slope[np.where(np.isnan(new_slope)==True)] = slope_raster_NoData
-        new_slope[np.where(np.isnan(hru_raster)==True)] = slope_raster_NoData
+        new_slope[np.isnan(new_slope)==True] = slope_raster_NoData
+        #new_slope[np.where(np.isnan(hru_raster)==True)] = slope_raster_NoData
         
         slope_newRaster_name = self.slope_file[0:slash_index[-1]+1] + slope_newRaster_name
-        print ('Writing new simplified slope raster')
+        print ('Writing new simplified slope raster: ' + slope_newRaster_name)
         QSWAT_utils.Save_NewRaster(new_slope, slope_raster_ds, slope_raster, slope_newRaster_name, slope_raster_NoData)
         self.slope_file = slope_newRaster_name
 
@@ -806,12 +852,11 @@ class HRUs_Creator:
         return "".join(nums)
 
     def CreateLU_LookupTable(self):
-        hru_raster = gdal.Open(self.landuse_file, gdal.GA_ReadOnly)
-        hru_raster_NoData = hru_raster.GetRasterBand(1).GetNoDataValue()
-        hru_raster = np.asarray(hru_raster.GetRasterBand(1).ReadAsArray(),dtype=float)
+        hru_raster, hru_raster_NoData, hru_raster_ds = QSWAT_utils.Read_Raster(self.landuse_file)
+        hru_raster = np.asarray(hru_raster,dtype=float)
         hru_raster[hru_raster == hru_raster_NoData] = np.float('nan')
         hru_raster[hru_raster == 0.0] = np.float('nan')
-        hru_raster_flat = hru_raster.flatten()
+        #hru_raster_flat = hru_raster.flatten()
 
         uhrus = np.unique(hru_raster.flatten())
         uhrus = uhrus[np.where(uhrus > self.landuseID_max)]
@@ -825,7 +870,8 @@ class HRUs_Creator:
             else:
                 text_num = str(int(hruid))
             
-            lu_names[hruid] = self.AlphaNumericDic(text_num)
+            if hruid not in self.missing_nlcd_classes.keys():
+                lu_names[hruid] = self.AlphaNumericDic(text_num)
             
         conn_str = (
                 r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
@@ -867,6 +913,10 @@ class HRUs_Creator:
             outputcsv_writer.writerow(['LANDUSE_ID','SWAT_CODE'])
             for row in crsr.fetchall():
                 outputcsv_writer.writerow([row[0],row[1]])
+                
+            for hruid in self.missing_nlcd_classes.keys():
+                outputcsv_writer.writerow([hruid,self.missing_nlcd_classes[hruid]['Name']])
+                
         outputcsv.close()   
         return
 
@@ -916,11 +966,11 @@ class HRUs_Creator:
                     linesplit = re.split('\s',line)
                     cdlFile = linesplit[2].replace('\\','/')
                     
-                elif 'cdlFile' in line:
-                    linesplit = re.split('\s',line)
-                    cdlFile = linesplit[2].replace('\\','/')
+#                elif 'cdlFile' in line:
+#                    linesplit = re.split('\s',line)
+#                    cdlFile = linesplit[2].replace('\\','/')
                     
-                    
+            
             if sys.platform.startswith('win'):
                 self.swat_path = swat_path.replace('\\','/')
                 self.soil_file = soilFile.replace('\\','/')
@@ -940,3 +990,11 @@ class HRUs_Creator:
                 self.cdl_file = cdlFile
                 self.cdl_path = ''
                 self.boundary_lyr = ''
+            
+            shutil.copyfile(r'C:\SWAT\SWATEditor\Databases\QSWATRef2012.mdb', self.swat_path + '/QSWATRef2012.mdb')
+            
+            if self.swat_path != '':
+                file_list = os.listdir(swat_path + '/Source')
+                for f in file_list:
+                    if 'slp.tif' == f[-7:]:
+                        self.slope_file = self.swat_path + '/Source/' + f

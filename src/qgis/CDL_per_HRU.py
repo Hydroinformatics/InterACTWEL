@@ -104,7 +104,8 @@ def Zonal_Statistic_CDL(files, years):
         c = 0
         
         for fname in fnames:
-            if '.tif.' not in fname and '.tfw' not in fname and '_mfv2.tif' in fname:
+            #if '.tif.' not in fname and '.tfw' not in fname and '_mfv2.tif' in fname:
+            if '.tif.' not in fname and '.tfw' not in fname and 'mfv2' in fname:
                 findex.append((c,int(fname[4:8])))
             c += 1    
     
@@ -139,6 +140,32 @@ def Zonal_Statistic_CDL(files, years):
         
     return HRU_CDLdict, HRU_NLCDdict, hrusid_cdl
  
+#%%
+def ReplaceIncompleteSeq_AGRL(HRU_CDLdict):
+    
+    temp_hrucdl = HRU_CDLdict
+    temp_hrus_nans = []
+    for hruid in HRU_CDLdict.keys():
+        cnans = 0
+        for val in HRU_CDLdict[hruid]:
+            if val == 'nan':
+                cnans = cnans + 1
+            
+       # if np.isnan(np.asarray(HRU_CDLdict[hruid], dtype=float)).any():
+        if cnans >= 0 and cnans != len(HRU_CDLdict[hruid]):
+                
+            for i in range(len(HRU_CDLdict[hruid])):
+                if HRU_CDLdict[hruid][i] == 'nan':
+                    HRU_CDLdict[hruid][i] = 1
+
+            temp_hrucdl[hruid] = HRU_CDLdict[hruid]
+            
+        elif cnans == len(HRU_CDLdict[hruid]):
+            temp_hrus_nans.append(hruid)
+    
+    return temp_hrucdl, temp_hrus_nans
+
+
 #%%
 def ReplaceIncompleteSeq(HRU_CDLdict):
     
@@ -252,10 +279,26 @@ def CDL_NLCDtoSWATdict(db_path):
 
     crsr.execute('select * from CDL_lu')
 
+    # Requested by Meghna        
+    CDL_lu_mods = dict()
+    CDL_lu_mods[14] = 'MINT'
+    CDL_lu_mods[44] = 'AGRL'
+    CDL_lu_mods[61] = 'AGRL'
+    
+    
     cdl_cropdict = dict()
     for row in crsr.fetchall():
+        if row[1] in CDL_lu_mods.keys():
+            row[2] = CDL_lu_mods[row[1]]
+                    
         if str(row[2]) in cropdict.keys():
             cdl_cropdict[row[1]] = cropdict[str(row[2])]
+    
+
+#    cdl_cropdict = dict()
+#    for row in crsr.fetchall():
+#        if str(row[2]) in cropdict.keys():
+#            cdl_cropdict[row[1]] = cropdict[str(row[2])]
 
     return nlcd_cropdict, cdl_cropdict
 
@@ -282,7 +325,45 @@ def Get_No_Crop_Ids():
     
     no_crop_ids = temp
     
+    # Requested by Meghna
+    no_crop_ids.remove(5)
+    no_crop_ids.remove(27)
+    no_crop_ids.remove(22)
+    
+    
+    no_crop_ids.remove(13)
+    
+    no_crop_ids.remove(143)
+    no_crop_ids.remove(142)
+    no_crop_ids.remove(141)
+    no_crop_ids.remove(152)
+    no_crop_ids.remove(64)
+    
+    no_crop_ids.remove(131)
+    no_crop_ids.remove(65)
+    
+    no_crop_ids.remove(190)
+    no_crop_ids.remove(195)
+    
+    no_crop_ids.remove(176)
+    
+
     return no_crop_ids
+
+
+def Get_No_Change_LU(no_change_lum_path):
+    no_change_lums = []
+    if no_change_lum_path != '':
+        with open(no_change_lum_path,'rb') as search:
+            for line in search:
+                linesplit = re.split('\s',line)
+                linesplit = [e for e in linesplit if e != '']
+                no_change_lums.append(linesplit[0])
+        search.close()
+    else:
+        no_change_lums = []
+    
+    return no_change_lums
 
 #%%
 def ReadInputFile(file_path):
@@ -310,6 +391,10 @@ def ReadInputFile(file_path):
             elif 'cdl_path' in line:
                 linesplit = re.split('\s',line)
                 files['cdl_path'] = linesplit[2].replace('\\','/')
+            
+            elif 'no_change_lum_path' in line:
+                linesplit = re.split('\s',line)
+                files['no_change_lum_path'] = linesplit[2].replace('\\','/')
      
     if 'hru_file' not in files:
         print('Error: An HRU shapefile must be provided.')
@@ -326,9 +411,12 @@ def ReadInputFile(file_path):
 files = None
 #file_path = input("Please enter the File Path with input data layers: ")
 file_path ='C:\Users\sammy\Documents\Research\SWAT\Umatilla_cdl_hru.txt'
+file_path = 'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Umatilla_cdl_hruv4.txt'
 files = ReadInputFile(file_path.replace('\\','/'))
 
-years = range(2012,2017)
+#years = range(2008,2010)
+years = range(2008,2020)
+
 print (years)
 hru_name_dict = FindHRUMgtFiles(files['hru_file'][0:files['hru_file'].find('Watershed')-1].replace('\\','/'))
 
@@ -339,6 +427,8 @@ nlcd_cropdict, cdl_cropdict = CDL_NLCDtoSWATdict(db_path)
 
 #%%
 no_crop_ids = Get_No_Crop_Ids()
+
+#no_change_lums = Get_No_Change_LU(files['no_change_lum_path'])
 
 temp_dict = HRU_CDLdict
 hrus = HRU_CDLdict[years[0]].keys()
@@ -354,38 +444,85 @@ for hruid in hrus:
     
     HRU_CDLdict[str(hruid)] = temp_array
 
-HRU_CDLdict, temp_hrus_nans = ReplaceIncompleteSeq(HRU_CDLdict)
+#HRU_CDLdict, temp_hrus_nans = ReplaceIncompleteSeq(HRU_CDLdict)
+HRU_CDLdict, temp_hrus_nans = ReplaceIncompleteSeq_AGRL(HRU_CDLdict)
 
 hrus_complete_seq = []
 for hru in  HRU_CDLdict.keys():
     if np.isnan(np.asarray(HRU_CDLdict[hru], dtype=float)).any() == False:
         hrus_complete_seq.append(hru)
-        
-
+    
 #%%
 print ('Writing CSV')
-output_file = files['output_path'].replace('\\','/') + '/HRU_CDL_mode.csv'
-with open(output_file, mode='wb') as outputcsv:
-    outputcsv_writer = csv.writer(outputcsv, delimiter = ',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)        
-    outputcsv_writer.writerow(['HRU_ID','2012','2013','2014','2015','2016'])
-    
-    for hru in HRU_CDLdict.keys():
-        if hru not in temp_hrus_nans:
-            outputcsv_writer.writerow([hru_name_dict[str(hru)],str(HRU_CDLdict[hru][0]),str(HRU_CDLdict[hru][1]),str(HRU_CDLdict[hru][2]),
-                                   str(HRU_CDLdict[hru][3]),str(HRU_CDLdict[hru][4])])
-        else:
-            if HRU_NLCDdict[hru] == 81:
-                outputcsv_writer.writerow([hru_name_dict[str(hru)],'5','5','5','5','5'])
-                
-            elif HRU_NLCDdict[hru] == 82:
-                outputcsv_writer.writerow([hru_name_dict[str(hru)],'2','2','2','2','2'])
-            else:
-                if 'value' in nlcd_cropdict[HRU_NLCDdict[hru]].keys():
-                    outputcsv_writer.writerow([hru_name_dict[str(hru)],str(nlcd_cropdict[HRU_NLCDdict[hru]]['value']),'-999','-999','-999','-999'])
-                else:
-                    outputcsv_writer.writerow([hru_name_dict[str(hru)],'-999','-999','-999','-999','-999'])
+output_file = files['output_path'].replace('\\','/') + '/HRU_CDL_mode_NoSeq.csv'
+#output_file = files['output_path'].replace('\\','/') + '/HRU_CDL_mode_NoSeq_v2.csv'
 
-outputcsv.close()
+filein = open(output_file,'w')
+
+header = 'HRU_ID'
+for year in years:
+    header = header + ',' + str(year) 
+    
+filein.write(header + '\n')
+
+for hru in HRU_CDLdict.keys():
+    
+    txt = str(hru_name_dict[str(hru)])
+    
+    if hru not in temp_hrus_nans:
+        for iy in range(len(years)):
+            txt = txt + ',' + str(HRU_CDLdict[hru][iy])
+    else:
+        if HRU_NLCDdict[hru] == 81:
+            for iy in range(len(years)):
+                txt = txt + ',' + '5'
+            
+        elif HRU_NLCDdict[hru] == 82:
+            for iy in range(len(years)):
+                txt = txt + ',' + '1'
+        else:
+            if 'value' in nlcd_cropdict[HRU_NLCDdict[hru]].keys():
+                txt = txt + ',' + str(nlcd_cropdict[HRU_NLCDdict[hru]]['value'])
+                for iy in range(1,len(years)):
+                    txt = txt + ',' + '-999'
+                #for iy in range(len(years)):
+                #    txt = txt + ',' + str(nlcd_cropdict[HRU_NLCDdict[hru]]['value'])
+            else:
+                #txt = txt + ',' + '-999'
+                txt = txt + ',' + str(nlcd_cropdict[HRU_NLCDdict[hru]]['Name'])
+                for iy in range(1,len(years)):
+                    txt = txt + ',' + '-999'
+                    
+    filein.write(txt + '\n')
+    
+filein.close()
+
+#with open(output_file, mode='wb') as outputcsv:
+#    outputcsv_writer = csv.writer(outputcsv, delimiter = ',', quotechar = '"', quoting=csv.QUOTE_MINIMAL)        
+#    
+#    header = ['HRU_ID']
+#    for year in years:
+#        header.append(str(year)) 
+#    #outputcsv_writer.writerow(['HRU_ID','2012','2013','2014','2015','2016'])
+#    outputcsv_writer.writerow(header)
+#    
+#    for hru in HRU_CDLdict.keys():
+#        if hru not in temp_hrus_nans:
+#            outputcsv_writer.writerow([hru_name_dict[str(hru)],str(HRU_CDLdict[hru][0]),str(HRU_CDLdict[hru][1]),str(HRU_CDLdict[hru][2]),
+#                                   str(HRU_CDLdict[hru][3]),str(HRU_CDLdict[hru][4])])
+#        else:
+#            if HRU_NLCDdict[hru] == 81:
+#                outputcsv_writer.writerow([hru_name_dict[str(hru)],'5','5','5','5','5'])
+#                
+#            elif HRU_NLCDdict[hru] == 82:
+#                outputcsv_writer.writerow([hru_name_dict[str(hru)],'2','2','2','2','2'])
+#            else:
+#                if 'value' in nlcd_cropdict[HRU_NLCDdict[hru]].keys():
+#                    outputcsv_writer.writerow([hru_name_dict[str(hru)],str(nlcd_cropdict[HRU_NLCDdict[hru]]['value']),'-999','-999','-999','-999'])
+#                else:
+#                    outputcsv_writer.writerow([hru_name_dict[str(hru)],'-999','-999','-999','-999','-999'])
+#
+#outputcsv.close()
 
 print ('Finish writing CSV')
 

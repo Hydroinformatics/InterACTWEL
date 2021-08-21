@@ -1,0 +1,7 @@
+swat_path = C:\Users\sammy\Documents\Research\SWAT\QSWAT\Latest
+nlcdFile = C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input_data/nlcd_proj_mfv2.tif
+cdlFile = C:\Users\sammy\Documents\Research\SWAT\Umatilla_Output_data_TEST\CDL_Clip\CDL_2017_clip_20180821151150_mfv2_clp.tif
+soilFile = C:\Users\sammy\Documents\Research\SWAT\willow_final\Soils_30m.tif
+
+subbasinsFile = C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input_data\umatillaWBD_proj.shp
+landuseFile = C:\Users\sammy\Documents\Research\SWAT\Umatilla_Output_data_TEST\HRUs_LU\UHRUs_Region_Latest.tif

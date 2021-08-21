@@ -20,27 +20,34 @@ import scipy.io as sio
 #                        help='Path to text file with list of input Files')
 #    args = parser.parse_args()
 #    user_cwd = os.getcwd()
-#    
-path = 'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input_data\Umatilla_Data.txt'
+ 
+#path = 'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input_data\Umatilla_Data.txt'
+
+path = r'C:\Users\sammy\Documents\Research\SWAT\Umatilla_Input_data\Region_Data.txt'
+
 preprocess = QSWAT_preprocess.Data_Preprocess()
 preprocess.ReadInputFile(path.replace('\\','/'))
 preprocess.DissolveWatersheds()
 preprocess.Clip_Rasters()
 
+IHRU_path = r'C:\Users\sammy\Documents\GitHub\InterACTWEL\src\qswat\WillowStep1_2.txt'
+
 IHRUs = HRUs_Creator()
-IHRUs.swat_path = ''
+IHRUs.ReadInputFile(IHRU_path)
+
+#IHRUs.swat_path = ''
 IHRUs.soil_file = preprocess.clip_soil
-IHRUs.landuse_file = ''
-IHRUs.nlcd_file = preprocess.clip_nlcd
+#IHRUs.landuse_file = ''
+IHRUs.nlcd_file = preprocess.clip_nlcd 
 IHRUs.watershed_raster = preprocess.watershed_raster
-IHRUs.cdl_file = ''
+#IHRUs.cdl_file = ''
 IHRUs.cdl_path = preprocess.cld_clip_path
 IHRUs.boundary_raster = preprocess.boundary_raster
 
 IHRUs.Read_Watershed_Raster()
 
-newHRUs = numpy.zeros(IHRUs.watersheds.shape)
-newHRUs_B = numpy.zeros(IHRUs.watersheds.shape)
+#newHRUs = numpy.zeros(IHRUs.watersheds.shape)
+#newHRUs_B = numpy.zeros(IHRUs.watersheds.shape)
 
 #%%
 
@@ -54,13 +61,10 @@ IHRUs.CDL_org = CDL_org
 un_water = numpy.unique(IHRUs.watersheds.flatten())
 un_water = un_water[numpy.where(un_water != 0)]
 
-#for wid in range(5,7):
+#for wid in range(23,24):
 for wid in un_water:
     IHRUs.temp_wid = wid
     temp_watershed = numpy.asarray(IHRUs.watersheds == wid, dtype=numpy.int64)
-    
-    plt.matshow(temp_watershed)
-    plt.show()
 
     left_col, right_col = QSWAT_utils.Raster_col_boundaries(temp_watershed)
     top_row, last_row = QSWAT_utils.Raster_row_boundaries(temp_watershed) 
@@ -85,11 +89,35 @@ for wid in un_water:
     
     if numpy.sum(IHRUs.LST_LlNd.flatten()) > 0:
         temp_icrop, temp_icropb = IHRUs.Create_HRUs()
-        newHRUs = IHRUs.MergeNewHRUs(newHRUs, temp_icrop)
-        newHRUs_B = IHRUs.MergeNewHRUs(newHRUs_B, temp_icropb)
+        IHRUs.newHRUs = IHRUs.MergeNewHRUs(IHRUs.newHRUs, temp_icrop)
+        IHRUs.newHRUs_B = IHRUs.MergeNewHRUs(IHRUs.newHRUs_B, temp_icropb)
         
-        plt.matshow(newHRUs)
-        plt.show()
+        #plt.matshow(newHRUs)
+        #plt.show()
     
-sio.savemat('PythonHRUs.mat', {'newHRUs':newHRUs,'newHRUs_B':newHRUs_B})
-        
+#sio.savemat('Sub22_IHRUs.mat', {'LST_LlNpd':IHRUs.LST_LlNd,'LST_LlNpc':IHRUs.LST_LlNc,'LST_LlNpb':IHRUs.LST_LlNb,'LST_LlNp':IHRUs.LST_Ll})
+sio.savemat('Region_HRUs_MajorCrops.mat', {'newHRUs': IHRUs.newHRUs,'newHRUs_B': IHRUs.newHRUs_B})
+
+#%%
+#temp = sio.loadmat('C:/Users/sammy/Documents/GitHub/Region_HRUs.mat')
+
+file_paths, file_name = os.path.split(IHRUs.soil_file)
+
+new_landuse_raster = file_paths + '/HRUs_Region_MajCrops.tif'
+
+boundary, boundary_NoData, boundary_ds = QSWAT_utils.Read_Raster(IHRUs.boundary_raster)
+#QSWAT_utils.Save_NewRaster(temp['newHRUs_B'], boundary_ds, boundary, new_landuse_raster, -999)
+QSWAT_utils.Save_NewRaster(IHRUs.newHRUs_B, boundary_ds, boundary, new_landuse_raster, -999)
+
+IHRUs.landuse_file = new_landuse_raster
+
+#%%
+IHRUs.db_path = IHRUs.swat_path.replace('\\','/') + '/QSWATRef2012.mdb'
+IHRUs.MergeNLCD_HRU()
+
+ ## Simplify Slopes and Soils
+IHRUs.SimplifySoils()
+IHRUs.SimplifySlopes()
+
+#%% Create LU Lookup 
+IHRUs.CreateLU_LookupTable()   
