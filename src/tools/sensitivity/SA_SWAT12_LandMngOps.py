@@ -24,10 +24,11 @@ class LndMngOps(object):
         if os.path.isfile(self.model_path + 'Scenarios/Default/TxtInOut/' + wrtfile):
             with open(self.model_path + 'Scenarios/Default/TxtInOut/' + wrtfile,'rb') as search:
                 for line in search:
-                    linesplit = re.split('\s',line)
-                    linesplit = [t for t in linesplit if len(t) > 0]
-                    if len(linesplit) > 0:
-                        wrdict[int(linesplit[1])] = linesplit[2]
+                    if 'WR_ID' not in line:
+                        linesplit = re.split('\s',line)
+                        linesplit = [t for t in linesplit if len(t) > 0]
+                        if len(linesplit) > 0:
+                            wrdict[int(linesplit[1])] = linesplit[2]
             search.close()
         else:
             sys.exit('File: ' + wrtfile + ' was not found.')
@@ -37,7 +38,7 @@ class LndMngOps(object):
                 for line in search:
                     linesplit = re.split('\s',line)
                     linesplit = [t for t in linesplit if len(t) > 0]
-                    if len(linesplit) > 0 and int(linesplit[3]) == 1:
+                    if len(linesplit) > 0 and int(linesplit[4]) == 1:
                         temp_dict[int(linesplit[0])] = wrdict[int(linesplit[1])]
             search.close()
         else:
@@ -206,22 +207,29 @@ class LndMngOps(object):
                     linesplit = "".join(line.split())
                     opschd_id = re.split(':',linesplit)[1]
                     oper_order = []
-                    #opschd_counter = 0
+                    oper_order_id = []
+                    opschd_counter = 0
                 
                 elif '#' not in line and sched_bool == 1 and len(line.strip()) > 0:
                     linesplit = line.lstrip()
                     linesplit = linesplit.split(' ')
                     linesplit = [l for l in linesplit if len(l) >0]
                     if len(linesplit) > 1:
-                        temp_dict[int(linesplit[1])] = line.strip('\r\n')
-                        oper_order.append(int(linesplit[1]))
+                        #temp_dict[int(linesplit[1])] = line.strip('\r\n')
+                        oper_order_id.append(int(linesplit[1]))
+                        temp_dict[int(opschd_counter)] = line.strip('\r\n')
+                        oper_order.append(int(opschd_counter))
                     else:
-                        temp_dict[int(linesplit[0])] = line.strip('\r\n')
-                        oper_order.append(int(linesplit[0]))
-                    #opschd_counter = opschd_counter + 1
+                        #temp_dict[int(linesplit[0])] = line.strip('\r\n')
+                        oper_order_id.append(int(linesplit[0]))
+                        temp_dict[int(opschd_counter)] = line.strip('\r\n')
+                        oper_order.append(int(opschd_counter))
+                        
+                    opschd_counter = opschd_counter + 1
 
                 elif len(line.strip()) == 0:
                     temp_dict['OpsOrder'] = oper_order
+                    temp_dict['OpsOrderId'] = oper_order_id
                     sched_bool = 0
                     MngSched[int(opschd_id)] = temp_dict
                     
@@ -230,6 +238,7 @@ class LndMngOps(object):
         
         if sched_bool == 1:
             temp_dict['OpsOrder'] = oper_order
+            temp_dict['OpsOrderId'] = oper_order_id
             MngSched[int(opschd_id)] = temp_dict
 
         self.MngSched = MngSched
@@ -267,11 +276,13 @@ class LndMngOps(object):
         else:
             if mngpardict['opID'] == 10 and self.wrdict_bool == 1:
                 rnd_op = random.choice(mngpardict['options'].keys())
+                #print rnd_op, self.wrvarname, hruid
                 rnd_op = int(mngpardict['options'][rnd_op][self.wrvarname]['WRdict'][hruid])
             else:
                 rnd_op = random.choice(mngpardict['options'].keys())
             
         if mngpardict['opID'] == 10:
+            #print rnd_op, self.wrvarname, hruid, sub_basin
             mngpardict['options'][rnd_op]['B']['values'] = [sub_basin]
             
         if len(mngpardict['param_varname']) > 0:
@@ -327,6 +338,10 @@ class LndMngOps(object):
                 if operations_linebool == 1:
                     iter_counter = 1
                     for crop_id in hru_crops[hruid]:
+                        
+                        if hruid == 98:
+                            stddp = 0
+                            
                         #print hruid
                         schd_oper = random.choice(self.MngParams['Crops']['options'][crop_id]['OP_SCHD']['values'])
                         InputVars['CROPS'].append(crop_id)
@@ -336,7 +351,7 @@ class LndMngOps(object):
                         #for schd_line in self.MngSched[schd_oper].keys():
                             #for temp_line in self.MngSched[schd_oper][schd_line]:
                             temp_line = self.MngSched[schd_oper][schd_line]
-                            opkey = [mngpar for mngpar in self.MngParams.keys() if self.MngParams[mngpar]['opID'] == schd_line]
+                            opkey = [mngpar for mngpar in self.MngParams.keys() if self.MngParams[mngpar]['opID'] == self.MngSched[schd_oper]['OpsOrderId'][schd_line]]
                             paramdict = dict()
                             if len(opkey) > 0:
                                 if self.MngParams[opkey[0]]['opID'] == 1 :

@@ -101,7 +101,7 @@ class SensitivityAnalysis():
     def SA(self,num_sim):
         
         #self.swat_path = self.UnzipModel(num_sim) 
-        self.swat_path = r'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\Txtinout_v4_Iter11_01212021' + '/'
+        self.swat_path = r'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\Backup_v5_Iter15_bestsim' + '/'
         self.LndMngOps.model_path = self.swat_path
         self.saoutputs.model_path = self.swat_path + 'Scenarios/Default/TxtInOut/'
         self.saoutputs.output_path = self.pathuzip

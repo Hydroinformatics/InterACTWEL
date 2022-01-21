@@ -19,7 +19,7 @@ from tools.sensitivity.Sensitivity_Analysis_SWAT12 import SensitivityAnalysis
 #    
 #    #input_files = args.path[0].replace('\\','/')
 
-input_files = 'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\SWAT12_Input_Files_CR.txt'
+input_files = 'C:\Users\sammy\Documents\Research\SWAT\QSWAT_Input_Data\Umatilla\HRUs_Meghna\Iter11_txtinout_crop_operations\SWAT12_Input_Files_CR_v2.txt'
 
 for i in range(0,1):
     sensitivity = SensitivityAnalysis(input_files)
