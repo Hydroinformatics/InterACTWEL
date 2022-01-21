@@ -269,6 +269,8 @@ class LndMngOps(object):
     def AddParamsToLine(self, line, mngpardict, sub_basin, hruid, cropid=None):
         newline = line
         
+        #print hruid
+        
         ParamDict = dict()
         
         if cropid is not None:
@@ -283,6 +285,8 @@ class LndMngOps(object):
             
         if mngpardict['opID'] == 10:
             #print rnd_op, self.wrvarname, hruid, sub_basin
+            if hruid == 8115:
+                stpo = 0
             mngpardict['options'][rnd_op]['B']['values'] = [sub_basin]
             
         if len(mngpardict['param_varname']) > 0:
