@@ -33,7 +33,7 @@
 
       integer :: eof, istrd, subid, wrstd, wrend
       real*8 :: wrflow
-      !character (len=20) :: line
+      character (len=20) :: line
     
       eof = 0
 
@@ -50,7 +50,7 @@
       !if (wrflow > 0) then
        do istrd = wrstd, wrend
         flowmin_wr(subid,istrd) = wrflow
-        WRITE(*,*) subid, istrd, flowmin_wr(subid,istrd)
+        !!WRITE(*,*) subid, istrd, flowmin_wr(subid,istrd)
        end do
       !else
       !  do i = 1, 365
