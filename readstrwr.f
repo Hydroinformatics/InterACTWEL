@@ -33,7 +33,7 @@
 
       integer :: eof, istrd, subid, wrstd, wrend
       real*8 :: wrflow
-      character (len=20) :: line
+      !character (len=20) :: line
     
       eof = 0
 
