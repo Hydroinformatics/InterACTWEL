@@ -233,6 +233,11 @@
         pdvas(63) = hruyro(34,j)
         pdvas(64) = bio_yrms(j)
         pdvas(65) = lai_yrmx(j)
+
+        if (j == 98) then
+                WRITE(*,*) 'Yield 98 Write: ', yldanu(j)
+        endif 
+
         pdvas(66) = yldanu(j)
         pdvas(67) = hruyro(63,j)
         pdvas(68) = hruyro(64,j)

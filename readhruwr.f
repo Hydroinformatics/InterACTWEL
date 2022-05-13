@@ -64,6 +64,12 @@
         hruwr_dict(rowc,4) = pwrhru
         hruwr_dict(rowc,5) = subid
 
+        if (pwrhru == 1) then
+            maxhruwrpr(hruid) = pwrhru
+        elseif (pwrhru > maxhruwrpr(hruid)) then
+            maxhruwrpr(hruid) = pwrhru
+        endif
+
         !!hruwruse_dict(rowc,1) = hrudi
         !!hruwruse_dict(rowc,2) = wridi
         hruwruse_dict(rowc) = 0.0
@@ -93,8 +99,8 @@
 
       end do
       WRITE(*,*) "Total HRU", pwr
+      
       bool_priorwr = 0
-
       temp_priorwr = priorwr
       hruwr_org = hruwr
       hruwrsrc_org = hruwrsrc

@@ -151,6 +151,7 @@
 !        vmm = Min(vmm2, vmm)
 
         call check_wr(j,vmm)
+        !if (vmm == 0. .and. hruwr(j) < 9999) then
         if (vmm == 0.) then
           call set_wrprior(j, hruwr(j))
           bool_priorwr = 1

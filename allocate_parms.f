@@ -854,11 +854,12 @@
       allocate (priorwr(mhru))
       allocate (hruwrprior(mhru))
       allocate (temp_priorwr(mhru))
+      allocate (maxhruwrpr(mhru))
       allocate (hruwr_org(mhru))
       allocate (hruwrsrc_org(mhru))
       allocate (hruwr_dict(uhruwr,5))
       allocate (hruwruse_dict(uhruwr))
-      allocate (flowmin_wr(msub,365))
+      allocate (flowmin_wr(msub,366))
       !!allocate (hru_dict(uhruwr))
       !!allocate (priorwr_dict(uhruwr))
       

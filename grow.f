@@ -175,7 +175,6 @@
         if (delg < 0.) delg = 0.
         phuacc(j) = phuacc(j) + delg  
 
-
         !! if plant hasn't reached maturity
         if (phuacc(j) <= 1.) then
 

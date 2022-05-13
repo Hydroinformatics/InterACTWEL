@@ -287,7 +287,7 @@
       yield = yieldgrn + yieldbms + yieldtbr + yieldrsd
       yieldn = yieldngrn + yieldnbms + yieldntbr + yieldnrsd
       yieldp = yieldpgrn + yieldpbms + yieldptbr + yieldprsd
-	clip= clipgrn + clipbms + cliptbr   !! cibin nov 2013
+	    clip= clipgrn + clipbms + cliptbr   !! cibin nov 2013
       clipn = clipngrn + clipnbms + clipntbr !! cibin nov 2013
       clipp = clippgrn + clippbms + clipptbr !! cibin nov 2013
       
@@ -514,7 +514,7 @@
         wshd_yldn = wshd_yldn + yieldn * hru_dafr(j)
         wshd_yldp = wshd_yldp + yieldp * hru_dafr(j)
         yldkg(icr(j),j) = yldkg(icr(j),j) + yield
-        yldanu(j) = yldanu(j) + yield  / 1000.
+        yldanu(j) = yldanu(j) + (yield  / 1000.0)
         ncrops(icr(j),j) = ncrops(icr(j),j) + 1           !!!!!!!!!!!!!!!!nubz 
 
        ! select case (idc(idplt(j)))
@@ -527,6 +527,10 @@
         bio_yrms(j) = bio_yrms(j) + (yield + clip + rtresnew) / 1000.		            !! Jeff, is this the intention
        ! end select
       endif
+
+      if (j == 98) then
+        WRITE(*,*) 'Yield 98 O: ', yield, yldanu(j)
+      endif 
 
        ncut(j) = ncut(j) + 1
 

@@ -413,7 +413,9 @@
         read (33,6400,iostat=eof) itnum
         if (eof < 0) exit
         mhruwr = Max(mhruwr,itnum)
-        uhruwr = uhruwr + 1
+        if (itnum > 0) then
+         uhruwr = uhruwr + 1
+        end if
       end do
       if (mhruwr <= 0) mhruwr = 1
       if (uhruwr <= 0) uhruwr = 1

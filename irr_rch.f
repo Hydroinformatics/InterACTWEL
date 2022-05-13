@@ -225,6 +225,7 @@
     
               call check_wr(k,vmm)
 
+              !if (vmm == 0. .and. hruwr(j) < 9999) then
               if (vmm == 0.) then
                 !!WRITE(*,*) "Calling set_wrprior"
                 call set_wrprior(k, hruwr(k))

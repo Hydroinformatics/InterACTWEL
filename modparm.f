@@ -12,6 +12,7 @@
 !!    Water rights parameters  !!Added by Sammy    
       real*8, dimension (:,:), allocatable :: depthwr, hruwra
       integer, dimension (:), allocatable :: priorwr, hruwrprior
+      integer, dimension (:), allocatable :: maxhruwrpr
       integer, dimension (:), allocatable :: temp_priorwr
       integer, dimension (:), allocatable :: hruwr_org
       integer, dimension (:), allocatable :: hruwrsrc_org

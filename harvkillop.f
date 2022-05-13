@@ -508,10 +508,14 @@
        wshd_yldp = wshd_yldp + yieldp * hru_dafr(j)
        yldkg(icr(j),j) = yldkg(icr(j),j) + yield
        bio_hv(icr(j),j) = bio_ms(j) + bio_hv(icr(j),j)
-       yldanu(j) = yldanu(j) + yield / 1000.
+       yldanu(j) = yldanu(j) + (yield / 1000.0)
        bio_yrms(j) = bio_yrms(j) + bio_ms(j) / 1000.
        ncrops(icr(j),j) = ncrops(icr(j),j) + 1
       endif
+
+      if (j == 98) then
+      WRITE(*,*) 'Yield 98 K: ', yield, yldanu(j), (yield / 1000.0)
+      endif 
 
 	!! update curve number
       if (cnop > 0.) 

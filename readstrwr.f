@@ -47,16 +47,20 @@
 
       if (eof < 0) exit
 
-      !if (wrflow > 0) then
+      if (subid > 0) then
+       if (wrend == 365) then
+            wrend = 366
+       endif
        do istrd = wrstd, wrend
-        flowmin_wr(subid,istrd) = wrflow
-        !!WRITE(*,*) subid, istrd, flowmin_wr(subid,istrd)
+        !!WRITE(*,*) subid, istrd, wrflow
+        flowmin_wr(subid, istrd) = wrflow
+        
        end do
       !else
       !  do i = 1, 365
       !  flowmin_wr(subid,i) = wrflow
       !  end do
-      !endif 
+      endif 
       end do
 
       close (208)

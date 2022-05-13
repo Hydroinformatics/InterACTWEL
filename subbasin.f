@@ -186,6 +186,12 @@
         if (tmpav(j) > 0. .and. phutot(hru_sub(j)) > 0.01) then
            phubase(j) = phubase(j) + tmpav(j) / phutot(hru_sub(j))
         end if
+
+        !!if (j == 98) then
+          !!!!WRITE(*,*) 'HU day:', j, wrdate, phuacc(j), phubase(j)*phutot(hru_sub(j))
+            !!WRITE(*,*) j,wrdate,phuacc(j),phubase(j), phutot(hru_sub(j))
+          !!!!WRITE(*,*) 'T', curyr, wrdate, tmpav(j), t_base(idplt(j))
+         !!end if 
         
         call schedule_ops
 
