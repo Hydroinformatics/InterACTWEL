@@ -149,8 +149,8 @@ class FarmerOpt(om.ExplicitComponent):
         p.model.farmer.farmer_id = self.farmer_id
     
         p.driver = om.SimpleGADriver()
-        p.driver.options['max_gen'] = 200
-        p.driver.options['pop_size'] = 100
+        p.driver.options['max_gen'] = 10
+        p.driver.options['pop_size'] = 1000
         p.driver.options['penalty_parameter'] = 200.
         p.driver.options['penalty_exponent'] = 5.
         p.driver.options['compute_pareto'] = True
@@ -187,7 +187,7 @@ class FarmerOpt(om.ExplicitComponent):
         p = self.prob
 
         #run the optimization 
-        #print('subopt ' + str(self.farmer_id) + ' wr_vol: ' + str(inputs['wr_vol']))
+        print('subopt ' + str(self.farmer_id) + ' wr_vol: ' + str(inputs['wr_vol']))
         p.run_driver()
 
         # pull the values back up into the output array
