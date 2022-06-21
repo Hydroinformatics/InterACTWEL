@@ -41,9 +41,9 @@ class FEWNexus(om.Group):
         self.connect('wr_vols','region.wr_vols')
         
         for i in range(0,self.nactors):
-            self.connect('farmer_' + str(i+1) + '_plan.indv_crops_yields','region.actor_crops_' + str(i+1))
+            #self.connect('farmer_' + str(i+1) + '_plan.indv_crops_yields','region.actor_crops_' + str(i+1))
             self.connect('farmer_' + str(i+1) + '_plan.indv_profit', 'region.actor_profit_' + str(i+1))
-            self.connect('farmer_' + str(i+1) + '_plan.indv_costs', 'region.actor_costs_' + str(i+1))
+            #self.connect('farmer_' + str(i+1) + '_plan.indv_costs', 'region.actor_costs_' + str(i+1))
             
         #self.connect('wr_vols','region.wr_vols')
 
@@ -89,9 +89,9 @@ class Region(om.ExplicitComponent):
         
         self.add_input('wr_vols',val=np.ones(self.nactors))
         for i in range(0,self.nactors):
-            self.add_input('actor_crops_'+ str(i+1), val=np.zeros(3))
+            #self.add_input('actor_crops_'+ str(i+1), val=np.zeros(3))
             self.add_input('actor_profit_'+ str(i+1),val=0.0)
-            self.add_input('actor_costs_'+ str(i+1),val=0.0)
+            #self.add_input('actor_costs_'+ str(i+1),val=0.0)
         
         self.add_output('profit', val=0.0)
         #self.add_output('actors_wr_vols',val=np.ones(self.nactors)*20)
@@ -104,10 +104,13 @@ class Region(om.ExplicitComponent):
         
         total_profit = 0
         for i in range(0,self.nactors):
-            for ii in range(0,len(inputs['actor_crops_' + str(i+1)])):
+            for ii in range(0,len(inputs['actor_profit_' + str(i+1)])):
                 total_profit = total_profit + inputs['actor_profit_'+ str(i+1)]
                 
         outputs['profit'] = total_profit
+        
+        print('Regional: ' + str(inputs['wr_vols'])+ ', ' + str(total_profit))
+        #print('')
         #outputs['actors_wr_vols'] = inputs['wr_vols']
         
 ############################################# SUB-SYSTEM ACTOR ######################################   
@@ -125,12 +128,12 @@ class FarmerOpt(om.ExplicitComponent):
         #self.add_input('hru_irr', val=np.ones(2))
         
         self.add_output('indv_profit', val=0.0)
-        self.add_output('indv_costs', val=0.0)
+        #self.add_output('indv_costs', val=0.0)
         #self.add_output('total_irr', val=0.0)
-        self.add_output('indv_crops_yields', val=np.zeros(3))
+        #self.add_output('indv_crops_yields', val=np.zeros(3))
         
         #self.declare_partials('indv_profit', ['wr_vol'], method='fd', step=1e-4, step_calc='abs')
-        self.declare_partials('indv_crops_yields', ['wr_vol'], method='fd', step=1e-4, step_calc='abs')
+        #self.declare_partials('indv_crops_yields', ['wr_vol'], method='fd', step=1e-4, step_calc='abs')
         
         self.prob = p = om.Problem()
         
@@ -142,15 +145,15 @@ class FarmerOpt(om.ExplicitComponent):
         des_vars.add_discrete_output('hru_fert', val=np.zeros(len(self.hrus_areas)).astype('int'))
         
         p.model.add_subsystem('farmer', Farmer())
-        #p.model.add_subsystem('con_cmp2', om.ExecComp('con2 = sum(hru_irr) - 100.0'), promotes=['con2'])
+        #p.model.add_subsystem('con_cmp2', om.ExecComp('con2 = sum(hru_irr)'), promotes=['con2'])
         
         p.model.farmer.hrus_areas = self.hrus_areas
         p.model.farmer.hrus_crops = self.hrus_crops
         p.model.farmer.farmer_id = self.farmer_id
     
         p.driver = om.SimpleGADriver()
-        p.driver.options['max_gen'] = 10
-        p.driver.options['pop_size'] = 1000
+        p.driver.options['max_gen'] = 20
+        p.driver.options['pop_size'] = 50
         p.driver.options['penalty_parameter'] = 200.
         p.driver.options['penalty_exponent'] = 5.
         p.driver.options['compute_pareto'] = True
@@ -162,7 +165,7 @@ class FarmerOpt(om.ExplicitComponent):
         p.model.add_design_var('hru_fert', lower=0, upper=2)
         
         p.model.add_objective('farmer.indv_profit', scaler=-1)
-        #p.model.add_constraint('con2', lower=-1., upper=1.)
+        #p.model.add_constraint('con2', lower=100., upper=100)
         
         p.setup()
         p.final_setup()
@@ -187,16 +190,19 @@ class FarmerOpt(om.ExplicitComponent):
         p = self.prob
 
         #run the optimization 
-        print('subopt ' + str(self.farmer_id) + ' wr_vol: ' + str(inputs['wr_vol']))
+        
         p.run_driver()
 
         # pull the values back up into the output array
         #print(p.get_val('farmer.indv_profit'))
       
-        outputs['indv_profit'] = p['farmer.indv_profit']
-        outputs['indv_costs'] = p['farmer.indv_costs']
+        outputs['indv_profit'] = p.driver.obj_nd
+        
+        #outputs['indv_costs'] = p['farmer.indv_costs']
         #outputs['total_irr'] = p['farmer.total_irr']
-        outputs['indv_crops_yields'] = p['farmer.indv_crops_yields']
+        #outputs['indv_crops_yields'] = p['farmer.indv_crops_yields']
+        
+        #print('subopt ' + str(self.farmer_id) + ' wr_vol: ' + str(inputs['wr_vol']) + ', ' + str(outputs['indv_profit']))
 
 
 ############################################# SUB-SYSTEM FARMER ######################################  
@@ -267,9 +273,10 @@ class Farmer(om.ExplicitComponent):
         indv_costs = 0
         #total_irr = 0
 
-        if abs((sum(inputs['hru_irr']) - 100.0)) > 0.0:
-            outputs['indv_profit'] = - 5000000000
-            outputs['indv_costs'] = 0.
+        if (sum(inputs['hru_irr']) - 100.0) > 0.:
+            #outputs['indv_profit'] = - 5000000000
+            outputs['indv_profit'] = 0.
+            #outputs['indv_costs'] = 0.
             outputs['indv_crops_yields'] = np.zeros(len(self.crops_price))
             
             #outputs['total_irr'] = total_irr
@@ -292,5 +299,7 @@ class Farmer(om.ExplicitComponent):
                 
             outputs['indv_profit'] = indv_profit    
             outputs['indv_costs'] = indv_costs
+            
+        #print('OPT_Farmer_' + str(self.farmer_id) + ': ' + str(wr_vol) + ', ' + str(inputs['hru_irr']) + ', ' + str(outputs['indv_profit']))
 
 #######################################################################################################
