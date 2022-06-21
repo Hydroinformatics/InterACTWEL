@@ -36,14 +36,14 @@ class FEWNexus(om.Group):
         
         ######## SETUP of REGIONS ###############
             
-        region_model = self.add_subsystem('region', Region(), promotes=['profit'])
+        region_model = self.add_subsystem('region', Region(), promotes=['profit','envir_impact'])
         region_model.nactors = self.nactors
         self.connect('wr_vols','region.wr_vols')
         
         for i in range(0,self.nactors):
             #self.connect('farmer_' + str(i+1) + '_plan.indv_crops_yields','region.actor_crops_' + str(i+1))
             self.connect('farmer_' + str(i+1) + '_plan.indv_profit', 'region.actor_profit_' + str(i+1))
-            #self.connect('farmer_' + str(i+1) + '_plan.indv_costs', 'region.actor_costs_' + str(i+1))
+            self.connect('farmer_' + str(i+1) + '_plan.indv_envir', 'region.actor_envir_' + str(i+1))
             
         #self.connect('wr_vols','region.wr_vols')
 
@@ -91,11 +91,11 @@ class Region(om.ExplicitComponent):
         for i in range(0,self.nactors):
             #self.add_input('actor_crops_'+ str(i+1), val=np.zeros(3))
             self.add_input('actor_profit_'+ str(i+1),val=0.0)
-            #self.add_input('actor_costs_'+ str(i+1),val=0.0)
+            self.add_input('actor_envir_'+ str(i+1),val=0.0)
         
         self.add_output('profit', val=0.0)
         #self.add_output('actors_wr_vols',val=np.ones(self.nactors)*20)
-        #self.add_output('enviro_region', val=0.0)
+        self.add_output('envir_impact', val=0.0)
     
     def setup_partials(self):
         self.declare_partials('profit', 'wr_vols*', method='fd')
@@ -103,11 +103,14 @@ class Region(om.ExplicitComponent):
     def compute(self, inputs, outputs):
         
         total_profit = 0
+        total_envir = 0
         for i in range(0,self.nactors):
             for ii in range(0,len(inputs['actor_profit_' + str(i+1)])):
                 total_profit = total_profit + inputs['actor_profit_'+ str(i+1)]
+                total_envir = total_envir + inputs['actor_envir_'+ str(i+1)]
                 
         outputs['profit'] = total_profit
+        outputs['envir_impact'] = total_envir
         
         print('Regional: ' + str(inputs['wr_vols'])+ ', ' + str(total_profit))
         #print('')
@@ -128,7 +131,7 @@ class FarmerOpt(om.ExplicitComponent):
         #self.add_input('hru_irr', val=np.ones(2))
         
         self.add_output('indv_profit', val=0.0)
-        #self.add_output('indv_costs', val=0.0)
+        self.add_output('indv_envir', val=0.0)
         #self.add_output('total_irr', val=0.0)
         #self.add_output('indv_crops_yields', val=np.zeros(3))
         
@@ -153,7 +156,7 @@ class FarmerOpt(om.ExplicitComponent):
     
         p.driver = om.SimpleGADriver()
         p.driver.options['max_gen'] = 20
-        p.driver.options['pop_size'] = 50
+        p.driver.options['pop_size'] = 20
         p.driver.options['penalty_parameter'] = 200.
         p.driver.options['penalty_exponent'] = 5.
         p.driver.options['compute_pareto'] = True
@@ -165,6 +168,7 @@ class FarmerOpt(om.ExplicitComponent):
         p.model.add_design_var('hru_fert', lower=0, upper=2)
         
         p.model.add_objective('farmer.indv_profit', scaler=-1)
+        p.model.add_objective('farmer.indv_envir', scaler=1)
         #p.model.add_constraint('con2', lower=100., upper=100)
         
         p.setup()
@@ -195,8 +199,12 @@ class FarmerOpt(om.ExplicitComponent):
 
         # pull the values back up into the output array
         #print(p.get_val('farmer.indv_profit'))
-      
-        outputs['indv_profit'] = p.driver.obj_nd
+        
+        obj_nd = np.asarray(p.driver.obj_nd)
+        sorted_obj = obj_nd[obj_nd[:, 0].argsort()]
+        
+        outputs['indv_profit'] = sorted_obj[0][0]
+        outputs['indv_envir'] = sorted_obj[0][1]
         
         #outputs['indv_costs'] = p['farmer.indv_costs']
         #outputs['total_irr'] = p['farmer.total_irr']
@@ -253,6 +261,7 @@ class Farmer(om.ExplicitComponent):
 
         self.add_output('indv_profit', val=0.0)
         self.add_output('indv_costs', val=0.0)
+        self.add_output('indv_envir', val=0.0)
         #self.add_output('total_irr', val=0.0)
         self.add_output('indv_crops_yields', val=np.zeros(len(self.crops_price)))
         
@@ -270,13 +279,13 @@ class Farmer(om.ExplicitComponent):
         f.close()
         
         indv_profit = 0
+        indv_envir = 0
         indv_costs = 0
-        #total_irr = 0
 
         if (sum(inputs['hru_irr']) - 100.0) > 0.:
             #outputs['indv_profit'] = - 5000000000
             outputs['indv_profit'] = 0.
-            #outputs['indv_costs'] = 0.
+            outputs['indv_costs'] = 0.
             outputs['indv_crops_yields'] = np.zeros(len(self.crops_price))
             
             #outputs['total_irr'] = total_irr
@@ -290,13 +299,17 @@ class Farmer(om.ExplicitComponent):
             
                 per_yield = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[i]-1]*irr_amt))
                 profit = crop_yield*per_yield*self.hrus_areas[i]*self.crops_price[self.hrus_crops[i]-1] - cost_f # profit function        
-
+                
+                envir = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[i]-1]*irr_amt))*self.p_crops_b[discrete_inputs['hru_fert'][i]]
+                
                 indv_profit = indv_profit + profit
                 indv_costs = indv_costs + cost_f
+                indv_envir  = indv_envir + envir 
                 #total_irr = total_irr + irr_amt
                 
                 outputs['indv_crops_yields'][self.hrus_crops[i]-1] = outputs['indv_crops_yields'][self.hrus_crops[i]-1] + crop_yield*per_yield*self.hrus_areas[i]
-                
+             
+            outputs['indv_envir'] = indv_envir
             outputs['indv_profit'] = indv_profit    
             outputs['indv_costs'] = indv_costs
             
