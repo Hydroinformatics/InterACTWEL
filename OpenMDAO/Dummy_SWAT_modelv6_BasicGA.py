@@ -89,10 +89,14 @@ class Farmers(om.ExplicitComponent):
             
             indv_profit = 0
             indv_costs = 0
+            indv_envir = 0
             total_hru_irr = sum(indv_hru_irr)
                 
-            if abs((total_hru_irr - inputs['wr_vols'][wrids])) > 0.0:
-                outputs['indv_profit'][wrids] = - 5000000000
+            #if abs((total_hru_irr - inputs['wr_vols'][wrids])) > 0.0:
+            #if (total_hru_irr - inputs['wr_vols'][wrids]) > 0.0:
+            if (total_hru_irr - 100.) > 0.0:
+                #outputs['indv_profit'][wrids] = - 5000000000
+                outputs['indv_profit'][wrids] = 0
                 outputs['indv_costs'][wrids] = 0.
                 #outputs['indv_crops_yields'] = np.zeros(len(self.crops_price))
                 
@@ -106,22 +110,28 @@ class Farmers(om.ExplicitComponent):
                     cost_f = np.interp(irr_amt, range(0,101), self.cost_fert[:,discrete_inputs['hru_fert'][indv_hru_irr_ids[i]]])*self.hrus_areas[wrids+1][i]
                 
                     per_yield = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[wrids+1][i]-1]*irr_amt))
-                    profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i]-1] - cost_f # profit function        
+                    profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i]-1] - cost_f # profit function       
+                    
+                    envir = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[wrids+1][i]-1]*irr_amt))*self.p_crops_b[discrete_inputs['hru_fert'][i]]
     
                     indv_profit = indv_profit + profit
                     indv_costs = indv_costs + cost_f
+                    indv_envir  = indv_envir + envir
                     #total_irr = total_irr + irr_amt
                     
                     #outputs['indv_crops_yields'][self.hrus_crops[i]-1] = outputs['indv_crops_yields'][self.hrus_crops[i]-1] + crop_yield*per_yield*self.hrus_areas[i]
-                    
+                
+                outputs['indv_envir'] = indv_envir
                 outputs['indv_profit'][wrids] = indv_profit    
                 outputs['indv_costs'][wrids] = indv_costs
                 
             
         total_profit = 0
-        for i in range(0,self.nactors):
-            total_profit = total_profit + outputs['indv_profit'][wrids]
+        for i in range(0,len(inputs['wr_vols'])):
+            total_profit = total_profit + outputs['indv_profit'][i]
                 
         outputs['profit'] = total_profit
+        
+        print(inputs['wr_vols'], inputs['hru_irr'], outputs['profit'])
 
 #######################################################################################################
