@@ -15,8 +15,8 @@ prob.model.nactors = 2
 # prob.driver.options['tol'] = 1e-8
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 20
-prob.driver.options['pop_size'] = 20
+prob.driver.options['max_gen'] = 40
+prob.driver.options['pop_size'] = 30
 prob.driver.options['penalty_parameter'] = 200.
 prob.driver.options['penalty_exponent'] = 5.
 prob.driver.options['compute_pareto'] = True
