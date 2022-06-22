@@ -1,11 +1,17 @@
 #Reach
-output.rch = {FLOW_OUTcms:[7]; ORGN_OUT:[14]; NO3_OUT:[18]; NH4_OUT:[20]; NO2_OUT:[22]; DISOX_OUT:[30]; WTMPdegc:[51]; TOT_Nkg:[48]; TOT_Pkg:[49]}
+output.rch = {SUB:[2]; MON:[4]; FLOW_OUTcms:[7]; SED_OUT:[11]; NO3_OUT:[18]; DISOX_OUT:[30]; TOT_Nkg:[48]; TOT_Pkg:[49]; WTMPdegc:[51]}
 
 #Standard
-output.std = {Table:[Annual Summary for Watershed]; NO3_PERC:[15]; NO3_CROP:[16]}
-
-#HRUs
-output.hru = {LULC:[1]; SUB:[4]; YLDt:[22]; IRRmm: [8]; AREAkm2:[6]; PRECIPhru:[7]; NAUTO:[15]; PAUTO:[16]; GW_RCHGmm:[9] ; DA_RCHGmm:[10]; SA_STmm:[12]; NSURQ:[17]; NLATQ:[18]; NO3GW:[19]}
+output.std = {Table:[Annual Summary for Watershed]; GWQ:[5]; PERCO_LATE:[6]; SW:[8]; ET:[9]; WATER_YIELD:[11]; SED_YIELD:[12]; NO3_SURQ:[13]; NO3_LATQ:[14]; NO3_PERC:[15]; NO3_CROP:[16]}
 
 #SUBs
-output.sub = {PRECIPmm:[5]; PERCmm: [10]; ORGNkg:[15]; ORGPkg:[16]}
+output.sub = {SUB:[2]; MON:[4]; PRECIP:[5]; ET: [8]; SW: [9]; PERC: [10]; GWQ: [12]; WYLD: [13]; SYLD: [14]; NSURQ:[17]; LATQ:[20]; GWNO3:[22]}
+
+#HRUs
+output.hru = {LULC:[1]; SUB:[4]; MON:[6]; AREAkm2:[6]; BIOM:[8]; YLDt:[9]; IRRmm:[10]; NAUTO:[11]; PAUTO:[12]}
+
+#WRs
+wrdata.dat = {WR_TV:[4]}
+
+#HRUWRs
+hru_wrt.out = {WR_IRR:[5]}
