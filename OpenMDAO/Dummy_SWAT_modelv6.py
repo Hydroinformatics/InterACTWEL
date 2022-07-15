@@ -132,7 +132,10 @@ class FarmerOpt(om.ExplicitComponent):
         
         self.add_output('indv_profit', val=0.0)
         self.add_output('indv_envir', val=0.0)
-        #self.add_output('total_irr', val=0.0)
+        
+        #self.add_output('indv_decisions', val=np.ones(len(self.hrus_areas)*2))
+        #self.add_output('indv_pareto', val=np.ones(len(self.hrus_areas)*2))
+        
         #self.add_output('indv_crops_yields', val=np.zeros(3))
         
         #self.declare_partials('indv_profit', ['wr_vol'], method='fd', step=1e-4, step_calc='abs')
@@ -155,8 +158,8 @@ class FarmerOpt(om.ExplicitComponent):
         p.model.farmer.farmer_id = self.farmer_id
     
         p.driver = om.SimpleGADriver()
-        p.driver.options['max_gen'] = 20
-        p.driver.options['pop_size'] = 20
+        p.driver.options['max_gen'] = 100
+        p.driver.options['pop_size'] = 50*len(self.hrus_areas)
         p.driver.options['penalty_parameter'] = 200.
         p.driver.options['penalty_exponent'] = 5.
         p.driver.options['compute_pareto'] = True
@@ -200,11 +203,32 @@ class FarmerOpt(om.ExplicitComponent):
         # pull the values back up into the output array
         #print(p.get_val('farmer.indv_profit'))
         
-        obj_nd = np.asarray(p.driver.obj_nd)
-        sorted_obj = obj_nd[obj_nd[:, 0].argsort()]
         
-        outputs['indv_profit'] = sorted_obj[0][0]
-        outputs['indv_envir'] = sorted_obj[0][1]
+        obj_nd = np.asarray(p.driver.obj_nd)
+        #sorted_obj = obj_nd[obj_nd[:, 0].argsort()]
+        
+        with open("farmer_" + str(self.farmer_id) + "_res.txt", "a") as myfile:
+            for i in range(0,len(obj_nd[:,0])):
+                myfile.write(str(int(inputs['wr_vol'][0])) + ', ' + str(obj_nd[i,0]) + ', ' + str(obj_nd[i,1]) + ', ' + str(p.driver.desvar_nd[i]) + '\n')
+        
+        # ggn = obj_nd
+        # ggn[:,0] = obj_nd[:,0]/max(abs(obj_nd[:,0]))
+        # ggn[:,1] = obj_nd[:,1]/max(abs(obj_nd[:,1]))
+        
+        # ggr = ggn[:,0]*0.5 + ggn[:,1]*0.5
+        
+        # outputs['indv_profit'] = sorted_obj[ggr.argsort()[0]][0]
+        # #sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
+        # outputs['indv_envir'] = sorted_obj[ggr.argsort()[0]][1]
+        
+        outputs['indv_profit'] = np.mean(obj_nd[:,0])
+        #sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
+        outputs['indv_envir'] = np.mean(obj_nd[:,1])
+        
+        
+        
+        #outputs['indv_decisions'] = p.driver.desvar_nd
+        #outputs['indv_pareto'] = obj_nd
         
         #outputs['indv_costs'] = p['farmer.indv_costs']
         #outputs['total_irr'] = p['farmer.total_irr']
@@ -262,7 +286,7 @@ class Farmer(om.ExplicitComponent):
         self.add_output('indv_profit', val=0.0)
         self.add_output('indv_costs', val=0.0)
         self.add_output('indv_envir', val=0.0)
-        #self.add_output('total_irr', val=0.0)
+        #self.add_output('indv_obj', val=0.0)
         self.add_output('indv_crops_yields', val=np.zeros(len(self.crops_price)))
         
     def setup_partials(self):
@@ -286,6 +310,7 @@ class Farmer(om.ExplicitComponent):
             #outputs['indv_profit'] = - 5000000000
             outputs['indv_profit'] = 0.
             outputs['indv_costs'] = 0.
+            outputs['indv_envir'] = 0.
             outputs['indv_crops_yields'] = np.zeros(len(self.crops_price))
             
             #outputs['total_irr'] = total_irr
@@ -300,7 +325,7 @@ class Farmer(om.ExplicitComponent):
                 per_yield = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[i]-1]*irr_amt))
                 profit = crop_yield*per_yield*self.hrus_areas[i]*self.crops_price[self.hrus_crops[i]-1] - cost_f # profit function        
                 
-                envir = 1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[i]-1]*irr_amt))*self.p_crops_b[discrete_inputs['hru_fert'][i]]
+                envir = (1 + (0.8*-np.exp(self.p_crops_a[self.hrus_crops[i]-1]*irr_amt)))*self.p_crops_b[discrete_inputs['hru_fert'][i]]
                 
                 indv_profit = indv_profit + profit
                 indv_costs = indv_costs + cost_f
