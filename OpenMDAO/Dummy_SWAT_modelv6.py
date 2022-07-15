@@ -206,11 +206,7 @@ class FarmerOpt(om.ExplicitComponent):
         
         obj_nd = np.asarray(p.driver.obj_nd)
         #sorted_obj = obj_nd[obj_nd[:, 0].argsort()]
-        
-        with open("farmer_" + str(self.farmer_id) + "_res.txt", "a") as myfile:
-            for i in range(0,len(obj_nd[:,0])):
-                myfile.write(str(int(inputs['wr_vol'][0])) + ', ' + str(obj_nd[i,0]) + ', ' + str(obj_nd[i,1]) + ', ' + str(p.driver.desvar_nd[i]) + '\n')
-        
+                
         # ggn = obj_nd
         # ggn[:,0] = obj_nd[:,0]/max(abs(obj_nd[:,0]))
         # ggn[:,1] = obj_nd[:,1]/max(abs(obj_nd[:,1]))
@@ -221,11 +217,19 @@ class FarmerOpt(om.ExplicitComponent):
         # #sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
         # outputs['indv_envir'] = sorted_obj[ggr.argsort()[0]][1]
         
-        outputs['indv_profit'] = np.mean(obj_nd[:,0])
+        nonzero_ind = np.where(abs(obj_nd[:,0])>0)
+        outputs['indv_profit'] = np.mean(obj_nd[nonzero_ind,0])
+        nonzero_ind = np.where(abs(obj_nd[:,1])>0)
+        outputs['indv_envir'] = np.mean(obj_nd[nonzero_ind,1])
+        
+        
+        with open("farmer_" + str(self.farmer_id) + "_res.txt", "a") as myfile:
+            nonzero_ind = np.where(abs(obj_nd[:,0])>0)[0]
+            #for i in range(0,len(obj_nd[:,0])):
+            for i in nonzero_ind:
+                myfile.write(str(int(inputs['wr_vol'][0])) + ', ' + str(obj_nd[i,0]) + ', ' + str(obj_nd[i,1]) + ', ' + str(p.driver.desvar_nd[i]) + '\n')
+        
         #sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
-        outputs['indv_envir'] = np.mean(obj_nd[:,1])
-        
-        
         
         #outputs['indv_decisions'] = p.driver.desvar_nd
         #outputs['indv_pareto'] = obj_nd
