@@ -127,8 +127,12 @@ class Region(om.ExplicitComponent):
                 total_profit = total_profit + inputs['actor_profit_'+ str(i+1)]
                 total_envir = total_envir + inputs['actor_envir_'+ str(i+1)]
                 
-        outputs['profit'] = sum(inputs['wr_vols'])
-        outputs['envir_impact'] = -1*sum(inputs['wr_vols'])/20
+        
+        outputs['profit'] = total_profit
+        outputs['envir_impact'] = total_envir
+        
+        #outputs['profit'] = sum(inputs['wr_vols'])
+        #outputs['envir_impact'] = -1*sum(inputs['wr_vols'])/20
         #outputs['total_wr'] = sum(inputs['wr_vols'])
         
         print('Regional: ' + str(inputs['wr_vols']) + ', ' + str(sum(inputs['wr_vols'])) + ', [' + "{:,.2f}".format(total_profit[0]) 

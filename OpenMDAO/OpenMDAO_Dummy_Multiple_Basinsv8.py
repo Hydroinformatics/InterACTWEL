@@ -85,9 +85,9 @@ if os.path.exists('actors_solutions_sharewr.json'):
     os.remove('actors_solutions_sharewr.json')
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 20
+prob.driver.options['max_gen'] = 100
 prob.driver.options['Pm'] = 0.1
-prob.driver.options['pop_size'] = 20
+prob.driver.options['pop_size'] = 200
 prob.driver.options['penalty_parameter'] = 20000.
 prob.driver.options['penalty_exponent'] = 5.
 prob.driver.options['compute_pareto'] = True
@@ -115,20 +115,24 @@ prob.run_driver()
 #%%
 print('################# RESULTS ##################')
 
-#print(time_consumed)
-print(prob.driver.obj_nd)
-print(prob.driver.desvar_nd)
 
 desvar_nd = prob.driver.desvar_nd
 nd_obj = prob.driver.obj_nd
 sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
 
-print(np.sum(desvar_nd, axis=1))
+print(sorted_obj)
+print(desvar_nd[nd_obj[:, 0].argsort()])
+print(np.sum(desvar_nd[nd_obj[:, 0].argsort()], axis=1))
 
 #%%
 plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
 plt.xlabel("Profit")
 plt.ylabel("Environmental Impact")
+
+
+for i in range(0,len(nd_obj[:,0])):
+
+    plt.annotate(str(int(sum(desvar_nd[i]))), (-1*nd_obj[i,0], nd_obj[i,1]-100),rotation=270)
 
 #%%
 x = range(1,len(desvar_nd)+1)
