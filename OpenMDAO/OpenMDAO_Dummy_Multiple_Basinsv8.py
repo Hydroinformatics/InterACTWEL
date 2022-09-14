@@ -64,6 +64,14 @@ for wrids in wr_vols.keys():
 
 
 #%%
+json_actors = 'actors_solutions_farmer_'
+json_results = 'opt_resultswr_v1.json'
+
+for wrids in wr_vols.keys():
+    if os.path.exists(json_actors + str(wrids) + '_sharewr_v1.json'):
+        os.remove(json_actors + str(wrids) + '_sharewr_v1.json')
+
+#%%
 #start = time.time()
 
 prob = om.Problem()
@@ -74,6 +82,7 @@ prob.model.hrus_areas = hrus_areas_model
 prob.model.hrus_crops = hrus_crops_model
 prob.model.wrs_hrus = wrs_hrus
 prob.model.org_wr_vols = wr_vols
+prob.model.json_file = json_actors
 # prob.model.share_wr_irrvol = share_wr_irrvol
 
 # prob.driver = om.ScipyOptimizeDriver()
@@ -81,13 +90,11 @@ prob.model.org_wr_vols = wr_vols
 # prob.driver.options['maxiter'] = 20
 # prob.driver.options['tol'] = 1e-8
 
-if os.path.exists('actors_solutions_sharewr.json'):
-    os.remove('actors_solutions_sharewr.json')
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 100
+prob.driver.options['max_gen'] = 30
 prob.driver.options['Pm'] = 0.1
-prob.driver.options['pop_size'] = 200
+prob.driver.options['pop_size'] = 50
 prob.driver.options['penalty_parameter'] = 20000.
 prob.driver.options['penalty_exponent'] = 5.
 prob.driver.options['compute_pareto'] = True
@@ -97,7 +104,8 @@ wr_vols_max = []
 for wrids in wr_vols.keys():
     wr_vols_max.append(wr_vols[wrids][1])
 
-prob.model.add_design_var('wr_vols', lower=np.zeros(prob.model.nactors,dtype=int), upper = np.ones(prob.model.nactors,dtype=int)*sum(wr_vols_max))
+#prob.model.add_design_var('wr_vols', lower=np.zeros(prob.model.nactors,dtype=int), upper = np.ones(prob.model.nactors,dtype=int)*sum(wr_vols_max))
+prob.model.add_design_var('wr_vols', lower=np.zeros(prob.model.nactors,dtype=int), upper = np.ones(prob.model.nactors,dtype=int)*100.)
 
 prob.model.add_objective('profit', scaler=1)
 prob.model.add_objective('envir_impact', scaler=1)
@@ -129,9 +137,7 @@ plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
 plt.xlabel("Profit")
 plt.ylabel("Environmental Impact")
 
-
 for i in range(0,len(nd_obj[:,0])):
-
     plt.annotate(str(int(sum(desvar_nd[i]))), (-1*nd_obj[i,0], nd_obj[i,1]-100),rotation=270)
 
 #%%
@@ -150,7 +156,7 @@ opt_results = dict()
 opt_results['desvar_nd'] = desvar_nd.tolist() 
 opt_results['nd_obj'] = nd_obj.tolist()
 
-with open('opt_resultswr.json', 'w') as fp:
+with open(json_results, 'w') as fp:
     json.dump(opt_results, fp)
 
 #%%
@@ -184,13 +190,15 @@ with open('opt_resultswr.json', 'w') as fp:
 
 
 #%%
-
-with open('actors_solutions_sharewr.json') as json_file:
-    actors_solutions = json.load(json_file)
     
-with open('opt_resultswr.json') as json_file:
+with open(json_results) as json_file:
     opt_results = json.load(json_file)
     
+#%%
+farmer_id = 2
+with open(json_actors + str(farmer_id) + '_sharewr_v1.json') as json_file:
+    actors_solutions = json.load(json_file)
+
 #%%
 nd_obj = np.asarray(opt_results['nd_obj'])
 sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
@@ -226,36 +234,41 @@ for act_id in actors_solutions.keys():
 
 #%%
 
-colors = ['b','r','g']
-cci = 0
+# colors = ['b','r','g']
+# cci = 0
 
-temp_data = []
-# pareto_farmer = np.load('Pareto_farmer_1.npy')
+# temp_data = np.zeros((1,3))
+# # pareto_farmer = np.load('Pareto_farmer_1.npy')
 
-
-for act_id in actors_solutions.keys():
-#for act_id in ['farmer_1']:
-    for wrid in actors_solutions[act_id].keys():
-        tempp = actors_solutions[act_id][wrid]['profit']['Value']
-        tempe = actors_solutions[act_id][wrid]['profit']['Envir']
-        
-        plt.plot(float(tempp)*-1, float(tempe),'.', c=colors[cci])
-        
-        tempp2 = actors_solutions[act_id][wrid]['envir']['Profit']
-        tempe2 = actors_solutions[act_id][wrid]['envir']['Value']
-        
-        plt.plot(float(tempp2)*-1, float(tempe2),'.', c=colors[cci])
-        
-        # if tempp != 0:
-        #     tempp = tempp*-1
-        #if abs(tempp) != 0 and abs(tempe) != 0: 
-        temp_data.append([float(wrid),tempp,tempe])
-        temp_data.append([float(wrid),tempp2,tempe2])
+# #for act_id in actors_solutions.keys():
+# for act_id in ['farmer_1']:
+#     for wrid in actors_solutions[act_id].keys():
+#         if float(wrid) < 101:
+#             tempp = actors_solutions[act_id][wrid]['profit']['Value']
+#             tempe = actors_solutions[act_id][wrid]['profit']['Envir']
             
+#             plt.plot(float(tempp)*-1, float(tempe),'.', c=colors[cci])
+            
+#             tempp2 = actors_solutions[act_id][wrid]['envir']['Profit']
+#             tempe2 = actors_solutions[act_id][wrid]['envir']['Value']
+            
+#             plt.plot(float(tempp2)*-1, float(tempe2),'.', c=colors[cci])
+            
+#             # if tempp != 0:
+#             #     tempp = tempp*-1
+#             #if abs(tempp) != 0 and abs(tempe) != 0: 
+#             temp_data = np.vstack((temp_data,[float(wrid),tempp*-1,tempe]))
+#             temp_data = np.vstack((temp_data,[float(wrid),tempp2*-1,tempe2]))       
 
-    cci = cci + 1
+#     cci = cci + 1
 
-# plt.plot(pareto_farmer[:,1]*-1, pareto_farmer[:,2],'-m.',fillstyle='none')
+# # plt.plot(pareto_farmer[:,1]*-1, pareto_farmer[:,2],'-m.',fillstyle='none')
+
+# temp_data = temp_data[1:,:]  
+
+# ss = eps_sort(temp_data,[1,2])
+# ss = np.asarray(ss)
+# ss = ss[ss[:,1].argsort()]
 
 
 # temp_data = np.asarray(temp_data)
@@ -285,10 +298,16 @@ for act_id in actors_solutions.keys():
 
 
 #%%
-farmer_id = 1
+
+path_file = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/InFEWS/OpenMDAO'
+
+
+ss_data = np.zeros((1,5))
+
+#for wrvols in range(1,101,1):
 for wrvols in range(1,101,1):
     print(wrvols)
-    with open('Farmer_' +str(farmer_id) +'_ALL_Solutions_' + str(wrvols) + '_.json') as json_file:
+    with open(path_file + '/Farmer_' +str(farmer_id) +'_ALL_Solutions_' + str(wrvols) + '_.json') as json_file:
         results = json.load(json_file)
     
     temp_data = []
@@ -297,40 +316,62 @@ for wrvols in range(1,101,1):
             for iii in results[i][ii].keys():
 
                 if abs(float(results[i][ii][iii]['indv_profit'])) != 0: 
-                    temp_data.append([int(i), int(ii), int(iii), float(results[i][ii][iii]['indv_profit']), float(results[i][ii][iii]['indv_envir'])])
+                    temp_data.append([int(i), int(ii), int(iii), float(results[i][ii][iii]['indv_profit'])*-1, float(results[i][ii][iii]['indv_envir'])])
     
     temp_data = np.asarray(temp_data)
-    # plt.plot(temp_data[:,3]*-1, temp_data[:,4],'.')
-    
+    #plt.plot(temp_data[:,3], temp_data[:,4],'.')
+
     ss = eps_sort(temp_data,[3,4])
     ss = np.asarray(ss)
     ss = ss[ss[:,3].argsort()]
+    ss_data = np.vstack((ss_data,ss))
 
-
-    plt.plot(ss[:,3]*-1, ss[:,4],'-m.',fillstyle='none')
-
-plt.tight_layout()
-plt.show()
-
+ss_data = ss_data[1:,:]  
 
 #%%
-
 
 colors = ['b','r','g']
 cci = 0
 
-for act_id in actors_solutions.keys():
-    for wrid in actors_solutions[act_id].keys():
+act_id = 'farmer_' + str(farmer_id)
+temp_data = np.zeros((1,3))
+
+
+#for act_id in actors_solutions.keys():
+for wrid in actors_solutions[act_id].keys():
+    if float(wrid) < 101:
+        
         tempp = actors_solutions[act_id][wrid]['profit']['Value']
-        tempe = actors_solutions[act_id][wrid]['envir']['Value']
+        tempe = actors_solutions[act_id][wrid]['profit']['Envir']
+        #tempe = actors_solutions[act_id][wrid]['envir']['Value']
         
-        plt.plot(float(tempp)*-1, float(tempe),'.', c=colors[cci])
+        print(wrid,tempp,tempe)
         
+        #plt.plot(float(tempp)*-1, float(tempe),'.', c=colors[cci])
+        
+        tempp2 = actors_solutions[act_id][wrid]['envir']['Profit']
+        tempe2 = actors_solutions[act_id][wrid]['envir']['Value']
+        
+        #plt.plot(float(tempp2)*-1, float(tempe2),'.', c=colors[cci])
+        
+        temp_data = np.vstack((temp_data,[float(wrid),tempp,tempe]))
+        temp_data = np.vstack((temp_data,[float(wrid),tempp2,tempe2]))     
+        
+        
+# plt.plot(pareto_farmer[:,1]*-1, pareto_farmer[:,2],'-m.',fillstyle='none')
 
-    #exec("obj_nd = prob.model." + act_id + "_plan.prob.driver.obj_nd")
-    #exec("desvar = prob.model." + act_id + "_plan.prob.driver.desvar_nd")
-    #indobj = obj_nd[:, 0].argsort()
+temp_data = temp_data[1:,:]  
 
-    #plt.plot(-1*obj_nd[indobj,0],obj_nd[indobj,1],'-o')
+actor_ss = eps_sort(temp_data,[1,2])
+actor_ss = np.asarray(actor_ss)
+actor_ss = actor_ss[actor_ss[:,1].argsort()]
 
-    cci = cci + 1
+f_pareto = eps_sort(ss_data,[3,4])
+f_pareto  = np.asarray(f_pareto)
+f_pareto = f_pareto[f_pareto[:,3].argsort()]
+
+plt.plot(f_pareto[:,3]*-1, f_pareto[:,4],'-mo',fillstyle='none')
+plt.plot(actor_ss[:,1]*-1, actor_ss[:,2],'k.',fillstyle='full')
+plt.tight_layout()
+plt.show()
+

@@ -20,6 +20,7 @@ class FEWNexus(om.Group):
         self.hrus_crops = []
         self.wrs_hrus = []
         self.org_wr_vols = []
+        self.json_file = None
         # self.share_wr_irrvol = []
         
     
@@ -58,13 +59,14 @@ class FEWNexus(om.Group):
             exec("self."+"farmer_"+str(i+1)+"_plan.hrus_areas = " + str(self.hrus_areas[i+1]))
             exec("self."+"farmer_"+str(i+1)+"_plan.hrus_crops = " + str(self.hrus_crops[i+1]))
             exec("self."+"farmer_"+str(i+1)+"_plan.wrs_hrus = " + str(self.wrs_hrus[i+1]))
+            exec("self."+"farmer_"+str(i+1)+"_plan.json_file = self.json_file")
             # exec("self."+"farmer_"+str(i+1)+"_plan.hru_prior_irrvol = " + str(list(hru_prior_irrvol)))
             
             actors_solutions['farmer_' + str(i+1)] = dict()
             
         
-        with open('actors_solutions.json', 'w') as fp:
-            json.dump(actors_solutions, fp)
+            with open(self.json_file + str(i+1) +'_sharewr_v1.json', 'w') as fp:
+                json.dump(actors_solutions, fp)
         
    ############ SETUP of REGIONS ###############
             
@@ -148,6 +150,7 @@ class FarmerOpt(om.ExplicitComponent):
         self.wrs_hrus = []
         self.hrus_areas = []
         self.hrus_crops = []
+        self.json_file = None
         # self.hru_prior_irrvol = []
         
         #Sale price per unit of yield for different crops
@@ -291,90 +294,147 @@ class FarmerOpt(om.ExplicitComponent):
         f.close()
         shutil.copy("temp.txt","demofile.txt")
         
-    
         
-        p = self.prob
-
-        #run the optimization 
+        if os.path.exists(self.json_file + str(self.farmer_id) +'_sharewr_v1.json'):
         
-        if self.farmer_id > 1:
-            p.model.farmer.hru_prior_irrvol = np.zeros(len(self.hrus_areas)).astype('int')
-        
-        
-        p.run_driver()
-
-        obj_nd = np.asarray(p.driver.obj_nd)
-        des_var = np.asarray(p.driver.desvar_nd)
-        
-        if len(obj_nd) > 1:
-            obj_nd = obj_nd[np.where(abs(np.sum(obj_nd,axis=1)) > 0)[0],:]
-            des_var = des_var[np.where(abs(np.sum(obj_nd,axis=1)) > 0)[0],:]
-        
-        sorted_obj = obj_nd[obj_nd[:, 0].argsort()]
-        profit_sort_index = np.argsort(obj_nd[:, 0])
-        
-        temp_indv_profit = sorted_obj[0][0]
-        temp_indv_profit_envir = sorted_obj[0][1]
-        temp_indv_profit_desvar = des_var[profit_sort_index[0],:]
-        
-        sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
-        envir_sort_index = np.argsort(obj_nd[:, 1])
-        
-        temp_indv_envir = sorted_obj[0][1]
-        temp_indv_envir_profit = sorted_obj[0][0]
-        temp_indv_envir_desvar = des_var[envir_sort_index[0],:]
-        
-        #print('farmer_' + str(self.farmer_id) + ': ' + str([inputs['wr_vol'][0]]))
-        
-        if os.path.exists('actors_solutions_sharewr.json'):
-        
-            with open('actors_solutions_sharewr.json') as json_file:
+            with open(self.json_file + str(self.farmer_id) +'_sharewr_v1.json') as json_file:
                 actors_solutions = json.load(json_file)
         else:
             actors_solutions = dict()
-            
-        # if self.farmer_id == 2:
-        #     stp = 0
-        if 'farmer_' + str(self.farmer_id) not in actors_solutions.keys():
-            actors_solutions['farmer_' + str(self.farmer_id)] = dict()
         
-        if str(inputs['wr_vol'][0]) not in actors_solutions['farmer_' + str(self.farmer_id)].keys():
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]] = dict()
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit'] = dict()
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Value'] = temp_indv_profit
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Envir'] = temp_indv_profit_envir
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Vars'] = str(temp_indv_profit_desvar)
-            
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir'] = dict()
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Value'] = temp_indv_envir
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Profit'] = temp_indv_envir_profit
-            actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Vars'] = str(temp_indv_envir_desvar)
+        profit_bool = 0
+        envir_bool = 0
         
+        if 'farmer_' + str(self.farmer_id) in actors_solutions.keys():
+            if str(inputs['wr_vol'][0]) in actors_solutions['farmer_' + str(self.farmer_id)].keys():
+                profit_bool = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['stop_bool']
+                envir_bool = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['stop_bool']
+                
+        
+        if profit_bool == 1 and envir_bool == 1:
+            
+            temp_indv_profit = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value']
+            temp_indv_envir = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value']
         else:
+        
+            p = self.prob
+    
+            #run the optimization 
             
-            old_profit = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'])
-            old_envir = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'])
+            # if self.farmer_id > 1:
+            #     p.model.farmer.hru_prior_irrvol = np.zeros(len(self.hrus_areas)).astype('int')
             
-            if temp_indv_profit < old_profit:
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'] = temp_indv_profit
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Envir'] = temp_indv_profit_envir
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Vars'] = str(temp_indv_profit_desvar)
+            
+            p.run_driver()
+    
+            obj_nd = np.asarray(p.driver.obj_nd)
+            des_var = np.asarray(p.driver.desvar_nd)
+            
+            if len(obj_nd) > 1:
+                obj_nd = obj_nd[np.where(abs(np.sum(obj_nd,axis=1)) > 0)[0],:]
+                des_var = des_var[np.where(abs(np.sum(obj_nd,axis=1)) > 0)[0],:]
+            
+            sorted_obj_profit = obj_nd[obj_nd[:, 0].argsort()]
+            profit_sort_index = np.argsort(obj_nd[:, 0])
+            
+            temp_indv_profit = sorted_obj_profit[0][0]
+            temp_indv_profit_envir = sorted_obj_profit[0][1]
+            temp_indv_profit_desvar = des_var[profit_sort_index[0],:]
+            
+            sorted_obj = obj_nd[obj_nd[:, 1].argsort()]
+            envir_sort_index = np.argsort(obj_nd[:, 1])
+            
+            temp_indv_envir = sorted_obj[0][1]
+            temp_indv_envir_profit = sorted_obj[0][0]
+            temp_indv_envir_desvar = des_var[envir_sort_index[0],:]
+            
+       
+            if 'farmer_' + str(self.farmer_id) not in actors_solutions.keys():
+                actors_solutions['farmer_' + str(self.farmer_id)] = dict()
+            
+            if str(inputs['wr_vol'][0]) not in actors_solutions['farmer_' + str(self.farmer_id)].keys():
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit'] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Value'] = temp_indv_profit
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Envir'] = temp_indv_profit_envir
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Vars'] = str(temp_indv_profit_desvar)
+                
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Mean'] = np.mean(sorted_obj_profit[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Nsamples'] = len(sorted_obj_profit[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['stop_bool'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['per_change'] = 0 
+                
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir'] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Value'] = temp_indv_envir
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Profit'] = temp_indv_envir_profit
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Vars'] = str(temp_indv_envir_desvar)
+                
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Mean'] = np.mean(sorted_obj[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Nsamples'] = len(sorted_obj[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['stop_bool'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['per_change'] = 0 
+            
             else:
-                temp_indv_profit = old_profit
+                
+                old_profit = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'])
+                old_envir = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'])
+                
+                old_mean_profit  = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Mean']
+                old_Nsample_profit = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Nsamples']
+                
+                old_mean_envir  = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Mean']
+                old_Nsample_envir = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Nsamples']
+                
+                if temp_indv_profit < old_profit:
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'] = temp_indv_profit
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Envir'] = temp_indv_profit_envir
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Vars'] = str(temp_indv_profit_desvar)
+                else:
+                    temp_indv_profit = old_profit
+                
+                
+                new_mean_profit = old_mean_profit             
+                for xprofit in sorted_obj_profit[:,0]:
+                    old_Nsample_profit = old_Nsample_profit + 1
+                    new_mean_profit = new_mean_profit + ((xprofit - new_mean_profit)/old_Nsample_profit)
+                    
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Mean'] = new_mean_profit
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Nsamples'] = old_Nsample_profit
+                
+                per_change_profit = ((new_mean_profit - old_mean_profit)/old_mean_profit)*100
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['per_change'] = per_change_profit
+                
+                if per_change_profit < 5:
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['stop_bool'] = 1
+                
+                if temp_indv_envir < old_envir:
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'] = temp_indv_envir
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Profit'] = temp_indv_envir_profit
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Vars'] = str(temp_indv_envir_desvar)
+                else:
+                    temp_indv_envir = old_envir
+                    
             
-            if temp_indv_envir < old_envir:
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'] = temp_indv_envir
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Profit'] = temp_indv_envir_profit
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Vars'] = str(temp_indv_envir_desvar)
-            else:
-                temp_indv_envir = old_envir
+                new_mean_envir = old_mean_envir            
+                for xenvir in sorted_obj[:,0]:
+                    old_Nsample_envir = old_Nsample_envir + 1
+                    new_mean_envir = new_mean_envir + ((xenvir - new_mean_envir)/old_Nsample_envir)
+                    
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Mean'] = new_mean_envir
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Nsamples'] = old_Nsample_envir
+                
+                per_change_envir = ((new_mean_envir - old_mean_envir)/old_mean_envir)*100
+                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['per_change'] = per_change_envir
+                
+                if per_change_envir < 5:
+                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['stop_bool'] = 1
         
         # outputs['hru_prior_irrvol_OUT'] = p.get_val('farmer.hru_prior_irrvol_OUT')
         outputs['indv_profit'] = temp_indv_profit
         outputs['indv_envir'] = temp_indv_envir
         
 
-        with open('actors_solutions_sharewr.json', 'w') as fp:
+        with open(self.json_file + str(self.farmer_id) +'_sharewr_v1.json', 'w') as fp:
             json.dump(actors_solutions, fp)
         
 
