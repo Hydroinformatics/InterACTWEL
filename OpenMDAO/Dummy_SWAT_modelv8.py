@@ -65,7 +65,7 @@ class FEWNexus(om.Group):
             actors_solutions['farmer_' + str(i+1)] = dict()
             
         
-            with open(self.json_file + str(i+1) +'_sharewr_v1.json', 'w') as fp:
+            with open(self.json_file + str(i+1) +'_sharewr.json', 'w') as fp:
                 json.dump(actors_solutions, fp)
         
    ############ SETUP of REGIONS ###############
@@ -295,9 +295,9 @@ class FarmerOpt(om.ExplicitComponent):
         shutil.copy("temp.txt","demofile.txt")
         
         
-        if os.path.exists(self.json_file + str(self.farmer_id) +'_sharewr_v1.json'):
+        if os.path.exists(self.json_file + str(self.farmer_id) +'_sharewr.json'):
         
-            with open(self.json_file + str(self.farmer_id) +'_sharewr_v1.json') as json_file:
+            with open(self.json_file + str(self.farmer_id) +'_sharewr.json') as json_file:
                 actors_solutions = json.load(json_file)
         else:
             actors_solutions = dict()
@@ -434,7 +434,7 @@ class FarmerOpt(om.ExplicitComponent):
         outputs['indv_envir'] = temp_indv_envir
         
 
-        with open(self.json_file + str(self.farmer_id) +'_sharewr_v1.json', 'w') as fp:
+        with open(self.json_file + str(self.farmer_id) +'_sharewr.json', 'w') as fp:
             json.dump(actors_solutions, fp)
         
 
@@ -530,7 +530,7 @@ class Farmer(om.ExplicitComponent):
             
                 profit = crop_yield*per_yield*self.hrus_areas[i]*self.crops_price[self.hrus_crops[i]-1] - cost_f # profit function        
                 
-                envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]
+                envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]*self.hrus_areas[i]
     
                 indv_profit = indv_profit + profit
                 indv_costs = indv_costs + cost_f

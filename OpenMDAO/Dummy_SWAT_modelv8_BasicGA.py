@@ -6,6 +6,8 @@ Created on Thu May  5 10:29:22 2022
 """
 import numpy as np
 import openmdao.api as om
+import os
+import json 
 
 class Farmers(om.ExplicitComponent):
     
@@ -93,6 +95,13 @@ class Farmers(om.ExplicitComponent):
         self.add_output('total_wr', val=0)
         self.add_output('const_per', val=np.ones(self.nactors))
         
+        
+        for i in range(0,self.nactors):
+            actors_solutions = dict()
+            actors_solutions['farmer_' + str(i+1)] = dict()
+            with open(self.json_file + str(i+1) +'_sharewr.json', 'w') as fp:
+                      json.dump(actors_solutions, fp)
+        
     def setup_partials(self):
         self.declare_partials('profit', 'wr_vols*', method='fd')
         #self.declare_partials('indv_profit', 'hru_fert*', method='fd')
@@ -102,7 +111,20 @@ class Farmers(om.ExplicitComponent):
         
         for wrids in range(0,len(inputs['wr_vols'])):
             
+            if os.path.exists(self.json_file + str(wrids+1) +'_sharewr.json'):
+                with open(self.json_file + str(wrids+1) +'_sharewr.json') as json_file:
+                    actors_solutions = json.load(json_file)
+            else:
+                actors_solutions = dict()
+                
+                
+                
+            if 'farmer_' + str(wrids+1) not in actors_solutions.keys():
+                actors_solutions['farmer_' + str(wrids+1)] = dict()
+            
+           
             wr_vol = inputs['wr_vols'][wrids]
+            
             
             hru_ids = 0
             indv_hru_irr = []
@@ -126,7 +148,7 @@ class Farmers(om.ExplicitComponent):
 
             if (total_hru_irr - 100.) > 0.0:
 
-                outputs['indv_profit'][wrids] = 0
+                outputs['indv_profit'][wrids] = -500000000.
                 outputs['indv_envir'] = 500000000.
                 outputs['const_per'][wrids] = total_hru_irr
                 
@@ -143,7 +165,7 @@ class Farmers(om.ExplicitComponent):
                 
                     profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i]-1] - cost_f # profit function        
                     
-                    envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]
+                    envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]*self.hrus_areas[wrids+1][i]
         
                     indv_profit = indv_profit + profit
                     indv_costs = indv_costs + cost_f
@@ -155,7 +177,28 @@ class Farmers(om.ExplicitComponent):
                 outputs['indv_profit'][wrids] = indv_profit    
                 #outputs['indv_costs'][wrids] = indv_costs
                 outputs['const_per'][wrids] = total_hru_irr
-            
+                
+                
+                
+                if str(wr_vol) not in actors_solutions['farmer_' + str(wrids+1)].keys():
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)] = dict()
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['profit'] = []
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['envir'] = []
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['profit'].append(indv_profit)
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['envir'].append(indv_envir)
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['hru_irr'] = list(np.asarray(indv_hru_irr).astype(float))
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['hru_fert'] = list(np.asarray(discrete_inputs['hru_fert'][indv_hru_irr_ids]).astype(float))
+                else:
+                    
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['profit'].append(indv_profit)
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['envir'].append(indv_envir)
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['hru_irr'].append(list(np.asarray(indv_hru_irr).astype(float)))
+                    actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['hru_fert'].append(list(np.asarray(discrete_inputs['hru_fert'][indv_hru_irr_ids]).astype(float)))
+                    
+                
+                with open(self.json_file + str(wrids+1) +'_sharewr.json', 'w') as fp:
+                    json.dump(actors_solutions, fp)
+                    
         total_profit = 0
         total_envir = 0
         for i in range(0,len(inputs['wr_vols'])):

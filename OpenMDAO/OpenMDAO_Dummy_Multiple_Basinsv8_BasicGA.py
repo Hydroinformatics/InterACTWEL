@@ -5,7 +5,7 @@ from Dummy_SWAT_modelv8_BasicGA import Farmers
 from itertools import product
 import time
 import json
-
+import os
 
 #%%
 
@@ -75,6 +75,15 @@ for wrids in wr_vols.keys():
 #     hru_irr_per[wrids] = np.asarray(temp)
 #     print(wrids)
 
+
+#%%
+
+json_actors = 'ga_solutions_farmer_v0_'
+
+for wrids in wr_vols.keys():
+    if os.path.exists(json_actors + str(wrids) + '_sharewr.json'):
+        os.remove(json_actors + str(wrids) + '_sharewr.json')
+
 #%%
 
 start = time.time()
@@ -90,6 +99,7 @@ model.Region.hrus_areas = hrus_areas_model
 model.Region.hrus_crops = hrus_crops_model
 model.Region.wrs_hrus = wrs_hrus
 model.Region.org_wr_vols = wr_vols
+model.Region.json_file = json_actors
 
 prob.driver = om.SimpleGADriver()
 prob.driver.options['max_gen'] = 2000
@@ -149,3 +159,28 @@ print(sorted_obj)
 plt.plot(sorted_obj[:,0]*-1,sorted_obj[:,1],'-o')
 plt.xlabel("Profit")
 plt.ylabel("Environmental Impact")
+
+
+#%%
+import json
+json_results = 'opt_ga_resultswr_v0.json'
+
+with open(json_results) as json_file:
+    opt_results = json.load(json_file)
+
+desvar_nd = np.asarray(opt_results['desvar_nd'])
+nd_obj = np.asarray(opt_results['nd_obj'])
+
+sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
+desvar_nd_sort = desvar_nd[nd_obj[:, 0].argsort()]
+
+print(desvar_nd_sort)
+print(sorted_obj)
+
+plt.plot(sorted_obj[:,0]*-1,sorted_obj[:,1],'-o')
+plt.xlabel("Profit")
+plt.ylabel("Environmental Impact")
+
+
+
+total_wrs_vols = np.sum(desvar_nd_sort[:,0:len(wr_vols)],axis=1)
