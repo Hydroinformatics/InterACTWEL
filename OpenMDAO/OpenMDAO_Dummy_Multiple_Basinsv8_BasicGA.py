@@ -143,7 +143,7 @@ print('################# RESULTS ##################')
 desvar_nd = prob.driver.desvar_nd
 nd_obj = prob.driver.obj_nd
 
-json_results = 'opt_ga_resultswr_v0.json'
+json_results = 'opt_ga_resultswr_v1.json'
 opt_results = dict()
 opt_results['desvar_nd'] = desvar_nd.tolist() 
 opt_results['nd_obj'] = nd_obj.tolist()
@@ -163,7 +163,7 @@ plt.ylabel("Environmental Impact")
 
 #%%
 import json
-json_results = 'opt_ga_resultswr_v0.json'
+json_results = 'opt_ga_resultswr_v1.json'
 
 with open(json_results) as json_file:
     opt_results = json.load(json_file)
