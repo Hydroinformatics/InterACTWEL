@@ -210,7 +210,9 @@ class FarmerOpt(om.ExplicitComponent):
         # self.add_output('hru_prior_irrvol_OUT', val = self.hru_prior_irrvol)
         
    ################# OPT SETUP ###################################     
-
+       
+        # recorder = om.SqliteRecorder('farmer_' + str(self.farmer_id) + '.sql')
+        
         self.prob = p = om.Problem()
 
         des_vars = p.model.add_subsystem('des_vars', om.IndepVarComp(), promotes=['*'])
@@ -249,6 +251,8 @@ class FarmerOpt(om.ExplicitComponent):
         
         p.model.farmer.cost_fert = self.cost_fert
         
+        # p.add_recorder(recorder)
+        
         p.driver = om.SimpleGADriver()
         p.driver.options['max_gen'] = 100
         p.driver.options['Pm'] =0.1
@@ -271,6 +275,8 @@ class FarmerOpt(om.ExplicitComponent):
         p.model.add_objective('farmer.indv_envir', scaler=1)
         
         p.model.add_constraint('farmer.const_per', lower=100, upper=100)
+        
+        # p.driver.add_recorder(recorder)
         
         p.setup()
         p.final_setup()
