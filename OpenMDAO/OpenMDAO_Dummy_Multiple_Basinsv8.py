@@ -309,7 +309,7 @@ for act_id in actors_solutions.keys():
 #path_file = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/InFEWS/OpenMDAO'
 path_file= r'C:/Users/riversam/Box/Research/InFEWS/OpenMDAO/Full_Solutions'
 
-ss_data = np.zeros((1,5))
+ss_data = np.zeros((1,4))
 
 # #for wrvols in range(1,101,1):
 # for wrvols in range(1,101,1):
@@ -320,20 +320,27 @@ with open(path_file + '/Farmer_' +str(farmer_id) +'_ALL_Solutions_v2_.json') as 
 temp_data = []
 for i in results.keys():
     for ii in results[i].keys():
-        for iii in results[i][ii].keys():
+        # print(results[i][ii])
+        # for iii in results[i][ii].keys():
 
-            if abs(float(results[i][ii][iii]['indv_profit'])) != 0: 
-                temp_data.append([int(i), int(ii), int(iii), float(results[i][ii][iii]['indv_profit'])*-1, float(results[i][ii][iii]['indv_envir'])])
+        if abs(float(results[i][ii]['indv_profit'])) != 0: 
+            temp_data.append([int(i), int(ii), float(results[i][ii]['indv_profit']), float(results[i][ii]['indv_envir'])])
 
 temp_data = np.asarray(temp_data)
-#plt.plot(temp_data[:,3], temp_data[:,4],'.')
+#plt.plot(temp_data[:,2], temp_data[:,3],'.')
 
-ss = eps_sort(temp_data,[3,4])
+ss = eps_sort(temp_data,[2,3])
 ss = np.asarray(ss)
-ss = ss[ss[:,3].argsort()]
+ss = ss[ss[:,2].argsort()]
 ss_data = np.vstack((ss_data,ss))
 
 ss_data = ss_data[1:,:]  
+
+plt.plot(temp_data[:,2]*-1, temp_data[:,3],'.')
+plt.plot(ss_data[:,2]*-1, ss_data[:,3],'-o')
+
+
+
 
 #%%
 
@@ -381,4 +388,90 @@ plt.plot(f_pareto[:,3]*-1, f_pareto[:,4],'-mo',fillstyle='none')
 plt.plot(actor_ss[:,1]*-1, actor_ss[:,2],'k.',fillstyle='full')
 plt.tight_layout()
 plt.show()
+
+
+
+#%%
+farmer_id = 1
+colors = ['b','r','g']
+
+temp_data = np.zeros((1,4))
+for iwrvols in opt_results['desvar_nd']:
+    print(iwrvols)
+    
+    wrid = str(iwrvols[0])
+    tempp = actors_solutions[act_id][wrid]['profit']['Value']
+    tempe = actors_solutions[act_id][wrid]['profit']['Envir']
+    #tempe = actors_solutions[act_id][wrid]['envir']['Value']
+    
+    print(wrid,tempp,tempe)
+    
+    #plt.plot(float(tempp)*-1, float(tempe),'.', c=colors[cci])
+    
+    tempp2 = actors_solutions[act_id][wrid]['envir']['Profit']
+    tempe2 = actors_solutions[act_id][wrid]['envir']['Value']
+    
+    #plt.plot(float(tempp2)*-1, float(tempe2),'.', c=colors[cci])
+    
+    temp_data = np.vstack((temp_data,[float(wrid),tempp,tempe,0]))
+    temp_data = np.vstack((temp_data,[float(wrid),tempp2,tempe2,1])) 
+    
+
+temp_data = temp_data[1:,:] 
+temp_data = temp_data[temp_data[:,0].argsort()]
+
+
+
+#path_file = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/InFEWS/OpenMDAO'
+path_file= r'C:/Users/riversam/Box/Research/InFEWS/OpenMDAO/Full_Solutions'
+ss_data = np.zeros((1,4))
+
+with open(path_file + '/Farmer_' +str(farmer_id) +'_ALL_Solutions_v2_.json') as json_file:
+    results_actfull = json.load(json_file)
+
+temp_data2 = []
+for i in np.unique(temp_data[:,0]):
+    if int(i) > 0:
+        for ii in results_actfull[str(int(i))].keys():
+            temp_data2.append([int(i), int(ii), float(results_actfull[str(int(i))][ii]['indv_profit']), float(results_actfull[str(int(i))][ii]['indv_envir'])])
+
+temp_data2 = np.asarray(temp_data2)
+
+
+# # ss = eps_sort(temp_data2,[2,3])
+# # ss = np.asarray(ss)
+# # ss = ss[ss[:,2].argsort()]
+# # ss_data = np.vstack((ss_data,ss))
+
+# # ss_data = ss_data[1:,:]  
+
+# plt.plot(temp_data[:,1]*-1, temp_data[:,2],'oc')
+# plt.plot(temp_data2[:,2]*-1, temp_data2[:,3],'.k')
+# # plt.plot(ss_data[:,2]*-1, ss_data[:,3],'-o')
+
+
+# for ii in results_actfull['19'].keys():
+#     plt.plot(results_actfull['19'][ii]['indv_profit']*-1,results_actfull['19'][ii]['indv_envir'],'o')
+
+#%%
+
+temp_data2 = []
+for i in results.keys():
+    for ii in results[i].keys():
+        temp_data2.append([int(i), int(ii), float(results_actfull[str(int(i))][ii]['indv_profit']), float(results_actfull[str(int(i))][ii]['indv_envir'])])
+
+temp_data2 = np.asarray(temp_data2)
+
+plt.plot(temp_data2[:,0], temp_data2[:,2]*-1,'or')
+    
+cci = 0
+for act_id in actors_solutions.keys():
+    for wrid in actors_solutions[act_id].keys():
+        temp = actors_solutions[act_id][wrid]['profit']['Value']
+        plt.plot(float(wrid), float(temp)*-1,'.', c= colors[cci])
+        
+        temp = actors_solutions[act_id][wrid]['envir']['Profit']
+        plt.plot(float(wrid), float(temp)*-1,'.', c= colors[cci])
+    
+    cci = cci + 1
 
