@@ -102,9 +102,9 @@ model.Region.org_wr_vols = wr_vols
 model.Region.json_file = json_actors
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 2000
+prob.driver.options['max_gen'] = 50
 #prob.driver.options['Pm'] = 0.1
-prob.driver.options['pop_size'] = 2000
+prob.driver.options['pop_size'] = 200
 prob.driver.options['penalty_parameter'] = 20000.
 prob.driver.options['penalty_exponent'] = 5.
 prob.driver.options['compute_pareto'] = True

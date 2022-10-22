@@ -16,6 +16,7 @@ class FEWNexus(om.Group):
     
     def initialize(self):
         self.nactors = 1
+        self.nyears = 1
         self.hrus_areas = []
         self.hrus_crops = []
         self.wrs_hrus = []
@@ -26,19 +27,11 @@ class FEWNexus(om.Group):
     
     def setup(self):
         
-        # hru_prior_irrvol = []
-        
-        # for wrids in self.wrs_hrus.keys():
-        #     for hid in self.wrs_hrus[wrids]:
-        #         hru_prior_irrvol.append(hid)
-                
-        # hru_prior_irrvol = np.zeros(len(np.unique(hru_prior_irrvol)),dtype=int)
         
         des_vars = self.add_subsystem('wr_vols', om.IndepVarComp(), promotes=['*'])
         
         init_wr_vols = []
         for i in self.org_wr_vols.keys():
-            #init_wr_vols.append(np.floor(self.org_wr_vols[i][1]/len(self.hrus_areas[i])))
             init_wr_vols.append(np.floor(self.org_wr_vols[i][1]))
         
         des_vars.add_output('wr_vols', val = init_wr_vols)
@@ -52,31 +45,36 @@ class FEWNexus(om.Group):
         
         actors_solutions = dict()
         for i in range(0,self.nactors):
-            self.add_subsystem('farmer_' + str(i+1) + '_plan', FarmerOpt())                
-            self.connect('wr_vols','farmer_' + str(i+1) + '_plan.wr_vol', src_indices=[i])
+            for yi in range(0,self.nyears):
+                self.add_subsystem('farmer_' + str(i+1) + '_' + str(yi+1) + '_plan', FarmerOpt())                
+                self.connect('wr_vols','farmer_' + str(i+1) + '_' + str(yi+1) + '_plan.wr_vol', src_indices=[i])
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.year= " + str(yi+1))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.farmer_id = " + str(i+1))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.nyears = self.nyears")
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.hrus_areas = " + str(self.hrus_areas[i+1]))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.hrus_crops = " + str(self.hrus_crops[i+1][yi]))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.wrs_hrus = " + str(self.wrs_hrus[i+1]))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.json_file = self.json_file")
             
-            exec("self."+"farmer_"+str(i+1)+"_plan.farmer_id = " + str(i+1))
-            exec("self."+"farmer_"+str(i+1)+"_plan.hrus_areas = " + str(self.hrus_areas[i+1]))
-            exec("self."+"farmer_"+str(i+1)+"_plan.hrus_crops = " + str(self.hrus_crops[i+1]))
-            exec("self."+"farmer_"+str(i+1)+"_plan.wrs_hrus = " + str(self.wrs_hrus[i+1]))
-            exec("self."+"farmer_"+str(i+1)+"_plan.json_file = self.json_file")
             # exec("self."+"farmer_"+str(i+1)+"_plan.hru_prior_irrvol = " + str(list(hru_prior_irrvol)))
             
-            actors_solutions['farmer_' + str(i+1)] = dict()
+                actors_solutions['farmer_' + str(i+1) + '_' + str(yi+1)] = dict()
+                
             
-        
-            with open(self.json_file + str(i+1) +'_sharewr.json', 'w') as fp:
-                json.dump(actors_solutions, fp)
+                with open(self.json_file + str(i+1) + '_yr' + str(yi+1) + '_sharewr.json', 'w') as fp:
+                    json.dump(actors_solutions, fp)
         
    ############ SETUP of REGIONS ###############
             
         region_model = self.add_subsystem('region', Region(), promotes=['profit','envir_impact'])
         region_model.nactors = self.nactors
+        region_model.nyears = self.nyears
         self.connect('wr_vols','region.wr_vols')
         
         for i in range(0,self.nactors):
-            self.connect('farmer_' + str(i+1) + '_plan.indv_profit', 'region.actor_profit_' + str(i+1))
-            self.connect('farmer_' + str(i+1) + '_plan.indv_envir', 'region.actor_envir_' + str(i+1))
+            for yi in range(0,self.nyears):
+                self.connect('farmer_' + str(i+1) + '_' + str(yi+1) + '_plan.indv_profit', 'region.actor_profit_' + str(i+1) + '_' + str(yi+1))
+                self.connect('farmer_' + str(i+1) + '_' + str(yi+1) + '_plan.indv_envir', 'region.actor_envir_' + str(i+1) + '_' + str(yi+1))
             
         # # for i in range(1,self.nactors):
         # #     self.connect('farmer_' + str(i) + '_plan.hru_prior_irrvol_OUT', 'farmer_' + str(i+1) + '_plan.hru_prior_irrvol_IN')
@@ -105,13 +103,15 @@ class Region(om.ExplicitComponent):
     
     def initialize(self):
         self.nactors = 1
+        self.nyears = 1
         
     def setup(self):
         
         self.add_input('wr_vols',val=np.ones(self.nactors))
         for i in range(0,self.nactors):
-            self.add_input('actor_profit_'+ str(i+1),val=0.0)
-            self.add_input('actor_envir_'+ str(i+1),val=0.0)
+            for yi in range(0,self.nyears):
+                self.add_input('actor_profit_'+ str(i+1) + '_' + str(yi+1), val=0.0)
+                self.add_input('actor_envir_'+ str(i+1) + '_' + str(yi+1), val=0.0)
         
         self.add_output('profit', val=0.0)
         self.add_output('envir_impact', val=0.0)
@@ -125,9 +125,10 @@ class Region(om.ExplicitComponent):
         total_profit = 0
         total_envir = 0
         for i in range(0,self.nactors):
-            for ii in range(0,len(inputs['actor_profit_' + str(i+1)])):
-                total_profit = total_profit + inputs['actor_profit_'+ str(i+1)]
-                total_envir = total_envir + inputs['actor_envir_'+ str(i+1)]
+            for yi in range(0,self.nyears):
+                for ii in range(0,len(inputs['actor_profit_' + str(i+1)+ '_' + str(yi+1)])):
+                    total_profit = total_profit + inputs['actor_profit_'+ str(i+1)+ '_' + str(yi+1)]
+                    total_envir = total_envir + inputs['actor_envir_'+ str(i+1)+ '_' + str(yi+1)]
                 
         
         outputs['profit'] = total_profit
@@ -151,6 +152,7 @@ class FarmerOpt(om.ExplicitComponent):
         self.hrus_areas = []
         self.hrus_crops = []
         self.json_file = None
+        self.year = 1
         # self.hru_prior_irrvol = []
         
         #Sale price per unit of yield for different crops
@@ -214,6 +216,7 @@ class FarmerOpt(om.ExplicitComponent):
         self.prob = p = om.Problem()
 
         des_vars = p.model.add_subsystem('des_vars', om.IndepVarComp(), promotes=['*'])
+        
         inper = np.floor(100.0/len(self.hrus_areas))
         des_vars.add_output('hru_irr', val=np.ones(len(self.hrus_areas))*inper)
         des_vars.add_discrete_output('hru_fert', val=np.zeros(len(self.hrus_areas)).astype('int'))
@@ -295,9 +298,9 @@ class FarmerOpt(om.ExplicitComponent):
         shutil.copy("temp.txt","demofile.txt")
         
         
-        if os.path.exists(self.json_file + str(self.farmer_id) +'_sharewr.json'):
+        if os.path.exists(self.json_file + str(self.farmer_id) + '_yr' + str(self.year) + '_sharewr.json'):
         
-            with open(self.json_file + str(self.farmer_id) +'_sharewr.json') as json_file:
+            with open(self.json_file + str(self.farmer_id) + '_yr' + str(self.year) + '_sharewr.json') as json_file:
                 actors_solutions = json.load(json_file)
         else:
             actors_solutions = dict()
@@ -305,16 +308,16 @@ class FarmerOpt(om.ExplicitComponent):
         profit_bool = 0
         envir_bool = 0
         
-        if 'farmer_' + str(self.farmer_id) in actors_solutions.keys():
-            if str(inputs['wr_vol'][0]) in actors_solutions['farmer_' + str(self.farmer_id)].keys():
-                profit_bool = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['stop_bool']
-                envir_bool = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['stop_bool']
+        if 'farmer_' + str(self.farmer_id) + '_' + str(self.year) in actors_solutions.keys():
+            if str(inputs['wr_vol'][0]) in actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)].keys():
+                profit_bool = actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['stop_bool']
+                envir_bool = actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['stop_bool']
                 
         
         if profit_bool == 1 and envir_bool == 1:
             
-            temp_indv_profit = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value']
-            temp_indv_envir = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value']
+            temp_indv_profit = actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Value']
+            temp_indv_envir = actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Value']
         else:
         
             p = self.prob
@@ -349,46 +352,46 @@ class FarmerOpt(om.ExplicitComponent):
             temp_indv_envir_desvar = des_var[envir_sort_index[0],:]
             
        
-            if 'farmer_' + str(self.farmer_id) not in actors_solutions.keys():
-                actors_solutions['farmer_' + str(self.farmer_id)] = dict()
+            if 'farmer_' + str(self.farmer_id) + '_' + str(self.year) not in actors_solutions.keys():
+                actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)] = dict()
             
-            if str(inputs['wr_vol'][0]) not in actors_solutions['farmer_' + str(self.farmer_id)].keys():
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]] = dict()
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit'] = dict()
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Value'] = temp_indv_profit
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Envir'] = temp_indv_profit_envir
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Vars'] = str(temp_indv_profit_desvar)
+            if str(inputs['wr_vol'][0]) not in actors_solutions['farmer_' + str(self.farmer_id) + '_' + str(self.year)].keys():
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit'] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['Value'] = temp_indv_profit
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['Envir'] = temp_indv_profit_envir
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['Vars'] = str(temp_indv_profit_desvar)
                 
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Mean'] = np.mean(sorted_obj_profit[:,0])
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['Nsamples'] = len(sorted_obj_profit[:,0])
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['stop_bool'] = 0 
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['profit']['per_change'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['Mean'] = np.mean(sorted_obj_profit[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['Nsamples'] = len(sorted_obj_profit[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['stop_bool'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['profit']['per_change'] = 0 
                 
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir'] = dict()
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Value'] = temp_indv_envir
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Profit'] = temp_indv_envir_profit
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Vars'] = str(temp_indv_envir_desvar)
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir'] = dict()
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['Value'] = temp_indv_envir
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['Profit'] = temp_indv_envir_profit
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['Vars'] = str(temp_indv_envir_desvar)
                 
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Mean'] = np.mean(sorted_obj[:,0])
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['Nsamples'] = len(sorted_obj[:,0])
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['stop_bool'] = 0 
-                actors_solutions['farmer_' + str(self.farmer_id)][inputs['wr_vol'][0]]['envir']['per_change'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['Mean'] = np.mean(sorted_obj[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['Nsamples'] = len(sorted_obj[:,0])
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['stop_bool'] = 0 
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][inputs['wr_vol'][0]]['envir']['per_change'] = 0 
             
             else:
                 
-                old_profit = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'])
-                old_envir = float(actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'])
+                old_profit = float(actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Value'])
+                old_envir = float(actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Value'])
                 
-                old_mean_profit  = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Mean']
-                old_Nsample_profit = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Nsamples']
+                old_mean_profit  = actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Mean']
+                old_Nsample_profit = actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Nsamples']
                 
-                old_mean_envir  = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Mean']
-                old_Nsample_envir = actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Nsamples']
+                old_mean_envir  = actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Mean']
+                old_Nsample_envir = actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Nsamples']
                 
                 if temp_indv_profit < old_profit:
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Value'] = temp_indv_profit
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Envir'] = temp_indv_profit_envir
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Vars'] = str(temp_indv_profit_desvar)
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Value'] = temp_indv_profit
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Envir'] = temp_indv_profit_envir
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Vars'] = str(temp_indv_profit_desvar)
                 else:
                     temp_indv_profit = old_profit
                 
@@ -398,19 +401,19 @@ class FarmerOpt(om.ExplicitComponent):
                     old_Nsample_profit = old_Nsample_profit + 1
                     new_mean_profit = new_mean_profit + ((xprofit - new_mean_profit)/old_Nsample_profit)
                     
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Mean'] = new_mean_profit
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['Nsamples'] = old_Nsample_profit
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Mean'] = new_mean_profit
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['Nsamples'] = old_Nsample_profit
                 
                 per_change_profit = ((new_mean_profit - old_mean_profit)/old_mean_profit)*100
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['per_change'] = per_change_profit
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['per_change'] = per_change_profit
                 
                 if per_change_profit < 5:
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['profit']['stop_bool'] = 1
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['profit']['stop_bool'] = 1
                 
                 if temp_indv_envir < old_envir:
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Value'] = temp_indv_envir
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Profit'] = temp_indv_envir_profit
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Vars'] = str(temp_indv_envir_desvar)
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Value'] = temp_indv_envir
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Profit'] = temp_indv_envir_profit
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Vars'] = str(temp_indv_envir_desvar)
                 else:
                     temp_indv_envir = old_envir
                     
@@ -420,21 +423,21 @@ class FarmerOpt(om.ExplicitComponent):
                     old_Nsample_envir = old_Nsample_envir + 1
                     new_mean_envir = new_mean_envir + ((xenvir - new_mean_envir)/old_Nsample_envir)
                     
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Mean'] = new_mean_envir
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['Nsamples'] = old_Nsample_envir
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Mean'] = new_mean_envir
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['Nsamples'] = old_Nsample_envir
                 
                 per_change_envir = ((new_mean_envir - old_mean_envir)/old_mean_envir)*100
-                actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['per_change'] = per_change_envir
+                actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['per_change'] = per_change_envir
                 
                 if per_change_envir < 5:
-                    actors_solutions['farmer_' + str(self.farmer_id)][str(inputs['wr_vol'][0])]['envir']['stop_bool'] = 1
+                    actors_solutions['farmer_' + str(self.farmer_id)+ '_' + str(self.year)][str(inputs['wr_vol'][0])]['envir']['stop_bool'] = 1
         
         # outputs['hru_prior_irrvol_OUT'] = p.get_val('farmer.hru_prior_irrvol_OUT')
         outputs['indv_profit'] = temp_indv_profit
         outputs['indv_envir'] = temp_indv_envir
         
 
-        with open(self.json_file + str(self.farmer_id) +'_sharewr.json', 'w') as fp:
+        with open(self.json_file + str(self.farmer_id) + '_yr' + str(self.year) + '_sharewr.json', 'w') as fp:
             json.dump(actors_solutions, fp)
         
 
@@ -522,6 +525,8 @@ class Farmer(om.ExplicitComponent):
 
                 # indv_irr_amt = ((inputs['hru_irr'][i]/100.)*wr_vol)
                 # irr_amt = indv_irr_amt + inputs['hru_prior_irrvol_IN'][self.wrs_hrus[i]-1]
+                # print(i)
+                # print(self.w_crops[:,0],self.hrus_crops[i],self.w_crops[:,self.hrus_crops[i]])
                 
                 crop_yield = np.interp(irr_amt, self.w_crops[:,0], self.w_crops[:,self.hrus_crops[i]]) 
                 cost_f = np.interp(irr_amt, range(0,101), self.cost_fert[:,discrete_inputs['hru_fert'][i]])*self.hrus_areas[i]
