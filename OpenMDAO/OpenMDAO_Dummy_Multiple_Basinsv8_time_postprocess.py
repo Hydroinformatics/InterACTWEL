@@ -77,185 +77,36 @@ for wrids in wr_vols.keys():
 #%%
 json_actors = 'actors_solutions_farmer_'
 json_results = 'opt_resultswr_vtime.json'
-
-for wrids in wr_vols.keys():
-    if os.path.exists(json_actors + str(wrids) + '_sharewr_vtime.json'):
-        os.remove(json_actors + str(wrids) + '_sharewr_vtime.json')
-
+    
+with open(os.getcwd() + '/JetStream/' + json_results) as json_file:
+    opt_results = json.load(json_file)
+    
 #%%
-#start = time.time()
-
-# Create a recorder
-# recorder = om.SqliteRecorder('cases.sql')
-
-prob = om.Problem()
-prob.model = FEWNexus()
-prob.model.nactors = len(wr_vols)
-prob.model.nyears = nyears
-
-prob.model.hrus_areas = hrus_areas_model
-prob.model.hrus_crops = hrus_crops_model
-prob.model.wrs_hrus = wrs_hrus
-prob.model.org_wr_vols = wr_vols
-prob.model.json_file = json_actors
-# prob.model.share_wr_irrvol = share_wr_irrvol
-
-# prob.driver = om.ScipyOptimizeDriver()
-# prob.driver.options['optimizer'] = "differential_evolution"
-# prob.driver.options['maxiter'] = 20
-# prob.driver.options['tol'] = 1e-8
-
-# prob.add_recorder(recorder)
-
-prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 20
-prob.driver.options['Pm'] = 0.1
-prob.driver.options['pop_size'] = 500
-prob.driver.options['penalty_parameter'] = 20000.
-prob.driver.options['penalty_exponent'] = 5.
-prob.driver.options['compute_pareto'] = True
-
-# Attach recorder to the driver
-# prob.driver.add_recorder(recorder)
-
-
-wr_vols_max = []
-for wrids in wr_vols.keys():
-    wr_vols_max.append(wr_vols[wrids][1])
-
-#prob.model.add_design_var('wr_vols', lower=np.zeros(prob.model.nactors,dtype=int), upper = np.ones(prob.model.nactors,dtype=int)*sum(wr_vols_max))
-prob.model.add_design_var('wr_vols', lower=np.zeros(prob.model.nactors,dtype=int), upper = np.ones(prob.model.nactors,dtype=int)*100.)
-
-prob.model.add_objective('profit', scaler=1)
-prob.model.add_objective('envir_impact', scaler=1)
-prob.model.add_constraint('total_wr', upper=sum(wr_vols_max))
-
-#prob.model.nonlinear_solver = om.NonlinearBlockGS()
-prob.model.approx_totals()
-
-prob.setup()
-prob.run_driver()
-# prob.record("final_state")
-# prob.cleanup()
-#end = time.time()
-#time_consumed = end-start;
-
-#%%
-print('################# RESULTS ##################')
-
-
-desvar_nd = prob.driver.desvar_nd
-nd_obj = prob.driver.obj_nd
+desvar_nd = opt_results['desvar_nd']
+nd_obj = np.asarray(opt_results['nd_obj'])
 sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
 
-print(sorted_obj)
-print(desvar_nd[nd_obj[:, 0].argsort()])
-print(np.sum(desvar_nd[nd_obj[:, 0].argsort()], axis=1))
+plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
+plt.xlabel("Profit")
+plt.ylabel("Environmental Impact")
 
-#%%
-# plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
-# plt.xlabel("Profit")
-# plt.ylabel("Environmental Impact")
+plt.tight_layout()
+plt.show()
 
 # for i in range(0,len(nd_obj[:,0])):
 #     plt.annotate(str(int(sum(desvar_nd[i]))), (-1*nd_obj[i,0], nd_obj[i,1]-100),rotation=270)
 
 #%%
-# x = range(1,len(desvar_nd)+1)
-# y1 = desvar_nd[:,0]
-# y2 = desvar_nd[:,1]
-# y3 = desvar_nd[:,2]
+x = range(1,len(desvar_nd)+1)
+y1 = desvar_nd[:,0]
+y2 = desvar_nd[:,1]
+y3 = desvar_nd[:,2]
 
-# plt.bar(x, y1, color='r')
-# plt.bar(x, y2, bottom=y1, color='b')
-# plt.bar(x, y3, bottom=y2+y1, color='g')
-# plt.show()
+plt.bar(x, y1, color='r')
+plt.bar(x, y2, bottom=y1, color='b')
+plt.bar(x, y3, bottom=y2+y1, color='g')
+plt.show()
 
-#%%
-opt_results = dict()
-opt_results['desvar_nd'] = desvar_nd.tolist() 
-opt_results['nd_obj'] = nd_obj.tolist()
-
-with open(json_results, 'w') as fp:
-    json.dump(opt_results, fp)
-
-
-
-
-# #%%
-# # fig, ax = plt.subplots(prob.model.nactors, 1)
-# # #plt.subplot(3, 1, 1)
-# # #plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
-# # #ax[0].plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
-
-
-# # for i in range(0,prob.model.nactors):
-# #     #print(prob.get_val('farmer_' + str(i+1) + '_plan.indv_profit'))
-# #     #exec("parr = prob.model.farmer_" + str(i+1) + "_plan.prob.model")
-# #     #print(parr.get_val('farmer.hru_irr'),parr.get_val('farmer.indv_profit'))
-# #     #print(parr.get_val('farmer.hru_irr'),parr.get_val('farmer.hru_fert'))
-# #     exec("obj_nd = prob.model.farmer_" + str(i+1) + "_plan.prob.driver.obj_nd")
-# #     exec("desvar = prob.model.farmer_" + str(i+1) + "_plan.prob.driver.desvar_nd")
-# #     indobj = obj_nd[:, 0].argsort()
-# #     #plt.subplot(3, 1, i+2)
-# #     #plt.plot(-1*obj_nd[indobj,0],obj_nd[indobj,1],'-o')
-# #     ax[i].plot(-1*obj_nd[indobj,0]/1000000.0,obj_nd[indobj,1],'-o')
-# #     ax[i].set_xlabel("Profit")
-# #     ax[i].set_ylabel("Environmental Impact")
-# #     ax[i].set_title('Farmer_' + str(i+1))
-# #     #print(obj_nd[indobj[0]])
-# #     #print(desvar[indobj][0])
-# #     print(obj_nd[indobj])
-# #     print(desvar[indobj])
-
-# # fig.tight_layout()
-# # plt.show()
-
-
-# #%%
-    
-# with open(json_results) as json_file:
-#     opt_results = json.load(json_file)
-    
-# #%%
-
-# farmer_id = 1
-# # yrid = 1
-# for yrid in range(1,4):
-#     with open(json_actors + str(farmer_id) + '_yr' + str(yrid) + '_sharewr.json') as json_file:
-#         actors_solutions = json.load(json_file)
-    
-#     colors = ['b','r','g']
-#     cci = 0
-#     plt.subplot(121)
-#     for act_id in actors_solutions.keys():
-#         for wrid in actors_solutions[act_id].keys():
-#             temp = actors_solutions[act_id][wrid]['profit']['Value']
-#             plt.plot(float(wrid), float(temp)*-1,'.', c= colors[cci])
-        
-#         cci = cci + 1
-        
-    
-#     cci = 0
-#     plt.subplot(122)
-#     for act_id in actors_solutions.keys():
-#         for wrid in actors_solutions[act_id].keys():
-#             temp = actors_solutions[act_id][wrid]['envir']['Value']
-#             plt.plot(float(wrid), float(temp),'.', c= colors[cci])
-        
-#         cci = cci + 1
-
-
-# #%%
-# # nd_obj = np.asarray(opt_results['nd_obj'])
-# # sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
-
-# # plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
-# # plt.xlabel("Profit")
-# # plt.ylabel("Environmental Impact")
-
-# # plt.tight_layout()
-# # plt.show()
 
 # #%%
 

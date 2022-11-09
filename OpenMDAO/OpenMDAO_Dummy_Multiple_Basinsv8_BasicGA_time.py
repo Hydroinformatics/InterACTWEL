@@ -1,13 +1,15 @@
 import numpy as np
 import openmdao.api as om
 import matplotlib.pyplot as plt
-from Dummy_SWAT_modelv8_BasicGA import Farmers
+from Dummy_SWAT_modelv8_BasicGA_time import Farmers
 from itertools import product
 import time
 import json
 import os
 
 #%%
+
+nyears = 3
 
 hrus_areas = {1:20,
               2:40, 
@@ -19,15 +21,15 @@ hrus_areas = {1:20,
               8:30,
               9:35}
 
-hrus_crops = {1:[2],
-              2:[1], 
-              3:[1],
-              4:[1],
-              5:[3], 
-              6:[2],
-              7:[3],
-              8:[1],
-              9:[2]}
+hrus_crops = {1:[2,1,2],
+              2:[1,3,3], 
+              3:[1,2,1],
+              4:[1,3,3],
+              5:[3,1,1], 
+              6:[2,3,3],
+              7:[3,3,1],
+              8:[1,2,1],
+              9:[2,3,3]}
 
 hru_wrs = {1:[1],
            2:[1], 
@@ -51,6 +53,7 @@ hrus_crops_model = dict()
 wrs_hrus = dict()
 
 for wrids in wr_vols.keys():
+    
     hrus_areas_model[wrids] = []
     hrus_crops_model[wrids] = []
     wrs_hrus[wrids] = []
@@ -59,30 +62,26 @@ for wrids in wr_vols.keys():
         for hruwrid in hru_wrs[hruids]:
             if hruwrid == wrids:
                 hrus_areas_model[wrids].append(hrus_areas[hruids])
-                hrus_crops_model[wrids].append(hrus_crops[hruids][0])
                 wrs_hrus[wrids].append(hruids)
-
-
-
-# items = range(0,100,1)
-# hru_irr_per = dict()
-# for wrids in wr_vols.keys():
-#     temp = []
-#     for item in product(items, repeat=len(hrus_areas_model[wrids])):
-#         if np.sum(item) == 100:
-#             temp.append(item)
+    
+    
+    for yi in range(0,nyears):
+        temp_crops = []
+        for hruids in hru_wrs.keys():
+            for hruwrid in hru_wrs[hruids]:
+                if hruwrid == wrids:
+                    temp_crops.append(hrus_crops[hruids][yi])
         
-#     hru_irr_per[wrids] = np.asarray(temp)
-#     print(wrids)
+        hrus_crops_model[wrids].append(temp_crops)
 
 
 #%%
 
-json_actors = 'ga_solutions_farmer_v0_'
+json_actors = 'ga_solutions_farmer_time_v0_'
 
 for wrids in wr_vols.keys():
-    if os.path.exists(json_actors + str(wrids) + '_sharewr.json'):
-        os.remove(json_actors + str(wrids) + '_sharewr.json')
+    if os.path.exists(json_actors + str(wrids) + '_time_sharewr.json'):
+        os.remove(json_actors + str(wrids) + '_time_sharewr.json')
 
 #%%
 
@@ -143,7 +142,7 @@ print('################# RESULTS ##################')
 desvar_nd = prob.driver.desvar_nd
 nd_obj = prob.driver.obj_nd
 
-json_results = 'opt_ga_resultswr_v1.json'
+json_results = 'opt_ga_resultswr_time_v1.json'
 opt_results = dict()
 opt_results['desvar_nd'] = desvar_nd.tolist() 
 opt_results['nd_obj'] = nd_obj.tolist()
@@ -163,7 +162,7 @@ with open(json_results, 'w') as fp:
 
 #%%
 import json
-json_results = 'opt_ga_resultswr_v1.json'
+json_results = 'opt_ga_resultswr_time_v1.json'
 
 with open(json_results) as json_file:
     opt_results = json.load(json_file)
