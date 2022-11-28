@@ -163,6 +163,7 @@ with open(input_files['wrt_out_file'],'rb') as search:
         line = str(line.decode('UTF-8'))
         linesplit = re.split('\s',line)
         linesplit = [t for t in linesplit if len(t) > 0]
+        
         if len(linesplit) > 0 and 'WRID' not in linesplit[0]:
             if int(linesplit[0]) not in wruse_base.keys():
                 wruse_base[int(linesplit[0])] = dict()
@@ -174,14 +175,13 @@ search.close()
 
 #%%
 total_per_yr = dict()
-#total_per_yr = []
+total_per_yrarr = []
 for yr in range(1997,2019):
     tmp_sum = 0
     for wrid in wruse_base.keys():
-        
         tmp_sum  = tmp_sum + wruse_base[wrid][yr]
     total_per_yr[yr] = tmp_sum
-    #total_per_yr.append(tmp_sum)
+    total_per_yrarr.append(tmp_sum)
 
 
 per_hru = np.zeros((len(wruse_base),len(range(1997,2019))))
