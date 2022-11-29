@@ -4,128 +4,128 @@ import os, shutil, sys, re, subprocess
 import numpy as np
 import csv, json
 import matplotlib.pyplot as plt
-#import pyodbc
+import pyodbc
 
-# #%%
-# def FindHRUID(model_path):
-#     print(model_path)
-#     db_path = model_path
-# # Eric - testing something based on https://docs.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver15
-# #        r'DRIVER={ODBC Driver 17 for SQL Server};' # Didn't work; reverted changes
-#     conn_str = (
-#         r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
-#         r'DBQ=' + db_path + ';'
-#         )
-#     cnxn = pyodbc.connect(conn_str)
-#     crsr = cnxn.cursor()
+#%%
+def FindHRUID(model_path):
+    print(model_path)
+    db_path = model_path
+# Eric - testing something based on https://docs.microsoft.com/en-us/sql/connect/python/pyodbc/step-3-proof-of-concept-connecting-to-sql-using-pyodbc?view=sql-server-ver15
+#        r'DRIVER={ODBC Driver 17 for SQL Server};' # Didn't work; reverted changes
+    conn_str = (
+        r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
+        r'DBQ=' + db_path + ';'
+        )
+    cnxn = pyodbc.connect(conn_str)
+    crsr = cnxn.cursor()
     
-#     crsr.execute('select * from hrus')
-#     hrudict = dict()
-#     for row in crsr.fetchall():
-#         hrudict[str(row[12])] = row[0]
+    crsr.execute('select * from hrus')
+    hrudict = dict()
+    for row in crsr.fetchall():
+        hrudict[str(row[12])] = row[0]
 
-#     return hrudict
+    return hrudict
 
-# #%%
-# def GetWaterRigthHRU(input_files):
+#%%
+def GetWaterRigthHRU(input_files):
     
-#     wr_swat_file = []
-#     wsrc_sum = dict()
-#     hrugis_dict = dict()
-#     wrsrc = dict()
+    wr_swat_file = []
+    wsrc_sum = dict()
+    hrugis_dict = dict()
+    wrsrc = dict()
     
-#     with open(input_files['wrtfile'],'rb') as search:
-#         for line in search:
-#             line = str(line.decode('UTF-8'))
-#             if 'YEAR_ID' not in line:
-#                 linesplit = re.split('\s',line)
-#                 linesplit = [t for t in linesplit if len(t) > 0]
+    with open(input_files['wrtfile'],'rb') as search:
+        for line in search:
+            line = str(line.decode('UTF-8'))
+            if 'YEAR_ID' not in line:
+                linesplit = re.split('\s',line)
+                linesplit = [t for t in linesplit if len(t) > 0]
                 
-#                 if int(linesplit[2]) not in wsrc_sum and int(linesplit[2]) != 0:
-#                         wsrc_sum[int(linesplit[2])] = 0
-#                         #hru_wsrc[int(linesplit[2])] = []
+                if int(linesplit[2]) not in wsrc_sum and int(linesplit[2]) != 0:
+                        wsrc_sum[int(linesplit[2])] = 0
+                        #hru_wsrc[int(linesplit[2])] = []
                         
-#                 if len(linesplit) > 0 and int(linesplit[1]) != 9999 and int(linesplit[0])==1:
-#                     wr_swat_file.append([int(linesplit[1]), int(linesplit[2]), int(linesplit[3]), int(linesplit[4]), int(linesplit[5])])
-#                     wrsrc[int(linesplit[1])] = int(linesplit[2])
+                if len(linesplit) > 0 and int(linesplit[1]) != 9999 and int(linesplit[0])==1:
+                    wr_swat_file.append([int(linesplit[1]), int(linesplit[2]), int(linesplit[3]), int(linesplit[4]), int(linesplit[5])])
+                    wrsrc[int(linesplit[1])] = int(linesplit[2])
                     
-#                 if int(linesplit[2]) != 0 and int(linesplit[0])==1:
-#                     wsrc_sum[int(linesplit[2])] = wsrc_sum[int(linesplit[2])] + int(linesplit[3])
-#                     #hru_wsrc[int(linesplit[2])].append(int(linesplit[1]))
+                if int(linesplit[2]) != 0 and int(linesplit[0])==1:
+                    wsrc_sum[int(linesplit[2])] = wsrc_sum[int(linesplit[2])] + int(linesplit[3])
+                    #hru_wsrc[int(linesplit[2])].append(int(linesplit[1]))
                     
-#     search.close()
+    search.close()
     
-# #    num_year_sim = 12
-# #    csv_file = outpath + '/wrdata_CR_iter_' + str(itern) + '.dat'
-# #    filein = open(csv_file,'w')
-# #    
-# #    for yr in range(0,num_year_sim):
-# #        for i in range(len(wr_swat_file)):
-# #            atxt = str(yr+1).rjust(4) + ''.rjust(3)
-# #            atxt = atxt + str(wr_swat_file[i][0]).rjust(5) + ''.rjust(3)
-# #            atxt = atxt + str(wr_swat_file[i][1]).rjust(4)  + ''.rjust(3)
-# #            atxt = atxt + str(int(wr_swat_file[i][2])).rjust(6)  + ''.rjust(3)
-# #            atxt = atxt + str(wr_swat_file[i][3]).rjust(4)  + ''.rjust(3)
-# #            atxt = atxt + str(wr_swat_file[i][4]).rjust(4)
-# #            #if yr == num_year_sim-1 and i == len(wr_swat_file)
-# #            filein.write(atxt + '\n') 
-# #    filein.close()
+#    num_year_sim = 12
+#    csv_file = outpath + '/wrdata_CR_iter_' + str(itern) + '.dat'
+#    filein = open(csv_file,'w')
+#    
+#    for yr in range(0,num_year_sim):
+#        for i in range(len(wr_swat_file)):
+#            atxt = str(yr+1).rjust(4) + ''.rjust(3)
+#            atxt = atxt + str(wr_swat_file[i][0]).rjust(5) + ''.rjust(3)
+#            atxt = atxt + str(wr_swat_file[i][1]).rjust(4)  + ''.rjust(3)
+#            atxt = atxt + str(int(wr_swat_file[i][2])).rjust(6)  + ''.rjust(3)
+#            atxt = atxt + str(wr_swat_file[i][3]).rjust(4)  + ''.rjust(3)
+#            atxt = atxt + str(wr_swat_file[i][4]).rjust(4)
+#            #if yr == num_year_sim-1 and i == len(wr_swat_file)
+#            filein.write(atxt + '\n') 
+#    filein.close()
 
-#     hruwr = dict()
-#     with open(input_files['hruwrt_file'],'rb') as search:
-#         for line in search:
-#             line = str(line.decode('UTF-8'))
-#             linesplit = re.split('\s',line)
-#             linesplit = [t for t in linesplit if len(t) > 0]
-#             if len(linesplit) > 0:
-#                 if int(linesplit[0]) not in hruwr.keys():
-#                     hruwr[int(linesplit[0])] = dict()
-#                     #hruwr[int(linesplit[0])][int(linesplit[3])] = [int(linesplit[1]),int(linesplit[2]),int(linesplit[3])]
-#                 #else:
-#                 hruwr[int(linesplit[0])][int(linesplit[4])] = [int(linesplit[1]),int(linesplit[2]),int(linesplit[3]),int(linesplit[4])]
+    hruwr = dict()
+    with open(input_files['hruwrt_file'],'rb') as search:
+        for line in search:
+            line = str(line.decode('UTF-8'))
+            linesplit = re.split('\s',line)
+            linesplit = [t for t in linesplit if len(t) > 0]
+            if len(linesplit) > 0:
+                if int(linesplit[0]) not in hruwr.keys():
+                    hruwr[int(linesplit[0])] = dict()
+                    #hruwr[int(linesplit[0])][int(linesplit[3])] = [int(linesplit[1]),int(linesplit[2]),int(linesplit[3])]
+                #else:
+                hruwr[int(linesplit[0])][int(linesplit[4])] = [int(linesplit[1]),int(linesplit[2]),int(linesplit[3]),int(linesplit[4])]
     
-#     search.close()
+    search.close()
     
-#     hrugis_dict = FindHRUID(input_files['model_database'])
+    hrugis_dict = FindHRUID(input_files['model_database'])
     
-#     hru_nowa = dict()
-#     ct = 0
-#     with open(input_files['hru_nowa_file'],'rb') as search:
-#         for line in search:
-#             line = str(line.decode('UTF-8'))
-#             linesplit = re.split(',',line)
-#             linesplit = [t for t in linesplit if len(t) > 0]
-#             if '\r\n' in line:
-#                 linesplit[6] = linesplit[6].strip('\r\n')
+    hru_nowa = dict()
+    ct = 0
+    with open(input_files['hru_nowa_file'],'rb') as search:
+        for line in search:
+            line = str(line.decode('UTF-8'))
+            linesplit = re.split(',',line)
+            linesplit = [t for t in linesplit if len(t) > 0]
+            if '\r\n' in line:
+                linesplit[6] = linesplit[6].strip('\r\n')
                 
-#             if len(linesplit) > 0 and ct > 0:
-#                 #print hrugis_dict[linesplit[6]]
-#                 if hrugis_dict[linesplit[6]] not in hru_nowa.keys() and hruwr[hrugis_dict[linesplit[6]]][1][0] != 9999 and len(hruwr[hrugis_dict[linesplit[6]]]) == 1:                    
-#                     for i in hruwr[hrugis_dict[linesplit[6]]].keys():
-#                         if hruwr[hrugis_dict[linesplit[6]]][i][1] == 3 and hrugis_dict[linesplit[6]] not in hru_nowa.keys():
-#                             hru_nowa[hrugis_dict[linesplit[6]]] = [i, hruwr[hrugis_dict[linesplit[6]]][i][0]]
+            if len(linesplit) > 0 and ct > 0:
+                #print hrugis_dict[linesplit[6]]
+                if hrugis_dict[linesplit[6]] not in hru_nowa.keys() and hruwr[hrugis_dict[linesplit[6]]][1][0] != 9999 and len(hruwr[hrugis_dict[linesplit[6]]]) == 1:                    
+                    for i in hruwr[hrugis_dict[linesplit[6]]].keys():
+                        if hruwr[hrugis_dict[linesplit[6]]][i][1] == 3 and hrugis_dict[linesplit[6]] not in hru_nowa.keys():
+                            hru_nowa[hrugis_dict[linesplit[6]]] = [i, hruwr[hrugis_dict[linesplit[6]]][i][0]]
                             
-# #                if hrugis_dict[linesplit[6].strip('\r\n')] not in hru_nowa.keys() and hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][1][0] != 9999 and len(hruwr[hrugis_dict[linesplit[6].strip('\r\n')]]) == 1:                    
-# #                    for i in hruwr[hrugis_dict[linesplit[6].strip('\r\n')]].keys():
-# #                        if hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][i][1] == 3 and hrugis_dict[linesplit[6].strip('\r\n')] not in hru_nowa.keys():
-# #                            hru_nowa[hrugis_dict[linesplit[6].strip('\r\n')]] = [i, hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][i][0]]
+#                if hrugis_dict[linesplit[6].strip('\r\n')] not in hru_nowa.keys() and hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][1][0] != 9999 and len(hruwr[hrugis_dict[linesplit[6].strip('\r\n')]]) == 1:                    
+#                    for i in hruwr[hrugis_dict[linesplit[6].strip('\r\n')]].keys():
+#                        if hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][i][1] == 3 and hrugis_dict[linesplit[6].strip('\r\n')] not in hru_nowa.keys():
+#                            hru_nowa[hrugis_dict[linesplit[6].strip('\r\n')]] = [i, hruwr[hrugis_dict[linesplit[6].strip('\r\n')]][i][0]]
 
-#             ct = ct + 1
+            ct = ct + 1
                     
-#     search.close()
+    search.close()
     
-#     return wr_swat_file, wrsrc, wsrc_sum, hruwr, hru_nowa
+    return wr_swat_file, wrsrc, wsrc_sum, hruwr, hru_nowa
 
-# #%%
-# def run_SWAT(model_path, swat_exe):
-#     cwdir = os.getcwd()
-#     os.chdir(model_path + '/Scenarios/Default/TxtInOut')
-#     exitflag = subprocess.check_call([swat_exe])
-#     if exitflag == 0:
-#         print("Successful SWAT run")
-#     else:
-#         print(exitflag)
-#     os.chdir(cwdir)
+#%%
+def run_SWAT(model_path, swat_exe):
+    cwdir = os.getcwd()
+    os.chdir(model_path + '/Scenarios/Default/TxtInOut')
+    exitflag = subprocess.check_call([swat_exe])
+    if exitflag == 0:
+        print("Successful SWAT run")
+    else:
+        print(exitflag)
+    os.chdir(cwdir)
 
     
 #%%
@@ -153,7 +153,7 @@ itern = 0
 build_model = 0
 modeln = 17
 
-#wr_swat_file, wrsrc, wsrc_sum, hruwr, hru_nowa = GetWaterRigthHRU(input_files)
+wr_swat_file, wrsrc, wsrc_sum, hruwr, hru_nowa = GetWaterRigthHRU(input_files)
 
 #%%
 
@@ -163,7 +163,6 @@ with open(input_files['wrt_out_file'],'rb') as search:
         line = str(line.decode('UTF-8'))
         linesplit = re.split('\s',line)
         linesplit = [t for t in linesplit if len(t) > 0]
-        
         if len(linesplit) > 0 and 'WRID' not in linesplit[0]:
             if int(linesplit[0]) not in wruse_base.keys():
                 wruse_base[int(linesplit[0])] = dict()
@@ -175,24 +174,37 @@ search.close()
 
 #%%
 total_per_yr = dict()
-total_per_yrarr = []
+#total_per_yr = []
 for yr in range(1997,2019):
     tmp_sum = 0
     for wrid in wruse_base.keys():
         tmp_sum  = tmp_sum + wruse_base[wrid][yr]
     total_per_yr[yr] = tmp_sum
-    total_per_yrarr.append(tmp_sum)
+    #total_per_yr.append(tmp_sum)
 
 
+per_hru_yr = np.zeros((len(wruse_base),len(range(1997,2019))))
 per_hru = np.zeros((len(wruse_base),len(range(1997,2019))))
 cyr = 0
 for yr in range(1997,2019):
     tmp_sum = 0
     for wrid in wruse_base.keys():
         if wrid < 9999:
-            per_hru[wrid,cyr] = (wruse_base[wrid][yr]/total_per_yr[yr])*100
+            per_hru_yr[wrid,cyr] = (wruse_base[wrid][yr]/total_per_yr[yr])*100
+            per_hru[wrid,cyr] = (wruse_base[wrid][yr]/wr_swat_file[wrid-1][2])*100
     
     cyr = cyr + 1
+
+
+hruwr_c = []
+for hruid in hruwr.keys():
+    if hruwr[hruid][1][0] < 9999:
+        hruwr_c.append([hruid,len(hruwr[hruid])])
+    else:
+        hruwr_c.append([hruid,0])
+        
+hruwr_c = np.asarray(hruwr_c)
+
 
 
 # #scenarios  = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
