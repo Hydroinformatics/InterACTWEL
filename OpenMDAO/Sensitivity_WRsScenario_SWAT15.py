@@ -5,6 +5,7 @@ import numpy as np
 import csv, json
 import matplotlib.pyplot as plt
 import pyodbc
+import shapefile
 
 #%%
 def FindHRUID(model_path):
@@ -144,14 +145,19 @@ input_files['wrt_out_file'] = cdir +'/SWAT_WR_files/wrs_use.out'
 
 print(input_files['model_database'])
 
-model_path = cdir +'/BASE'
-outpath = cdir +'/ITER17'
+#model_path = cdir +'/BASE'
+model_path = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\Backup'
+
+#outpath = cdir +'/ITER17'
+outpath = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\ITER0'
 
 irr_dict = {0: 'No irrigation', 1: 'Surface water', 2: 'Storage/Reservoir', 3: 'Groundwater', 5: 'Columbia River'}
 
 itern = 0
-build_model = 0
+build_model = 1
 modeln = 17
+
+hrugis_dict = FindHRUID(input_files['model_database'])
 
 wr_swat_file, wrsrc, wsrc_sum, hruwr, hru_nowa = GetWaterRigthHRU(input_files)
 
@@ -173,18 +179,30 @@ search.close()
 
 
 #%%
+
 total_per_yr = dict()
-#total_per_yr = []
+wrscr_yr = np.zeros((5,len(range(1997,2019))))
+cyr = 0
 for yr in range(1997,2019):
     tmp_sum = 0
     for wrid in wruse_base.keys():
         tmp_sum  = tmp_sum + wruse_base[wrid][yr]
-    total_per_yr[yr] = tmp_sum
-    #total_per_yr.append(tmp_sum)
+        if wrid != 9999:
+            temp_wrscr = wr_swat_file[wrid-1][1]
+            if temp_wrscr == 5:
+                temp_wrscr = 4
+        
+            wrscr_yr[temp_wrscr, cyr] = wrscr_yr[temp_wrscr, cyr] + wruse_base[wrid][yr]
 
+    total_per_yr[yr] = tmp_sum
+
+    cyr = cyr + 1
+
+per_wrscr_yr = (wrscr_yr/np.sum(wrscr_yr,axis=0))*100
 
 per_hru_yr = np.zeros((len(wruse_base),len(range(1997,2019))))
 per_hru = np.zeros((len(wruse_base),len(range(1997,2019))))
+
 cyr = 0
 for yr in range(1997,2019):
     tmp_sum = 0
@@ -206,11 +224,43 @@ for hruid in hruwr.keys():
 hruwr_c = np.asarray(hruwr_c)
 
 
+#%%
+
+shp_dir = r"C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs"
+
+hru_nowa = shapefile.Reader(shp_dir + '/' + 'hru2_NOWA_pumping_limit.shp')
+hru_nowa_records = hru_nowa.records()
+
+hruid_nowa = []
+for i in range(0,len(hru_nowa_records)):
+    hruid_nowa.append((hrugis_dict[hru_nowa_records[i][6]]))
+hruid_nowa = np.asarray(hruid_nowa)
+
+
+hru_portMorrow = shapefile.Reader(shp_dir + '/' + 'HRUs_Port_Morrow.shp')
+hru_portMorrow_records = hru_portMorrow.records()
+
+hruid_portMorrow = []
+for i in range(0,len(hru_portMorrow_records)):
+    hruid_portMorrow.append((hrugis_dict[hru_portMorrow_records[i][6]]))
+hruid_portMorrow = np.asarray(hruid_portMorrow)
+
+
+mtg_file = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\Backup'
+fnames = os.listdir(mtg_file)
+fnames = [ff for ff in fnames if '.mgt' in ff]
+file_prop = list()
+for ff in fnames:
+    file_size = os.path.getsize(mtg_file + '/' + ff)
+    file_prop.append((ff[:-4],file_size))
+
+#%%
+
 
 # #scenarios  = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
 # scenarios  = [0.98, 1]
 
-# if build_model == 1:
+if build_model == 1:
     
 #     print "Creating Scenarios"
     
@@ -224,10 +274,10 @@ hruwr_c = np.asarray(hruwr_c)
        
 #     hru_irr = np.asarray(sorted(np.asarray(hru_irr), key=lambda x: (x[1], -x[3])))         
     
-#     CR_wrs = []
-#     for i in range(len(wr_swat_file)):
-#         if wr_swat_file[i][1] == 5:
-#             CR_wrs.append(wr_swat_file[i])
+    CR_wrs = []
+    for i in range(len(wr_swat_file)):
+        if wr_swat_file[i][1] == 5:
+            CR_wrs.append(wr_swat_file[i])
     
 #     for itern in range(len(scenarios)): 
           
@@ -240,12 +290,12 @@ hruwr_c = np.asarray(hruwr_c)
 #         scenario_wsrc = np.random.rand(len(CR_wrs))
 #         scenario_wsrc = (scenario_wsrc/np.sum(scenario_wsrc))*new_CR_vol
         
-#         new_hruwr = dict()
-#         cr_wrdist = dict()
+    new_hruwr = dict()
+    cr_wrdist = dict()
         
 #         #check hru 12
-#         file_path = model_path + '/Scenarios/Default/TxtInOut/wrdata.dat'
-#         shutil.copyfile(input_files['wrtfile'], file_path)
+    file_path = model_path + '/wrdata.dat'
+    shutil.copyfile(input_files['wrtfile'], file_path)
         
 #         if scenarios[itern] > 0:
 #             cr_wr_counter = 0
