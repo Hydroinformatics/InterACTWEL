@@ -398,7 +398,10 @@ for iterrun in range(0,len(final_wr_list)+1):
             #atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
             
             if iterrun == 0:
-                atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
+                if int(linesplit[1]) == 9999:
+                    atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
+                else:
+                    atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
             else:
                 if int(linesplit[1]) == final_wr_list[iterrun-1]:
                     atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
