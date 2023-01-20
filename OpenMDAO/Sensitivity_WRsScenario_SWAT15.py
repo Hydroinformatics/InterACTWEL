@@ -151,6 +151,8 @@ model_path = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsi
 #outpath = cdir +'/ITER17'
 outpath = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\ITER0'
 
+cluster_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs'
+
 irr_dict = {0: 'No irrigation', 1: 'Surface water', 2: 'Storage/Reservoir', 3: 'Groundwater', 5: 'Columbia River'}
 
 itern = 0
@@ -242,26 +244,64 @@ hru_portMorrow_records = hru_portMorrow.records()
 
 hruid_portMorrow = []
 for i in range(0,len(hru_portMorrow_records)):
-    hruid_portMorrow.append((hrugis_dict[hru_portMorrow_records[i][6]]))
+    hruid_portMorrow.append((hru_portMorrow_records[i][6], hrugis_dict[hru_portMorrow_records[i][6]]))
 hruid_portMorrow = np.asarray(hruid_portMorrow)
 
-
+#%%
 mtg_file = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\Backup'
 fnames = os.listdir(mtg_file)
 fnames = [ff for ff in fnames if '.mgt' in ff]
 file_prop = list()
 for ff in fnames:
     file_size = os.path.getsize(mtg_file + '/' + ff)
-    file_prop.append((ff[:-4],file_size))
+    file_prop.append((ff[:-4]))
+
 
 #%%
 
+hru_with_irr = []
+ccounter = 1
+for ii in range(0,len(hruid_portMorrow)):
+    if str(hruid_portMorrow[ii][0]) in file_prop:
+        with open(mtg_file + '/' + str(hruid_portMorrow[ii][0]) + '.mgt','rb') as search:
+            strbool = 0    
+            for line in search:
+                line = line.decode("utf-8")
+                
+                if strbool == 1:
+                    linesplit = line.split()
+                    if len(linesplit) > 1:
+                        if int(linesplit[1]) == 10:
+                            hru_with_irr.append((hruid_portMorrow[ii]))
+                            break
+                            strbool = 0
+                
+                if "Operation Schedule:" in line:
+                    strbool = 1
+    ccounter += 1
+    print(ccounter)
+                
+#%%
+final_wr_list = []
+for i in range(0,len(hru_with_irr)):
+    hruid_temp = np.where(hruwr_c[:,0] == int(hru_with_irr[i][1]))
+    if len(hruid_temp) > 0:
+        if hruwr_c[hruid_temp[0][0],1] != 0:
+            for wk in hruwr[int(hru_with_irr[i][1])].keys():
+                #hruwr[int(hru_with_irr[i][1])][wk][0]
+                final_wr_list.append(hruwr[int(hru_with_irr[i][1])][wk][0])
 
+final_wr_list = np.asarray(np.unique(final_wr_list))
+final_wr_list = np.delete(final_wr_list, np.where(final_wr_list == 9999))
+
+#%%
+# iterrun = 0
 # #scenarios  = [0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
 # scenarios  = [0.98, 1]
 
-if build_model == 1:
-    
+# if build_model == 1:
+
+for iterrun in range(0,len(final_wr_list)+1):
 #     print "Creating Scenarios"
     
 #     hru_irr = [] # This section needs to be automated: using output.std
@@ -292,9 +332,16 @@ if build_model == 1:
         
     new_hruwr = dict()
     cr_wrdist = dict()
+    
+    #temp_path = cluster_path + '/ITER_' + str(iterrun)
+    temp_path = cluster_path + '/ITERS'
+    
+    isExist = os.path.exists(temp_path)
+    if not isExist:
+       os.makedirs(temp_path)
         
 #         #check hru 12
-    file_path = model_path + '/wrdata.dat'
+    file_path = temp_path + '/wrdata_org.dat'
     shutil.copyfile(input_files['wrtfile'], file_path)
         
 #         if scenarios[itern] > 0:
@@ -333,8 +380,45 @@ if build_model == 1:
 #             with open(outpath + '/CR_wr_dist_' + str(itern) + '.json', 'w+') as fp:
 #                 json.dump(cr_wrdist, fp)        
            
-#         csv_file = outpath + '/hruwr_CR_' + str(itern) + '.dat'
-#         filein = open(csv_file,'w+')
+    txt_file = temp_path + '/wrdata_' + str(iterrun) + '.dat'
+    
+    file_org = open(file_path, 'r')
+    Lines = file_org.readlines()
+    
+    filein = open(txt_file,'w+')
+    
+    for line in Lines:
+        linesplit = line.split()
+        if 'year' not in linesplit[0].lower():
+            atxt = str(int(linesplit[0])).rjust(4) + ''.rjust(3)
+            atxt = atxt + str(int(linesplit[1])).rjust(5) + ''.rjust(3)
+            atxt = atxt + str(int(linesplit[2])).rjust(4) + ''.rjust(3)
+            
+            #432082
+            #atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
+            
+            if iterrun == 0:
+                atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
+            else:
+                if int(linesplit[1]) == final_wr_list[iterrun-1]:
+                    atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
+                else:
+                    atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
+                    
+            
+            atxt = atxt + str(int(linesplit[4])).rjust(4) + ''.rjust(3)
+            atxt = atxt + str(int(linesplit[5])).rjust(4)
+            filein.write(atxt + '\n') 
+            
+        else:
+            filein.write(line) 
+    
+    
+    file_org.close()
+    filein.close()
+    
+
+    
         
 #         #atxt = 'HRU_ID, WR_ID, PRIOR, HRU_PRIOR'
         
@@ -358,28 +442,28 @@ if build_model == 1:
 #                     filein.write(atxt + '\n') 
 #         filein.close()
         
-        # file_path = model_path + '/Scenarios/Default/TxtInOut/hruwr.dat'
-        # shutil.copyfile(csv_file, file_path)
+    # file_path = model_path + '/Scenarios/Default/TxtInOut/hruwr.dat'
+    # shutil.copyfile(csv_file, file_path)
+    
+    # print 'Iter #: ' + str(itern)
+    # run_SWAT(model_path, 'swat_rel64.exe')
+    
         
-        # print 'Iter #: ' + str(itern)
-        # run_SWAT(model_path, 'swat_rel64.exe')
+    # swat_files  = os.listdir(model_path + '/Scenarios/Default/TxtInOut/')
+    # out_files = [f for f in swat_files if 'output' in f]
         
-            
-        # swat_files  = os.listdir(model_path + '/Scenarios/Default/TxtInOut/')
-        # out_files = [f for f in swat_files if 'output' in f]
-            
-            
-        # for base in out_files:
-        #     if 'mgt' not in os.path.splitext(base)[1]:
-        #         file_path = outpath + '/' + os.path.splitext(base)[0] + '_' + str(itern) + os.path.splitext(base)[1]
-        #         shutil.copyfile(model_path + '/Scenarios/Default/TxtInOut/' + base, file_path)
-            
         
-        # hrw_file_out = model_path + '/Scenarios/Default/TxtInOut/hru_wrt.out'
-        # file_path = outpath + '/' + os.path.splitext('hru_wrt.out')[0] + '_' + str(itern) + os.path.splitext('hru_wrt.out')[1]
-        # shutil.copyfile(hrw_file_out, file_path)
+    # for base in out_files:
+    #     if 'mgt' not in os.path.splitext(base)[1]:
+    #         file_path = outpath + '/' + os.path.splitext(base)[0] + '_' + str(itern) + os.path.splitext(base)[1]
+    #         shutil.copyfile(model_path + '/Scenarios/Default/TxtInOut/' + base, file_path)
         
-        # hrw_file_out = model_path + '/Scenarios/Default/TxtInOut/wrs_use.out'
-        # file_path = outpath + '/' + os.path.splitext('wrs_use.out')[0] + '_' + str(itern) + os.path.splitext('wrs_use.out')[1]
-        # shutil.copyfile(hrw_file_out, file_path)
+    
+    # hrw_file_out = model_path + '/Scenarios/Default/TxtInOut/hru_wrt.out'
+    # file_path = outpath + '/' + os.path.splitext('hru_wrt.out')[0] + '_' + str(itern) + os.path.splitext('hru_wrt.out')[1]
+    # shutil.copyfile(hrw_file_out, file_path)
+    
+    # hrw_file_out = model_path + '/Scenarios/Default/TxtInOut/wrs_use.out'
+    # file_path = outpath + '/' + os.path.splitext('wrs_use.out')[0] + '_' + str(itern) + os.path.splitext('wrs_use.out')[1]
+    # shutil.copyfile(hrw_file_out, file_path)
         
