@@ -7,9 +7,9 @@ import numpy as np
 import re
 import matplotlib.pylab as plt
 
-import geopandas as gpd
-import pandas as pd
-from shapely.geometry import LineString
+# import geopandas as gpd
+# import pandas as pd
+# from shapely.geometry import LineString
 
 
 def Get_output_hru(tfile, varcol, varname):
@@ -53,13 +53,38 @@ def Get_output_hru(tfile, varcol, varname):
 
 #%%
 
-data_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/'
-crs = 'EPSG:26911'
-watershed = gpd.read_file(data_dir+"/subs1.shp")
-watershed.to_crs(crs, inplace=True)
+# #data_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/'
+# data_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs'
+
+# crs = 'EPSG:26911'
+# subs = gpd.read_file(data_path + "/subs1.shp")
+# subs.to_crs(crs, inplace=True)
+
+# hrus2 = gpd.read_file(data_path + "/hru2.shp")
+# hrus2.to_crs(crs, inplace=True)
+
+# %% WATER RIGHTS ASSIGNED TO HRU
+
+out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs'
+#out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS'
+
+df_hru_wr = pd.read_table(out_path + '/hruwr.dat', delim_whitespace=True)
+df_hru_wr  = pd.DataFrame.to_dict(df_hru_wr)
+
+hru_wr_rel = dict()
+for i in range(0,len(df_hru_wr['HRUID,'])):
+    
+    if df_hru_wr['WR_ID,'][i] != 9999:
+        if df_hru_wr['WR_ID,'][i] not in hru_wr_rel.keys():
+            hru_wr_rel[df_hru_wr['WR_ID,'][i]] = []
+        
+        hru_wr_rel[df_hru_wr['WR_ID,'][i]].append(df_hru_wr['HRUID,'][i])
+            
+    
 
 
-# %%
+
+# %% WATER RIGHTS USED IN ITERS
 
 out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS'
 #out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS'
@@ -139,7 +164,11 @@ for wrsf in wrs_dict.keys():
     wrid_file[wrsf] = wrids[np.where(wrs_data_all[wrsf_id,:]>999990)[0]]
  
 
-# %%
+
+
+
+
+# %% TOTAL VOL OF WATER RIGHT USED IN ITERATION
 
 #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
 out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
@@ -254,7 +283,11 @@ max_diff_wrid = diff_wrs_totals[np.where(diff_wrs_totals[:,1]>1),0].T
 
 #plt.matshow(org_diff_wrs[:,[int(k) for k in org_diff_wrid[:0]]])
 
-# %%
+
+
+
+
+# %% WATER USED BY HRU FOR THEIR RESPECTIVE WATER RIGHTS
 
 out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
 #out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
@@ -314,9 +347,22 @@ for wrsf in hru_wrt_dict.keys():
             hru_wrt_use[ttemp['HRU'][i]][wrsf_id] = dict()
         
         if ttemp['WRID'][i] not in hru_wrt_use[ttemp['HRU'][i]][wrsf_id].keys():
-            hru_wrt_use[ttemp['HRU'][i]][wrsf_id][ttemp['WRID'][i]] = [] 
+            hru_wrt_use[ttemp['HRU'][i]][wrsf_id][ttemp['WRID'][i]] = dict()
+            hru_wrt_use[ttemp['HRU'][i]][wrsf_id][ttemp['WRID'][i]]['Data'] = [] 
         
-        hru_wrt_use[ttemp['HRU'][i]][wrsf_id][ttemp['WRID'][i]].append([ttemp['YEAR'][i],ttemp['WATER(acre-ft)'][i]])
+        hru_wrt_use[ttemp['HRU'][i]][wrsf_id][ttemp['WRID'][i]]['Data'].append([ttemp['YEAR'][i],ttemp['WATER(acre-ft)'][i]])
+        
+
+#%%
+
+for hruid in hru_wrt_use.keys():
+    for iterid in hru_wrt_use[hruid].keys():
+        for wrid in hru_wrt_use[hruid][iterid].keys():
+            total_use = 0
+            for i in range(0,len(hru_wrt_use[hruid][iterid][wrid]['Data'])):
+                total_use = total_use + hru_wrt_use[hruid][iterid][wrid]['Data'][i][1]
+                
+            hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE'] = total_use
 
 #%%
 
@@ -363,24 +409,17 @@ for i in range(0,213):
 
 #%%
 
-for hruid in hru_wrt_use.keys():
-    for iterid in hru_wrt_use[hruid].keys():
-        for wrid in hru_wrt_use[hruid][iterid].keys():
-            total_use = 0
-            for i in range(0,len(hru_wrt_use[hruid][iterid][wrid])):
-                total_use = total_use + hru_wrt_use[hruid][iterid][wrid][i][0]
-        hru_wrt_use[hruid][iterid][wrid] = {'TOTAL_USE': total_use}
-        
-
-#%%
-
 for wrf in wrs_dict.keys():
     rowids = np.where(np.asarray(wrs_dict[wrf]['WR_VOL_ft-acre']) > 999990)[0][0:10]
     wrid = np.unique(np.asarray(wrs_dict[wrf]['WR_ID'])[rowids])
     if len(wrid) > 1:
         print('Problem with: '+wrf)
 
-#%%
+
+
+
+
+#%% HRU OUTPUTS
 
 #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
 out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
@@ -438,63 +477,98 @@ hru_param_diff = dict()
 hru_param = ['BIOMt/ha', 'YLDt/ha', 'IRRmm', 'NAUTOkg/ha']
 
 for hru_var in hru_param:
+    print(hru_var)
     hru_param_diff[hru_var] = np.zeros((11346,213))
     
     for fid in hru_out_dict.keys():
         fid_id = fid[[i for i, ltr in enumerate(fid) if ltr == '_'][0]+1:]
+        
         if fid_id == 'org':
             fid_id = 212
-        print(fid_id)
+        #print(fid_id)
+        
         for hruid in hru_out_dict[fid].keys():
-            hru_param_diff[hru_var][int(hruid)-1,int(fid_id)] = sum(abs(np.asarray(hru_out_dict[fid][hruid][hru_var]) - np.asarray(org_hru_data[hruid][hru_var])))
-        
+            temp_per_chg = ((np.asarray(hru_out_dict[fid][hruid][hru_var]) - np.asarray(org_hru_data[hruid][hru_var]))/np.asarray(org_hru_data[hruid][hru_var]))*100
+            hru_param_diff[hru_var][int(hruid)-1,int(fid_id)] = sum(abs(temp_per_chg))
         
     
-var_diff = hru_param_diff['YLDt/ha']
+#%%
+var_per_diff = np.zeros((len(hru_param_diff[hru_var]),5))
+cc = 0
+for hru_var in hru_param: 
+    var_diff = hru_param_diff[hru_var]
     
+    var_diff[np.where(np.isnan(var_diff))]=0
+
+    var_per_diff[:,cc] = np.sum(var_diff,axis=1)
+    cc = cc + 1
+
+
+for hruid in hru_wrt_use.keys():
+    temp = 0
+    temp_org = 0
+    #for iterid in hru_wrt_use[hruid].keys():
+    for iterid in range(0,1):
+
+        for wrid in hru_wrt_use[hruid][iterid].keys():
+            temp = temp + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
+            temp_org = temp_org + hru_wrt_use[hruid][212][wrid]['TOTAL_USE']
+    
+    # if temp_org == 0 and temp == 0:
+    #     temp_diff = 0
+    # elif temp_org == 0 and temp !=0:
+    #     temp_org = 0.00001
+    #     temp_diff = ((temp-temp_org)/temp_org)*100
+    # else:
+    #     temp_diff = ((temp-temp_org)/temp_org)*100
+    
+    temp_diff = temp-temp_org
+    
+    print(hruid, temp, temp_org, temp_diff)
+    var_per_diff[int(hruid-1),4] = round(temp_diff,3)
 
 
 #%%
-# #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
-out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
-#out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
+# # #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
+# out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
+# #out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
 
-fnames = os.listdir(out_path)
+# fnames = os.listdir(out_path)
 
-wrs_use_dict = {}
-file_counter = 1
+# wrs_use_dict = {}
+# file_counter = 1
 
-for ff in fnames:
+# for ff in fnames:
 
-    if '.rch' in ff:
-        print(ff)
+#     if '.rch' in ff:
+#         print(ff)
 
-        df_rch = pd.read_table(out_path + '/' + ff, skiprows=9, delim_whitespace=True , 
-                                usecols=[0,1,2,3,4,5,6,16,17,20,21,28,29,47,48,49], 
-                                names = ["FILE","RCH","GIS","MON","AREAkm2","FLOW_INcms","FLOW_OUTcms",
-                                        "NO3_INkg","NO3_OUTkg","NO2_INkg","NO2_OUTkg","TOT Nkg","DISOX_INkg", " DISOX_OUTkg",
-                                        "TOT Pkg","NO3_mg_l"],
-                                index_col = False,low_memory = True)
+#         df_rch = pd.read_table(out_path + '/' + ff, skiprows=9, delim_whitespace=True , 
+#                                 usecols=[0,1,2,3,4,5,6,16,17,20,21,28,29,47,48,49], 
+#                                 names = ["FILE","RCH","GIS","MON","AREAkm2","FLOW_INcms","FLOW_OUTcms",
+#                                         "NO3_INkg","NO3_OUTkg","NO2_INkg","NO2_OUTkg","TOT Nkg","DISOX_INkg", " DISOX_OUTkg",
+#                                         "TOT Pkg","NO3_mg_l"],
+#                                 index_col = False,low_memory = True)
 
-        REACHES = df_rch['RCH'].unique().tolist()
-        YEARS = df_rch['MON'].unique().tolist()
-        yrs = [int(item) for item in YEARS]
-        yrs = list(filter(lambda x: x >= 999, yrs))
-        yrs_start = min(yrs)
-        yrs_end = max(yrs)
+#         REACHES = df_rch['RCH'].unique().tolist()
+#         YEARS = df_rch['MON'].unique().tolist()
+#         yrs = [int(item) for item in YEARS]
+#         yrs = list(filter(lambda x: x >= 999, yrs))
+#         yrs_start = min(yrs)
+#         yrs_end = max(yrs)
         
-        # data = df[["RCH","MON","FLOW_OUTcms"]].copy()
-        # data = data[data["MON"] < 13]
-        # for REACH in REACHES:
-        #     data2 = data[data["RCH"] == REACH]
-        #     pd.options.mode.chained_assignment = None
-        #     data2['date'] = pd.date_range(start='1/1/'+str(yrs_start), end = '12/31/'+str(yrs_end), freq='M')
-        #     data3 = data2[["date","FLOW_OUTcms"]].copy()
-        #     data3.set_index("date",inplace=True)
-        #     data3 = data3.rename(columns={"FLOW_OUTcms": "val"})
-        #     ### Compute SSI ###
-        #     norm_spi = spi(data3, nscale, nseas)
-        #     df_SSI = df_SSI.reindex(norm_spi.index)
-        #     df_SSI = df_SSI.join(norm_spi)
-        #     df_SSI = df_SSI.rename(columns={"spi":REACH})
-        # df_SSI.index = pd.to_datetime(df_SSI.index)
+#         # data = df[["RCH","MON","FLOW_OUTcms"]].copy()
+#         # data = data[data["MON"] < 13]
+#         # for REACH in REACHES:
+#         #     data2 = data[data["RCH"] == REACH]
+#         #     pd.options.mode.chained_assignment = None
+#         #     data2['date'] = pd.date_range(start='1/1/'+str(yrs_start), end = '12/31/'+str(yrs_end), freq='M')
+#         #     data3 = data2[["date","FLOW_OUTcms"]].copy()
+#         #     data3.set_index("date",inplace=True)
+#         #     data3 = data3.rename(columns={"FLOW_OUTcms": "val"})
+#         #     ### Compute SSI ###
+#         #     norm_spi = spi(data3, nscale, nseas)
+#         #     df_SSI = df_SSI.reindex(norm_spi.index)
+#         #     df_SSI = df_SSI.join(norm_spi)
+#         #     df_SSI = df_SSI.rename(columns={"spi":REACH})
+#         # df_SSI.index = pd.to_datetime(df_SSI.index)
