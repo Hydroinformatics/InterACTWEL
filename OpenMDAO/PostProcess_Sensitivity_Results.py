@@ -11,7 +11,7 @@ from matplotlib.cm import get_cmap
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import LineString
-
+import shapefile
 
 #%%
 def Get_output_hru(tfile, varcol, varname):
@@ -69,7 +69,6 @@ def Get_hruwr_dat(out_path):
             
             hru_wr_rel[df_hru_wr['WR_ID,'][i]]['HRUID'].append(df_hru_wr['HRUID,'][i])
             #hru_wr_rel[df_hru_wr['WR_ID,'][i]]['SUBID'].append(df_hru_wr['SUB_ID,'][i])
-            
     
     return hru_wr_rel
 
@@ -77,9 +76,12 @@ def Get_hruwr_dat(out_path):
 def Get_wrdata_dat(out_path):
     
     fnames = os.listdir(out_path)
-
+    
+    f_list = ['wrdata_0.dat','wrdata_org.dat', 'wrdata_low.dat']
+    
     wrs_dict = {}
-    for ff in fnames:
+    #for ff in fnames:
+    for ff in f_list:
 
         print(ff)
         temp_dict = {}
@@ -117,9 +119,11 @@ def Get_wrdata_dat(out_path):
         wrsf_id = wrsf[wrsf.find('_')+1:]
         
         if wrsf_id == 'org':
-            wrsf_id = 213
+            #wrsf_id = 213
+            wrsf_id = 2
         elif wrsf_id == 'low':
-            wrsf_id = 212
+            #wrsf_id = 212
+            wrsf_id = 1
         else:
             wrsf_id = int(wrsf_id)
         
@@ -143,9 +147,13 @@ def Get_wrdata_dat(out_path):
 def Get_wrs_use_dat(out_path):
     
     fnames = os.listdir(out_path)
+    
+    f_list = ['wrs_use_0.out','wrs_use_org.out', 'wrs_use_low.out']
+    
     wrs_use_dict = {}
     
-    for ff in fnames:
+    #for ff in fnames:
+    for ff in f_list:
 
         if 'wrs_use' in ff:
             print(ff)
@@ -189,9 +197,11 @@ def Get_wrs_use_dat(out_path):
         wrsf_id = wrsf[[i for i, ltr in enumerate(wrsf) if ltr == '_'][1]+1:]
         
         if wrsf_id == 'org':
-            wrsf_id = 213
+            #wrsf_id = 213
+            wrsf_id = 2
         elif wrsf_id == 'low':
-            wrsf_id = 212
+            #wrsf_id = 212
+            wrsf_id = 1
         else:
             wrsf_id = int(wrsf_id)
         
@@ -219,8 +229,12 @@ def Get_wrs_use_dat(out_path):
 def Get_hru_wrt_dat(out_path):
     
     fnames = os.listdir(out_path)
+    
+    f_list = ['hru_wrt_0.out','hru_wrt_org.out', 'hru_wrt_low.out']
+    
     hru_wrt_dict = {}
-    for ff in fnames:
+    #for ff in fnames:
+    for ff in f_list:
     
         if 'hru_wrt_' in ff:
             print(ff)
@@ -254,9 +268,11 @@ def Get_hru_wrt_dat(out_path):
         wrsf_id = wrsf[[i for i, ltr in enumerate(wrsf) if ltr == '_'][1]+1:]
         
         if wrsf_id == 'org':
-            wrsf_id = 213
+            #wrsf_id = 213
+            wrsf_id = 2
         elif wrsf_id == 'low':
-            wrsf_id = 212
+            #wrsf_id = 212
+            wrsf_id = 1
         else:
             wrsf_id = int(wrsf_id)
         
@@ -283,10 +299,12 @@ def Get_hru_output(out_path):
     varnames = ["LULC","HRU","GIS","SUB","MGT","AREAkm2","BIOMt/ha","YLDt/ha","IRRmm","NAUTOkg/ha","PAUTOkg/ha"]
     varcols = [i for i in range(0,10)]
 
+    f_list = ['output_0.hru','output_org.hru', 'output_low.hru']
     hru_out_dict = {}
     for ff in fnames:
 
-        if '.hru' in ff:
+        #if '.hru' in ff:
+        if ff in f_list:
             print(ff)
             
             try:
@@ -296,6 +314,7 @@ def Get_hru_output(out_path):
                 mon_yr = df_rch['YEAR'].tolist()
                 df_rch = df_rch.iloc[np.where(np.asarray(mon_yr) > 13)[0]]
                 df_rch['Total_Yield'] = df_rch['AREAkm2']*100*df_rch['YLDt/ha']
+                df_rch = df_rch.drop_duplicates()
                 
                 temp_dict = dict()
                 for i, row in df_rch.iterrows():
@@ -317,6 +336,23 @@ def Get_hru_output(out_path):
 #%%
 #data_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/'
 data_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs'
+
+# hru_nowa = shapefile.Reader(data_path + '/' + 'hru2_NOWA_pumping_limit.shp')
+# hru_nowa_records = hru_nowa.records()
+
+# hruid_nowa = []
+# for i in range(0,len(hru_nowa_records)):
+#     hruid_nowa.append((hrugis_dict[hru_nowa_records[i][6]]))
+# hruid_nowa = np.asarray(hruid_nowa)
+
+# hru_portMorrow = shapefile.Reader(data_path + '/' + 'HRUs_Port_Morrow.shp')
+# hru_portMorrow_records = hru_portMorrow.records()
+
+# hruid_portMorrow = []
+# for i in range(0,len(hru_portMorrow_records)):
+#     hruid_portMorrow.append((hru_portMorrow_records[i][6], hrugis_dict[hru_portMorrow_records[i][6]]))
+# hruid_portMorrow = np.asarray(hruid_portMorrow)
+
 
 crs = 'EPSG:26911'
 subs = gpd.read_file(data_path + "/subs1.shp")
@@ -342,7 +378,7 @@ def f(frame):
 gdf_joined['pct'] = gdf_joined.apply(f, axis=1)
 
 #%%
-subs_nowa = [int(row['Subbasin']) for i, row in gdf_joined.iterrows() if row['pct'] >= 10]
+subs_nowa = [int(row['Subbasin']) for i, row in gdf_joined.iterrows() if row['pct'] >= 20]
 
 fig, ax = plt.subplots()
 subs.plot(ax=ax, facecolor='none', edgecolor = 'black', lw=0.7)
@@ -360,14 +396,15 @@ wrid_file = dict()
 for wrsf in wrs_dict.keys():
     wrsf_id = wrsf[wrsf.find('_')+1:]
     if wrsf_id == 'org':
-        wrsf_id = 213
+        #wrsf_id = 213
+        wrsf_id = 2
     elif wrsf_id == 'low':
-        wrsf_id = 212
+        #wrsf_id = 212
+        wrsf_id = 1
     else:
         wrsf_id = int(wrsf_id)
     
-    wrid_file[wrsf] = wrids[np.where(wrs_data_all[wrsf_id,:]>999990)[0]]
-    
+    wrid_file[wrsf] = wrids[np.where(wrs_data_all[wrsf_id,:]>999990)[0]] 
 
 # %% WATER RIGHTS ASSIGNED TO HRU
 #out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs'
@@ -380,7 +417,9 @@ out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Resul
 wrs_use_dict, wrs_use_all, bad_files = Get_wrs_use_dat(out_path)
 
 #%%
-org_use = wrs_use_all[:,213,:]
+#org_use = wrs_use_all[:,213,:]
+#max_use = wrs_use_all[:,0,:]
+org_use = wrs_use_all[:,2,:]
 max_use = wrs_use_all[:,0,:]
 
 org_diff_wrs = np.zeros((len(wrs_use_all[0,:,0])-1,len(org_use.T)))
@@ -402,6 +441,13 @@ for fid in range(0,len(wrs_use_all[0,:,0])-1):
 org_diff_wrs = np.asarray(org_diff_wrs)    
 max_diff_wrs = np.asarray(max_diff_wrs)
 
+
+sum_org_use = np.vstack((wrs_data_all[2,:].T, np.sum(wrs_use_all[:,0,:],axis=0).T, np.sum(wrs_use_all[:,2,:],axis=0).T)).T
+
+#max_org_use = np.vstack((np.max(wrs_use_all[:,0,:],axis=0).T,np.max(wrs_use_all[:,2,:],axis=0).T)).T
+max_org_use = (np.max(wrs_use_all[:,0,:],axis=0).T/wrs_data_all[2,:].T)*100
+max_org_use[np.where(np.isnan(max_org_use))] = 0
+
 diff_wrs_totals = np.zeros((len(org_use.T),3))
 diff_wrs_totals[:,0] = np.arange(0,len(org_use.T))
 diff_wrs_totals[:,1] = np.round_(sum(org_diff_wrs),3)
@@ -412,277 +458,450 @@ max_diff_wrid = diff_wrs_totals[np.where(diff_wrs_totals[:,1]>1),0].T
 
 #plt.matshow(org_diff_wrs[:,[int(k) for k in org_diff_wrid[:0]]])
 
-# # %% WATER USED BY HRU FOR THEIR RESPECTIVE WATER RIGHTS
-# #out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
-# out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
-# hru_wrt_dict, hru_wrt_use = Get_hru_wrt_dat(out_path)
+# %% WATER USED BY HRU FOR THEIR RESPECTIVE WATER RIGHTS
+#out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
+out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
+hru_wrt_dict, hru_wrt_use = Get_hru_wrt_dat(out_path)
 
-# #%%
-# for hruid in hru_wrt_use.keys():
-#     for iterid in hru_wrt_use[hruid].keys():
-#         for wrid in hru_wrt_use[hruid][iterid].keys():
-#             total_use = 0
-#             for i in range(0,len(hru_wrt_use[hruid][iterid][wrid]['Data'])):
-#                 total_use = total_use + hru_wrt_use[hruid][iterid][wrid]['Data'][i][1]
+#%%
+for hruid in hru_wrt_use.keys():
+    for iterid in hru_wrt_use[hruid].keys():
+        for wrid in hru_wrt_use[hruid][iterid].keys():
+            total_use = 0
+            for i in range(0,len(hru_wrt_use[hruid][iterid][wrid]['Data'])):
+                total_use = total_use + hru_wrt_use[hruid][iterid][wrid]['Data'][i][1]
                 
-#             hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE'] = total_use
+            hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE'] = total_use
 
-# #%%
-# check_wrt_use = dict()
-# for wrsf in hru_wrt_dict.keys():
+#%%
+check_wrt_use = dict()
+for wrsf in hru_wrt_dict.keys():
     
-#     ttemp = hru_wrt_dict[wrsf]
+    ttemp = hru_wrt_dict[wrsf]
     
-#     wrsf_id = wrsf[[i for i, ltr in enumerate(wrsf) if ltr == '_'][1]+1:]
+    wrsf_id = wrsf[[i for i, ltr in enumerate(wrsf) if ltr == '_'][1]+1:]
     
-#     if wrsf_id == 'org':
-#         wrsf_id = 212
-#     elif wrsf_id == 'low':
-#         wrsf_id = 213
-#     else:
-#         wrsf_id = int(wrsf_id)
+    if wrsf_id == 'org':
+        #wrsf_id = 212
+        wrsf_id = 2
+    elif wrsf_id == 'low':
+        #wrsf_id = 213
+        wrsf_id = 1
+    else:
+        wrsf_id = int(wrsf_id)
     
-#     #hru_uid = np.unique(ttemp['HRU'])
-#     for i in range(0,len(ttemp['HRU'])):
-#         if wrsf_id not in check_wrt_use.keys():
-#             check_wrt_use[wrsf_id] = dict()
+    #hru_uid = np.unique(ttemp['HRU'])
+    for i in range(0,len(ttemp['HRU'])):
+        if wrsf_id not in check_wrt_use.keys():
+            check_wrt_use[wrsf_id] = dict()
 
-#         if ttemp['WRID'][i] not in check_wrt_use[wrsf_id].keys():
-#             check_wrt_use[wrsf_id][ttemp['WRID'][i]] = dict() 
+        if ttemp['WRID'][i] not in check_wrt_use[wrsf_id].keys():
+            check_wrt_use[wrsf_id][ttemp['WRID'][i]] = dict() 
             
-#         if ttemp['YEAR'][i] not in check_wrt_use[wrsf_id][ttemp['WRID'][i]].keys():
-#             check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] = 0
+        if ttemp['YEAR'][i] not in check_wrt_use[wrsf_id][ttemp['WRID'][i]].keys():
+            check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] = 0
         
-#         check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] = check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] + ttemp['WATER(acre-ft)'][i]
+        check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] = check_wrt_use[wrsf_id][ttemp['WRID'][i]][ttemp['YEAR'][i]] + ttemp['WATER(acre-ft)'][i]
         
 
-# #%%
-# for i in range(0,214):
-#     ttemp = wrs_use_all[:,i,:]
-#     for ii in check_wrt_use[i].keys():
-#         cy = 0
-#         for iii in check_wrt_use[i][ii].keys():
-#             tdif = check_wrt_use[i][ii][iii] - ttemp[cy,int(ii-1)]
-#             if abs(tdif) > 0.001:
-#                 print(i,int(ii),int(iii),tdif)
+#%%
+for i in range(0,3):
+#for i in range(0,214):
+    ttemp = wrs_use_all[:,i,:]
+    for ii in check_wrt_use[i].keys():
+        cy = 0
+        for iii in check_wrt_use[i][ii].keys():
+            tdif = check_wrt_use[i][ii][iii] - ttemp[cy,int(ii-1)]
+            if abs(tdif) > 0.001:
+                print(i,int(ii),int(iii),tdif)
             
-#             cy += 1
+            cy += 1
 
-# #%%
-# for wrf in wrs_dict.keys():
-#     rowids = np.where(np.asarray(wrs_dict[wrf]['WR_VOL_ft-acre']) > 999990)[0][0:10]
-#     wrid = np.unique(np.asarray(wrs_dict[wrf]['WR_ID'])[rowids])
-#     if len(wrid) > 1:
-#         print('Problem with: '+wrf)
+#%%
+for wrf in wrs_dict.keys():
+    rowids = np.where(np.asarray(wrs_dict[wrf]['WR_VOL_ft-acre']) > 999990)[0][0:10]
+    wrid = np.unique(np.asarray(wrs_dict[wrf]['WR_ID'])[rowids])
+    if len(wrid) > 1:
+        print('Problem with: '+ wrf)
 
-# #%% HRU OUTPUTS
-# #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
-# #out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
-# out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
-# hru_out_dict = Get_hru_output(out_path)
+#%% HRU OUTPUTS
+#out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
+#out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
+out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
+hru_out_dict = Get_hru_output(out_path)
 
-# org_hru_data = hru_out_dict['output_org']
+#%%
 
-# hru_param_diff = dict()
-# hru_param = ['BIOMt/ha', 'YLDt/ha', 'IRRmm', 'NAUTOkg/ha']
+lulc_unique = []
 
-# for hru_var in hru_param:
-#     print(hru_var)
-#     hru_param_diff[hru_var] = np.zeros((11346,214))
+for fid in hru_out_dict['output_org'].keys():
+    for lu in hru_out_dict['output_org'][fid]['LULC'][0:8]:
+        if lu.islower():
+            lu = 'ZOTHER'
+        if lu not in lulc_unique:
+            lulc_unique.append(lu)
+
+lulc_unique = np.unique(lulc_unique)
+
+lulc_irr = np.asarray(['AGRL','ALFA','BARL','BERM','CANP','CELR','CORN','HAY','MINT','ONIO','ORCD','PEAS','POTA','RADI','SCRN','SOYB','STRW','SWGR','SWHT','WWHT'])
+
+#org_hru_lulc = np.zeros((len(hru_out_dict['output_org'].keys()),len(lulc_unique)))
+#max_hru_lulc = np.zeros((len(hru_out_dict['output_org'].keys()),len(lulc_unique)))
+org_hru_lulc = np.zeros((len(hru_out_dict['output_org'].keys()),len(lulc_irr)))
+max_hru_lulc = np.zeros((len(hru_out_dict['output_org'].keys()),len(lulc_irr)))
+
+for fid in hru_out_dict['output_org'].keys():
+    for li in range(0,8):
+        lu = hru_out_dict['output_org'][fid]['LULC'][li]
+        if lu.islower():
+            lu = 'ZOTHER'
+        if lu in lulc_irr:
+            #luid = np.where(lulc_unique == lu)[0][0]
+            luid = np.where(lulc_irr == lu)[0][0]
+            org_hru_lulc[int(fid-1), luid] = org_hru_lulc[int(fid-1), luid] + hru_out_dict['output_org'][fid]['Total_Yield'][li]
+            max_hru_lulc[int(fid-1), luid] = max_hru_lulc[int(fid-1), luid] + hru_out_dict['output_0'][fid]['Total_Yield'][li]
+
+#diff_hru_lulc = max_hru_lulc - org_hru_lulc
+diff_hru_lulc = np.sum(abs(max_hru_lulc - org_hru_lulc),axis=1)
+
+
+wr_lulc_diff = np.zeros((1807,1))
+for hruid in hru_wrt_use.keys():
+    for wrid in hru_wrt_use[hruid][iterid].keys():
+        wr_lulc_diff[int(wrid-1)]=diff_hru_lulc[int(hruid-1)]
+
+hru_yield_diff = np.where(np.asarray(diff_hru_lulc) > 0)[0]
+
+#%%
+org_hru_data = hru_out_dict['output_org']
+
+hru_param_diff = dict()
+hru_param = ['BIOMt/ha', 'YLDt/ha', 'IRRmm', 'NAUTOkg/ha']
+
+for hru_var in hru_param:
+    print(hru_var)
+    #hru_param_diff[hru_var] = np.zeros((11346,214))
+    hru_param_diff[hru_var] = np.zeros((11346,3))
     
-#     for fid in hru_out_dict.keys():
-#         fid_id = fid[[i for i, ltr in enumerate(fid) if ltr == '_'][0]+1:]
+    for fid in hru_out_dict.keys():
+        fid_id = fid[[i for i, ltr in enumerate(fid) if ltr == '_'][0]+1:]
         
-#         if fid_id == 'org':
-#             fid_id = 212
-#         elif fid_id == 'low':
-#             fid_id = 213
+        if fid_id == 'org':
+            #fid_id = 213
+            fid_id = 2
+        elif fid_id == 'low':
+            #fid_id = 212
+            fid_id = 1
         
-#         for hruid in hru_out_dict[fid].keys():
-#             #temp_per_chg = ((np.asarray(hru_out_dict[fid][hruid][hru_var]) - np.asarray(org_hru_data[hruid][hru_var]))/np.asarray(org_hru_data[hruid][hru_var]))*100
-#             temp_per_chg = (np.asarray(hru_out_dict[fid][hruid][hru_var]) - np.asarray(org_hru_data[hruid][hru_var]))
-#             hru_param_diff[hru_var][int(hruid)-1,int(fid_id)] = sum(abs(temp_per_chg))
+        for hruid in hru_out_dict[fid].keys():
+            #temp_per_chg = ((np.asarray(hru_out_dict[fid][hruid][hru_var]) - np.asarray(org_hru_data[hruid][hru_var]))/np.asarray(org_hru_data[hruid][hru_var]))*100
+            temp_per_chg = (np.asarray(hru_out_dict[fid][hruid][hru_var])[0:8] - np.asarray(org_hru_data[hruid][hru_var])[0:8])
+            hru_param_diff[hru_var][int(hruid)-1,int(fid_id)] = sum(abs(temp_per_chg))
         
     
-# #%%
-# var_per_diff = np.zeros((len(hru_param_diff[hru_var]),5))
-# cc = 0
-# for hru_var in hru_param: 
-#     var_diff = hru_param_diff[hru_var]
+#%%
+var_per_diff = np.zeros((len(hru_param_diff[hru_var]),5))
+cc = 0
+for hru_var in hru_param: 
+    var_diff = hru_param_diff[hru_var]
     
-#     var_diff[np.where(np.isnan(var_diff))] = 0
-#     var_per_diff[:,cc] = np.sum(var_diff,axis=1)
-#     cc = cc + 1
+    var_diff[np.where(np.isnan(var_diff))] = 0
+    #var_per_diff[:,cc] = np.sum(var_diff[:,[0,212]],axis=1)
+    var_per_diff[:,cc] = np.max(var_diff[:,[0,1]],axis=1)
+    #var_per_diff[:,cc] = var_diff[:,212]
+    cc = cc + 1
 
+#%%
 
-# for hruid in hru_wrt_use.keys():
-#     temp = 0
-#     temp_org = 0
-#     for iterid in hru_wrt_use[hruid].keys():
-#     #for iterid in range(0,1):
-
-#         for wrid in hru_wrt_use[hruid][iterid].keys():
-#             temp = temp + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
-#             temp_org = temp_org + hru_wrt_use[hruid][212][wrid]['TOTAL_USE']
+for hruid in hru_wrt_use.keys():
+    temp = 0
+    temp_org = 0
     
-#     # if temp_org == 0 and temp == 0:
-#     #     temp_diff = 0
-#     # elif temp_org == 0 and temp !=0:
-#     #     temp_org = 0.00001
-#     #     temp_diff = ((temp-temp_org)/temp_org)*100
-#     # else:
-#     #     temp_diff = ((temp-temp_org)/temp_org)*100
-    
-#     temp_diff = abs(temp - temp_org)
-    
-#     print(hruid, temp, temp_org, temp_diff)
-#     var_per_diff[int(hruid-1),4] = round(temp_diff,3)
+    for iterid in [0,1]:
+    #for iterid in [0,212]:
+    #for iterid in hru_wrt_use[hruid].keys():
+    #for iterid in range(0,1):
 
-
-# #%%
-# hru_sub = dict()
-# for hruid in hru_out_dict['output_org'].keys():
-#     hru_sub[hruid] = int(hru_out_dict['output_org'][hruid]['SUB'][0])
+        for wrid in hru_wrt_use[hruid][iterid].keys():
+            temp = temp + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
+            #temp_org = temp_org + hru_wrt_use[hruid][212][wrid]['TOTAL_USE']
+            temp_org = temp_org + hru_wrt_use[hruid][2][wrid]['TOTAL_USE']
     
-# hru_yield_diff = np.where(np.asarray(var_per_diff[:,1]) > 1)[0]
+    # if temp_org == 0 and temp == 0:
+    #     temp_diff = 0
+    # elif temp_org == 0 and temp !=0:
+    #     temp_org = 0.00001
+    #     temp_diff = ((temp-temp_org)/temp_org)*100
+    # else:
+    #     temp_diff = ((temp-temp_org)/temp_org)*100
+    
+    temp_diff = abs(temp - temp_org)
+    
+    print(hruid, temp, temp_org, temp_diff)
+    var_per_diff[int(hruid-1),4] = round(temp_diff,3)
 
-# sub_yield_diff = []
-# for i in hru_yield_diff:
-#     if hru_sub[i+1] not in sub_yield_diff:
-#         sub_yield_diff.append(hru_sub[i+1])
+hru_yield_diff = np.where(np.asarray(var_per_diff[:,1]) > 100)[0]
+
+#%%
+hru_sub = dict()
+for hruid in hru_out_dict['output_org'].keys():
+    hru_sub[hruid] = int(hru_out_dict['output_org'][hruid]['SUB'][0])
+    
+sub_yield_diff = []
+for i in hru_yield_diff:
+    if hru_sub[i+1] not in sub_yield_diff:
+        sub_yield_diff.append(hru_sub[i+1])
            
-# sub_wr_diff = np.zeros((147,214))
-# for hruid in hru_wrt_use.keys():
-#     for iterid in hru_wrt_use[hruid].keys():
-#         for wrid in hru_wrt_use[hruid][iterid].keys():
-            
-#             tsubid = hru_sub[hruid]-1
-#             sub_wr_diff[tsubid,iterid] = sub_wr_diff[tsubid,iterid] + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
+#sub_wr_diff = np.zeros((147,214))
+sub_wr_diff = np.zeros((147,3))
+for hruid in hru_wrt_use.keys():
+    for iterid in hru_wrt_use[hruid].keys():
+    #for iterid in [0,212]:
+        for wrid in hru_wrt_use[hruid][iterid].keys():
+            tsubid = hru_sub[hruid]-1
+            sub_wr_diff[tsubid,iterid] = sub_wr_diff[tsubid,iterid] + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
 
-# for iterid in range(0,212):
-#     sub_wr_diff[:,iterid] = sub_wr_diff[:,iterid] - sub_wr_diff[:,212]
+
+for iterid in range(0,2):
+#for iterid in range(0,213):
+#for iterid in [0,212]:
+    #sub_wr_diff[:,iterid] = abs(sub_wr_diff[:,iterid] - sub_wr_diff[:,213])
+    sub_wr_diff[:,iterid] = abs(sub_wr_diff[:,iterid] - sub_wr_diff[:,2])
     
-# sub_with_diff = np.where(np.sum(sub_wr_diff[:,0:212],axis=1) > 1)[0]
+#sub_with_diff = np.where(np.sum(sub_wr_diff[:,0:212],axis=1) > 1)[0]
+#sub_with_diff = np.where(np.sum(sub_wr_diff[:,[0,212]],axis=1) > 50000)[0]
+sub_with_diff = np.where(np.sum(sub_wr_diff[:,[0,1]],axis=1) > 50000)[0]
 
+#%%
+hru_wr_sub = dict()
+mdao_wrs =[]
 
-# hru_wr_sub = dict()
-# mdao_wrs =[]
-
-# for wrid in hru_wr_rel.keys():
-#     if 'SUBID' not in hru_wr_rel[wrid].keys():
-#         hru_wr_rel[wrid]['SUBID'] = []
+for wrid in hru_wr_rel.keys():
+    if 'SUBID' not in hru_wr_rel[wrid].keys():
+        hru_wr_rel[wrid]['SUBID'] = []
     
-#     for hruid in hru_wr_rel[wrid]['HRUID']:
-#         tsub = int(hru_out_dict['output_org'][hruid]['SUB'][0])
-#         if tsub not in hru_wr_rel[wrid]['SUBID']:
-#             hru_wr_rel[wrid]['SUBID'].append(tsub)
+    for hruid in hru_wr_rel[wrid]['HRUID']:
+        tsub = int(hru_out_dict['output_org'][hruid]['SUB'][0])
+        if tsub not in hru_wr_rel[wrid]['SUBID']:
+            hru_wr_rel[wrid]['SUBID'].append(tsub)
         
-#         #if (tsub-1) in sub_with_diff and (tsub-1) not in mdao_wrs:
-#         if tsub not in mdao_wrs:
-#             mdao_wrs.append(wrid)
+        #if (tsub-1) in sub_with_diff and (tsub-1) not in mdao_wrs:
+        if tsub not in mdao_wrs:
+            mdao_wrs.append(wrid)
                     
-# mdao_wrs = np.unique(mdao_wrs)
-# mdao_wrs_dict = dict()
-# for wrid in mdao_wrs:
-#     mdao_wrs_dict[wrid] = hru_wr_rel[wrid]
+mdao_wrs = np.unique(mdao_wrs)
 
-# mdao_subs = [subs_nowa, list(sub_with_diff+1), sub_yield_diff]
-# mdao_subs = set(mdao_subs[0]).intersection(*mdao_subs)
+mdao_wrs_dict = dict()
+for wrid in mdao_wrs:
+    mdao_wrs_dict[wrid] = hru_wr_rel[wrid]
 
-# #%%
-# iter_subs = []
-# for wrsf in wrid_file:
-#     wrid = wrsf[wrsf.find('_')+1:]
+#mdao_subs = [subs_nowa, list(sub_with_diff+1), sub_yield_diff]
+mdao_subs = [subs_nowa, sub_yield_diff]
+mdao_subs = set(mdao_subs[0]).intersection(*mdao_subs)
+
+#%%
+mdao_wrs = []
+for wrid in hru_wr_rel.keys():
+    for subid in hru_wr_rel[wrid]['SUBID']:
+        if subid in mdao_subs and wrid not in mdao_wrs:
+            mdao_wrs.append(wrid)
+
+mdao_wrs = np.unique(mdao_wrs)
+
+wrids = np.unique(wrs_dict['wrdata_org']['WR_ID'])
+temp_dict = np.asarray(pd.DataFrame.from_dict(wrs_dict['wrdata_org']))
+
+
+mdao_wr_dict = dict()
+for wriid in wrids:
+    for yy in range(1,2):
+        indx = np.where((temp_dict[:, 1] == wriid) & (temp_dict[:, 0] == yy))[0]
+        mdao_wr_dict[wriid] = temp_dict[indx,3][0]
+
+mdao_wrs_vol = []
+for wrid in mdao_wrs:
+    mdao_wrs_vol.append((wrid, mdao_wr_dict[wrid]))
+mdao_wrs_vol = np.asarray(mdao_wrs_vol)
+
+
+total_vol_mdao_wrs = np.sum(mdao_wrs_vol[:,1])
+per_vol_mdao_wrs = mdao_wrs_vol[:,1]/total_vol_mdao_wrs
+
+mdao_wrs_vol = np.hstack((mdao_wrs_vol, np.reshape(per_vol_mdao_wrs,(len(per_vol_mdao_wrs),1))))
+
+wrs_bin = np.zeros((1807,3))
+for i in mdao_wrs_vol[:,0]:
+    wrs_bin[int(i-1),0] = 1
+
+#wrs_bin[:,1] = np.reshape(max_org_use,(len(max_org_use),1))
+wrs_bin[:,1] = max_org_use
+wrs_bin[:,2] = wr_lulc_diff[:,0]
+
+max_wrs_sub = []
+for wrid in hru_wr_rel.keys():
+    if wrs_bin[int(wrid-1),1] > 100 and wrs_bin[int(wrid-1),2] > 0:
+        for subid in hru_wr_rel[wrid]['SUBID']:
+            if subid not in max_wrs_sub:
+                max_wrs_sub.append(subid)
+                 
+mdao_subs2 = [subs_nowa, max_wrs_sub, sub_yield_diff]
+mdao_subs2 = set(mdao_subs2[0]).intersection(*mdao_subs2)
+
+mdao_wrs2 = []
+for wrid in hru_wr_rel.keys():
+    for subid in hru_wr_rel[wrid]['SUBID']:
+        if subid in mdao_subs2 and wrid not in mdao_wrs2:
+            mdao_wrs2.append(wrid)
+
+#mdao_wrs2 = np.unique(mdao_wrs2)
+
+#%%
+iter_subs = []
+for wrsf in wrid_file:
+    wrid = wrsf[wrsf.find('_')+1:]
     
-#     if wrid != '0' and wrid != 'org':
-#         for wwrid in wrid_file[wrsf]:
+    if wrid != '0' and wrid != 'org':
+        for wwrid in wrid_file[wrsf]:
             
-#             if int(wwrid) in hru_wr_rel.keys():
-#                 for sid in hru_wr_rel[int(wwrid)]['SUBID']:
-#                     if sid not in iter_subs:
-#                         iter_subs.append(sid)
+            if int(wwrid) in hru_wr_rel.keys():
+                for sid in hru_wr_rel[int(wwrid)]['SUBID']:
+                    if sid not in iter_subs:
+                        iter_subs.append(sid)
                 
-# # for wrid in hru_wr_rel.keys():
-# #     for sid in hru_wr_rel[int(wrid)]['SUBID']:
-# #         if sid not in iter_subs:
-# #             iter_subs.append(sid)
+# for wrid in hru_wr_rel.keys():
+#     for sid in hru_wr_rel[int(wrid)]['SUBID']:
+#         if sid not in iter_subs:
+#             iter_subs.append(sid)
 
-# #%%
-# # mdao_subs = np.zeros((len(sub_wr_diff),3))
-# # for i in subs_nowa:
-# #     subs_nowa, list(sub_with_diff), sub_yield_diff]
+#%%
+
+out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\MDAO_WRS.txt'
+wr_mdao = []
+with open(out_path, 'r') as search:
+    for line in search:
+        if len(line) > 0:
+            wr_mdao.append(int(line))
+
+search.close()    
+
+mdao_subs2 = []
+wr_mdao_nowa = []
+for i in range(0,len(wr_mdao)):
+#for i in range(0,50):
+    wrid = wr_mdao[i] 
+    for subid in hru_wr_rel[wrid]['SUBID']:
+        if subid not in mdao_subs2 and subid in subs_nowa and wrid not in wr_mdao_nowa:
+            mdao_subs2.append(subid)
+            wr_mdao_nowa.append(wrid)
+
+#wr_mdao_nowa = np.unique(wr_mdao_nowa)
+#mdao_subs2 = np.unique(mdao_subs2)
+
+mdao_subs_wrs = dict()
+subs_per_wr = np.zeros((len(wr_mdao_nowa),3))
+for i in range(0,len(wr_mdao_nowa)):
+    wrid = wr_mdao_nowa[i] 
+    temp_area = 0
+    for hruid in hru_wr_rel[wrid]['HRUID']:
+        temp_area = temp_area + hru_out_dict['output_org'][hruid]['AREAkm2'][0]
     
-# fig, ax = plt.subplots(2,2)
+    for subid in hru_wr_rel[wrid]['SUBID']:
+        if subid not in mdao_subs_wrs.keys():
+            mdao_subs_wrs[subid] = []
+        if subid in subs_nowa:
+            mdao_subs_wrs[subid].append(wrid)
+    
+    print(wrid, hru_wr_rel[wrid]['SUBID'], len(hru_wr_rel[wrid]['HRUID']))
+    subs_per_wr[i,:]= (wrid, len(hru_wr_rel[wrid]['SUBID']), temp_area)
 
-# subs.plot(ax=ax[0,0], facecolor='none', edgecolor = 'black', lw=0.7)
-# ax[0,0].set_title('WaterRights Diff')
-# for sid in sub_with_diff:
-#     subs.loc[subs['Subbasin']==sid+1,'geometry'].plot(ax=ax[0,0], facecolor='blue', alpha=0.5)
 
-# subs.plot(ax=ax[0,1], facecolor='none', edgecolor = 'black', lw=0.7)
-# ax[0,1].set_title('Yield Diff')
-# for sid in sub_yield_diff:
-#      subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[0,1], facecolor='yellow', alpha=0.5)
+# mdao_subs = np.zeros((len(sub_wr_diff),3))
+# for i in subs_nowa:
+#     subs_nowa, list(sub_with_diff), sub_yield_diff]
+    
+fig, ax = plt.subplots(2,2)
 
-# subs.plot(ax=ax[1,0], facecolor='none', edgecolor = 'black', lw=0.7)
-# ax[1,0].set_title('NOWA Subs')
-# for sid in subs_nowa:
-#      subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,0], facecolor='red', alpha=0.5)
+subs.plot(ax=ax[0,0], facecolor='none', edgecolor = 'black', lw=0.7)
+ax[0,0].set_title('WaterRights Diff')
+for sid in sub_with_diff:
+    subs.loc[subs['Subbasin']==sid+1,'geometry'].plot(ax=ax[0,0], facecolor='blue', alpha=0.5)
 
-# # subs.plot(ax=ax[1,1], facecolor='none', edgecolor = 'black', lw=0.7)
-# # ax[1,1].set_title('MDAO')
-# # for sid in mdao_subs:
-# #       subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,1], facecolor='red', alpha=0.5)
+subs.plot(ax=ax[0,1], facecolor='none', edgecolor = 'black', lw=0.7)
+ax[0,1].set_title('Yield Diff')
+for sid in sub_yield_diff:
+     subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[0,1], facecolor='yellow', alpha=0.5)
+
+subs.plot(ax=ax[1,0], facecolor='none', edgecolor = 'black', lw=0.7)
+ax[1,0].set_title('NOWA Subs')
+for sid in subs_nowa:
+     subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,0], facecolor='red', alpha=0.5)
+
+subs.plot(ax=ax[1,1], facecolor='none', edgecolor = 'black', lw=0.7)
+ax[1,1].set_title('MDAO')
+for sid in mdao_subs2:
+#for sid in max_wrs_sub:
+      subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,1], facecolor='red', alpha=0.5)
 
 # subs.plot(ax=ax[1,1], facecolor='none', edgecolor = 'black', lw=0.7)
 # ax[1,1].set_title('ITER SUBS')
 # for sid in iter_subs:
 #       subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,1], facecolor='red', alpha=0.5)
 
-# # subs.apply(lambda x: ax.annotate(text=x['Index'], xy=x.geometry.centroid.coords[0], ha='center', color='orange'), axis=1)
+# subs.apply(lambda x: ax.annotate(text=x['Index'], xy=x.geometry.centroid.coords[0], ha='center', color='orange'), axis=1)
+
+#%%
+wrid = 1581
+# for i in range(0,len(wr_mdao_nowa)):
+#     wrid = wr_mdao_nowa[i] 
+#     temp_area = 0
+
+fig, ax = plt.subplots()
+hrus2.plot(ax=ax, facecolor='none', edgecolor = 'lightgray', lw=0.7)
+for hruid in hru_wr_rel[wrid]['HRUID']:
+    hrus2.loc[hrus2['HRUINT']==hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)
 
 
-# #%%
-# # # #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
-# # out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
-# # #out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
+#%%
+# # #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'
+# out_path = r'/Users/sammy/Library/CloudStorage/Box-Box/Research/SWAT/SWAT_JetStream_runs/ITERS_Results'
+# #out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\ITERS_Results'
 
-# # fnames = os.listdir(out_path)
+# fnames = os.listdir(out_path)
 
-# # wrs_use_dict = {}
-# # file_counter = 1
+# wrs_use_dict = {}
+# file_counter = 1
 
-# # for ff in fnames:
+# for ff in fnames:
 
-# #     if '.rch' in ff:
-# #         print(ff)
+#     if '.rch' in ff:
+#         print(ff)
 
-# #         df_rch = pd.read_table(out_path + '/' + ff, skiprows=9, delim_whitespace=True , 
-# #                                 usecols=[0,1,2,3,4,5,6,16,17,20,21,28,29,47,48,49], 
-# #                                 names = ["FILE","RCH","GIS","MON","AREAkm2","FLOW_INcms","FLOW_OUTcms",
-# #                                         "NO3_INkg","NO3_OUTkg","NO2_INkg","NO2_OUTkg","TOT Nkg","DISOX_INkg", " DISOX_OUTkg",
-# #                                         "TOT Pkg","NO3_mg_l"],
-# #                                 index_col = False,low_memory = True)
+#         df_rch = pd.read_table(out_path + '/' + ff, skiprows=9, delim_whitespace=True , 
+#                                 usecols=[0,1,2,3,4,5,6,16,17,20,21,28,29,47,48,49], 
+#                                 names = ["FILE","RCH","GIS","MON","AREAkm2","FLOW_INcms","FLOW_OUTcms",
+#                                         "NO3_INkg","NO3_OUTkg","NO2_INkg","NO2_OUTkg","TOT Nkg","DISOX_INkg", " DISOX_OUTkg",
+#                                         "TOT Pkg","NO3_mg_l"],
+#                                 index_col = False,low_memory = True)
 
-# #         REACHES = df_rch['RCH'].unique().tolist()
-# #         YEARS = df_rch['MON'].unique().tolist()
-# #         yrs = [int(item) for item in YEARS]
-# #         yrs = list(filter(lambda x: x >= 999, yrs))
-# #         yrs_start = min(yrs)
-# #         yrs_end = max(yrs)
+#         REACHES = df_rch['RCH'].unique().tolist()
+#         YEARS = df_rch['MON'].unique().tolist()
+#         yrs = [int(item) for item in YEARS]
+#         yrs = list(filter(lambda x: x >= 999, yrs))
+#         yrs_start = min(yrs)
+#         yrs_end = max(yrs)
         
-# #         # data = df[["RCH","MON","FLOW_OUTcms"]].copy()
-# #         # data = data[data["MON"] < 13]
-# #         # for REACH in REACHES:
-# #         #     data2 = data[data["RCH"] == REACH]
-# #         #     pd.options.mode.chained_assignment = None
-# #         #     data2['date'] = pd.date_range(start='1/1/'+str(yrs_start), end = '12/31/'+str(yrs_end), freq='M')
-# #         #     data3 = data2[["date","FLOW_OUTcms"]].copy()
-# #         #     data3.set_index("date",inplace=True)
-# #         #     data3 = data3.rename(columns={"FLOW_OUTcms": "val"})
-# #         #     ### Compute SSI ###
-# #         #     norm_spi = spi(data3, nscale, nseas)
-# #         #     df_SSI = df_SSI.reindex(norm_spi.index)
-# #         #     df_SSI = df_SSI.join(norm_spi)
-# #         #     df_SSI = df_SSI.rename(columns={"spi":REACH})
-# #         # df_SSI.index = pd.to_datetime(df_SSI.index)
+#         # data = df[["RCH","MON","FLOW_OUTcms"]].copy()
+#         # data = data[data["MON"] < 13]
+#         # for REACH in REACHES:
+#         #     data2 = data[data["RCH"] == REACH]
+#         #     pd.options.mode.chained_assignment = None
+#         #     data2['date'] = pd.date_range(start='1/1/'+str(yrs_start), end = '12/31/'+str(yrs_end), freq='M')
+#         #     data3 = data2[["date","FLOW_OUTcms"]].copy()
+#         #     data3.set_index("date",inplace=True)
+#         #     data3 = data3.rename(columns={"FLOW_OUTcms": "val"})
+#         #     ### Compute SSI ###
+#         #     norm_spi = spi(data3, nscale, nseas)
+#         #     df_SSI = df_SSI.reindex(norm_spi.index)
+#         #     df_SSI = df_SSI.join(norm_spi)
+#         #     df_SSI = df_SSI.rename(columns={"spi":REACH})
+#         # df_SSI.index = pd.to_datetime(df_SSI.index)
