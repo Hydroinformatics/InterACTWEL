@@ -7,11 +7,11 @@ import numpy as np
 import re
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
+import pyodbc
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString
-import shapefile
+
 
 #%%
 def Get_output_hru(tfile, varcol, varname):
@@ -296,8 +296,8 @@ def Get_hru_wrt_dat(out_path):
 def Get_hru_output(out_path):
     
     fnames = os.listdir(out_path)
-    varnames = ["LULC","HRU","GIS","SUB","MGT","AREAkm2","BIOMt/ha","YLDt/ha","IRRmm","NAUTOkg/ha","PAUTOkg/ha"]
-    varcols = [i for i in range(0,10)]
+    varnames = ["LULC","HRU","GIS","SUB","MGT","AREAkm2","BIOMt/ha","YLDt/ha","IRRmm","NAUTOkg/ha","PAUTOkg/ha", "ETmm", "SW_INITmm", "SW_ENDmm", "PERCmm", "GW_RCHGmm", "REVAPmm", "W_STRS"]
+    varcols = [i for i in range(0,len(varnames))]
 
     f_list = ['output_0.hru','output_org.hru', 'output_low.hru']
     hru_out_dict = {}
@@ -376,6 +376,20 @@ def f(frame):
     return interpct
 
 gdf_joined['pct'] = gdf_joined.apply(f, axis=1)
+
+#%%
+db_path = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Umatilla_InterACTWEL_QSWATv4\Umatilla_InterACTWEL_QSWATv4\Umatilla_InterACTWEL_QSWATv4.mdb'    
+conn_str = (
+    r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
+    r'DBQ=' + db_path + ';'
+    )
+cnxn = pyodbc.connect(conn_str)
+crsr = cnxn.cursor()
+
+crsr.execute('select * from hrus')
+swat_hruid = dict()
+for row in crsr.fetchall():
+    swat_hruid[int(row[11])] = [row[12],int(row[1])]
 
 #%%
 subs_nowa = [int(row['Subbasin']) for i, row in gdf_joined.iterrows() if row['pct'] >= 20]
@@ -532,6 +546,62 @@ hru_out_dict = Get_hru_output(out_path)
 
 #%%
 
+varsn = ["YLDt/ha","IRRmm", "ETmm", "SW_INITmm", "SW_ENDmm", "PERCmm", "GW_RCHGmm", "REVAPmm", "W_STRS"]
+
+hru_prob = []
+for i in hru_out_dict['output_org'].keys():
+    for vn in varsn:
+        temp_diff = np.asarray((hru_out_dict['output_org'][i][vn], hru_out_dict['output_0'][i][vn])).T
+        if len(np.where(temp_diff[:,0] > temp_diff[:,1])[0]) > 0:
+            print(i, vn, temp_diff)
+            if i not in hru_prob:
+                hru_prob.append(i)
+                
+#%%
+varsn = ["YEAR", "YLDt/ha","IRRmm", "ETmm", "SW_INITmm", "SW_ENDmm", "PERCmm", "GW_RCHGmm", "REVAPmm", "W_STRS"]
+
+all_var = []
+for vn in varsn:
+    if len(all_var) == 0:
+        temp_var = [-999,-999,-999]
+    else:
+        temp_var = [-999,-999]
+        
+    for i in hru_out_dict['output_org'].keys():
+        temp_diff = np.asarray((hru_out_dict['output_org'][i][vn], hru_out_dict['output_0'][i][vn])).T
+        if len(all_var) == 0:
+            temp_var = np.vstack((temp_var, np.hstack((np.ones((len(temp_diff),1))*i, temp_diff))))
+        else:
+            temp_var = np.vstack((temp_var, temp_diff))
+        
+    #temp_var =  temp_var[1:,:]
+    if len(all_var) == 0:
+        all_var = temp_var    
+    else:
+        all_var = np.hstack((all_var, temp_var))
+
+all_var =  all_var[1:,:]
+
+# varsn = ["YLDt/ha"]
+
+# yield_rel = [-999,-999]
+# for i in hru_out_dict['output_org'].keys():
+#     for vn in varsn:
+#         temp_diff = np.asarray((hru_out_dict['output_org'][i][vn], hru_out_dict['output_0'][i][vn])).T
+#         yield_rel = np.vstack((yield_rel,temp_diff))
+        
+# yield_rel =  yield_rel[1:,:]
+
+#%%
+
+fig, ax = plt.subplots()
+subs.plot(ax=ax, facecolor='none', edgecolor = 'black', lw=0.7)
+#nowa.plot(ax=ax, facecolor='yellow', edgecolor = 'black', alpha=0.7)
+for hru_probid in hru_prob:
+    hrus2.loc[hrus2['HRUINT']==hru_probid,'geometry'].plot(ax=ax, facecolor='blue', alpha=0.5)
+
+#%%
+
 lulc_unique = []
 
 for fid in hru_out_dict['output_org'].keys():
@@ -652,6 +722,9 @@ for i in hru_yield_diff:
     if hru_sub[i+1] not in sub_yield_diff:
         sub_yield_diff.append(hru_sub[i+1])
            
+        
+        
+        
 #sub_wr_diff = np.zeros((147,214))
 sub_wr_diff = np.zeros((147,3))
 for hruid in hru_wrt_use.keys():
@@ -660,6 +733,9 @@ for hruid in hru_wrt_use.keys():
         for wrid in hru_wrt_use[hruid][iterid].keys():
             tsubid = hru_sub[hruid]-1
             sub_wr_diff[tsubid,iterid] = sub_wr_diff[tsubid,iterid] + hru_wrt_use[hruid][iterid][wrid]['TOTAL_USE']
+            
+            
+            
 
 
 for iterid in range(0,2):
@@ -784,13 +860,15 @@ with open(out_path, 'r') as search:
 
 search.close()    
 
+#%%
 mdao_subs2 = []
 wr_mdao_nowa = []
 for i in range(0,len(wr_mdao)):
 #for i in range(0,50):
     wrid = wr_mdao[i] 
     for subid in hru_wr_rel[wrid]['SUBID']:
-        if subid not in mdao_subs2 and subid in subs_nowa and wrid not in wr_mdao_nowa:
+        #if subid not in mdao_subs2 and subid in subs_nowa and wrid not in wr_mdao_nowa:
+        if subid in subs_nowa and wrid not in wr_mdao_nowa:
             mdao_subs2.append(subid)
             wr_mdao_nowa.append(wrid)
 
@@ -811,10 +889,10 @@ for i in range(0,len(wr_mdao_nowa)):
         if subid in subs_nowa:
             mdao_subs_wrs[subid].append(wrid)
     
-    print(wrid, hru_wr_rel[wrid]['SUBID'], len(hru_wr_rel[wrid]['HRUID']))
+    print(wrid, len(hru_wr_rel[wrid]['SUBID']), len(hru_wr_rel[wrid]['HRUID']))
     subs_per_wr[i,:]= (wrid, len(hru_wr_rel[wrid]['SUBID']), temp_area)
 
-
+#%%
 # mdao_subs = np.zeros((len(sub_wr_diff),3))
 # for i in subs_nowa:
 #     subs_nowa, list(sub_with_diff), sub_yield_diff]
@@ -829,12 +907,12 @@ for sid in sub_with_diff:
 subs.plot(ax=ax[0,1], facecolor='none', edgecolor = 'black', lw=0.7)
 ax[0,1].set_title('Yield Diff')
 for sid in sub_yield_diff:
-     subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[0,1], facecolor='yellow', alpha=0.5)
+      subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[0,1], facecolor='yellow', alpha=0.5)
 
 subs.plot(ax=ax[1,0], facecolor='none', edgecolor = 'black', lw=0.7)
 ax[1,0].set_title('NOWA Subs')
 for sid in subs_nowa:
-     subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,0], facecolor='red', alpha=0.5)
+      subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax[1,0], facecolor='red', alpha=0.5)
 
 subs.plot(ax=ax[1,1], facecolor='none', edgecolor = 'black', lw=0.7)
 ax[1,1].set_title('MDAO')
@@ -850,16 +928,43 @@ for sid in mdao_subs2:
 # subs.apply(lambda x: ax.annotate(text=x['Index'], xy=x.geometry.centroid.coords[0], ha='center', color='orange'), axis=1)
 
 #%%
-wrid = 1581
-# for i in range(0,len(wr_mdao_nowa)):
-#     wrid = wr_mdao_nowa[i] 
-#     temp_area = 0
+# wrid = 316
+# # for i in range(0,len(wr_mdao_nowa)):
+# #     wrid = wr_mdao_nowa[i] 
+# #     temp_area = 0
 
 fig, ax = plt.subplots()
-hrus2.plot(ax=ax, facecolor='none', edgecolor = 'lightgray', lw=0.7)
-for hruid in hru_wr_rel[wrid]['HRUID']:
-    hrus2.loc[hrus2['HRUINT']==hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)
 
+hrus2.plot(ax=ax, facecolor='none', edgecolor = 'lightgray', lw=0.7)
+for i in range(0,len(wr_mdao_nowa)):
+    #wrid = wr_mdao_nowa[i] 
+    for hruid in hru_wr_rel[wrid]['HRUID']:
+        #hrus2.loc[hrus2['HRUINT'] == hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)
+        hrus2.loc[hrus2['HRUINT'] == hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)
+
+subs.plot(ax=ax,facecolor='none',edgecolor='black')
+#nowa.plot(ax=ax, facecolor='yellow', edgecolor = 'black', alpha=0.1)
+for sid in subs_nowa:
+    subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax, facecolor='blue', alpha=0.1)
+
+
+#%%
+fig, ax = plt.subplots()
+
+hrus2.plot(ax=ax, facecolor='none', edgecolor = 'lightgray', lw=0.7)
+
+for wrid in hru_wr_rel.keys():
+    for hruid in hru_wr_rel[wrid]['HRUID']:
+        hrus2.loc[hrus2['HRUINT'] == hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)
+
+subs.plot(ax=ax,facecolor='none',edgecolor='black')
+
+
+#%%
+# hruid_csv = []
+# for i in swat_hruid.keys(): 
+#     hruid_csv.append((str(swat_hruid[i][0]),i,swat_hruid[i][1]))
+# hruid_csv = np.asarray(hruid_csv)
 
 #%%
 # # #out_path = r'/Users/sammy/Documents/Research/SWAT/ITERS_Results/'

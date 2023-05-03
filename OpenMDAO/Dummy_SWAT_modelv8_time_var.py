@@ -48,7 +48,7 @@ class FEWNexus(om.Group):
             for yi in range(0,self.nyears):
                 self.add_subsystem('farmer_' + str(i+1) + '_' + str(yi+1) + '_plan', FarmerOpt())                
                 self.connect('wr_vols','farmer_' + str(i+1) + '_' + str(yi+1) + '_plan.wr_vol', src_indices=[i])
-                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.year= " + str(yi+1))
+                exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.year = " + str(yi+1))
                 exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.farmer_id = " + str(i+1))
                 exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.nyears = self.nyears")
                 exec("self."+"farmer_"+str(i+1)+ "_" + str(yi+1) +"_plan.hrus_areas = " + str(self.hrus_areas[i+1]))

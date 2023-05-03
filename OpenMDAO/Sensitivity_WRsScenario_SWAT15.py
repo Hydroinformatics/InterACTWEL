@@ -374,7 +374,7 @@ for iterrun in range(0,1):
     cr_wrdist = dict()
     
     #temp_path = cluster_path + '/ITER_' + str(iterrun)
-    temp_path = cluster_path + '/ITERS_LOW'
+    temp_path = cluster_path + '/ITERS_Meghna'
     
     isExist = os.path.exists(temp_path)
     if not isExist:
@@ -434,17 +434,23 @@ for iterrun in range(0,1):
         if 'year' not in linesplit[0].lower():
             atxt = str(int(linesplit[0])).rjust(4) + ''.rjust(3)
             atxt = atxt + str(int(linesplit[1])).rjust(5) + ''.rjust(3)
-            atxt = atxt + str(int(linesplit[2])).rjust(4) + ''.rjust(3)
+            
             
             #432082
             #atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
             
             if iterrun == 0:
                 if int(linesplit[1]) == 9999:
+                    atxt = atxt + str(int(linesplit[2])).rjust(4) + ''.rjust(3)
                     atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
                 else:
-                    atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
+                    if int(linesplit[2]) == 3:
+                        atxt = atxt + str('5').rjust(4) + ''.rjust(3)
+                        atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
                     # atxt = atxt + str(0).rjust(6) + ''.rjust(3)
+                    else:
+                        atxt = atxt + str(int(linesplit[2])).rjust(4) + ''.rjust(3)
+                        atxt = atxt + str(int(linesplit[3])).rjust(6) + ''.rjust(3)
             else:
                 if int(linesplit[1]) == final_wr_list[iterrun-1]:
                     atxt = atxt + str(999999).rjust(6) + ''.rjust(3)
