@@ -8,6 +8,9 @@ import json
 from pareto import eps_sort
 
 #%%
+
+print('Starting run')
+
 nyears = 3
 
 hrus_areas = {1:20,
@@ -108,8 +111,8 @@ prob.model.json_file = json_actors
 # prob.add_recorder(recorder)
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 20
-prob.driver.options['Pm'] = 0.1
+prob.driver.options['max_gen'] = 100
+#prob.driver.options['Pm'] = 0.1
 prob.driver.options['pop_size'] = 500
 prob.driver.options['penalty_parameter'] = 20000.
 prob.driver.options['penalty_exponent'] = 5.
@@ -148,9 +151,9 @@ desvar_nd = prob.driver.desvar_nd
 nd_obj = prob.driver.obj_nd
 sorted_obj = nd_obj[nd_obj[:, 0].argsort()]
 
-print(sorted_obj)
-print(desvar_nd[nd_obj[:, 0].argsort()])
-print(np.sum(desvar_nd[nd_obj[:, 0].argsort()], axis=1))
+# print(sorted_obj)
+# print(desvar_nd[nd_obj[:, 0].argsort()])
+# print(np.sum(desvar_nd[nd_obj[:, 0].argsort()], axis=1))
 
 #%%
 # plt.plot(-1*sorted_obj[:,0],sorted_obj[:,1],'-o')
