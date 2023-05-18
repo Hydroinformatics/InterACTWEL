@@ -100,6 +100,7 @@ model.Region.hrus_crops = hrus_crops_model
 model.Region.wrs_hrus = wrs_hrus
 model.Region.org_wr_vols = wr_vols
 model.Region.json_file = json_actors
+model.Region.nyears = nyears
 
 prob.driver = om.SimpleGADriver()
 prob.driver.options['max_gen'] = 100

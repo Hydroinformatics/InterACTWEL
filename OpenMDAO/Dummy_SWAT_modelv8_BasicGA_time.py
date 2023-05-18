@@ -155,25 +155,29 @@ class Farmers(om.ExplicitComponent):
                 
             else:
                 for i in range(0,len(self.hrus_areas[wrids+1])):
+                    for yi in range(0,self.nyears):
     
-                    irr_amt = (indv_hru_irr[i]/100.)*wr_vol
+                        print(wrids+1, indv_hru_irr_ids[i], yi)
+                        if indv_hru_irr_ids[i] == 4 and yi == 0:
+                            strp=0
+                        irr_amt = (indv_hru_irr[i]/100.)*wr_vol
+                        
+                        crop_yield = np.interp(irr_amt, self.w_crops[:,0], self.w_crops[:,self.hrus_crops[wrids+1][i][yi]]) 
+                        cost_f = np.interp(irr_amt, range(0,101), self.cost_fert[:,discrete_inputs['hru_fert'][indv_hru_irr_ids[i]]])*self.hrus_areas[wrids+1][i]
+    
                     
-                    crop_yield = np.interp(irr_amt, self.w_crops[:,0], self.w_crops[:,self.hrus_crops[wrids+1][i]]) 
-                    cost_f = np.interp(irr_amt, range(0,101), self.cost_fert[:,discrete_inputs['hru_fert'][indv_hru_irr_ids[i]]])*self.hrus_areas[wrids+1][i]
-
-                
-                    per_yield = ((self.p_crops_e[discrete_inputs['hru_fert'][i]]*(irr_amt**2))+(self.p_crops_be[discrete_inputs['hru_fert'][i]]*irr_amt))/self.p_crops_de[discrete_inputs['hru_fert'][i]]
-                
-                    profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i]-1] - cost_f # profit function        
+                        per_yield = ((self.p_crops_e[discrete_inputs['hru_fert'][i]]*(irr_amt**2))+(self.p_crops_be[discrete_inputs['hru_fert'][i]]*irr_amt))/self.p_crops_de[discrete_inputs['hru_fert'][i]]
                     
-                    envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]*self.hrus_areas[wrids+1][i]
-        
-                    indv_profit = indv_profit + profit
-                    indv_costs = indv_costs + cost_f
-                    indv_envir  = indv_envir + envir 
+                        profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i][yi]-1] - cost_f # profit function        
+                        
+                        envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]*self.hrus_areas[wrids+1][i]
+            
+                        indv_profit = indv_profit + profit
+                        indv_costs = indv_costs + cost_f
+                        indv_envir  = indv_envir + envir 
+                        
+                        #outputs['indv_crops_yields'][self.hrus_crops[i]-1] = outputs['indv_crops_yields'][self.hrus_crops[i]-1] + crop_yield*per_yield*self.hrus_areas[i]
                     
-                    #outputs['indv_crops_yields'][self.hrus_crops[i]-1] = outputs['indv_crops_yields'][self.hrus_crops[i]-1] + crop_yield*per_yield*self.hrus_areas[i]
-                
                 outputs['indv_envir'] = indv_envir
                 outputs['indv_profit'][wrids] = indv_profit    
                 #outputs['indv_costs'][wrids] = indv_costs
