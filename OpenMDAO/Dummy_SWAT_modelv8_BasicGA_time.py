@@ -100,7 +100,7 @@ class Farmers(om.ExplicitComponent):
         for i in range(0,self.nactors):
             actors_solutions = dict()
             actors_solutions['farmer_' + str(i+1)] = dict()
-            with open(self.json_file + str(i+1) +'_sharewr.json', 'w') as fp:
+            with open(self.json_file + str(i+1) +'_time_sharewr.json', 'w') as fp:
                       json.dump(actors_solutions, fp)
         
     def setup_partials(self):
@@ -112,8 +112,8 @@ class Farmers(om.ExplicitComponent):
         
         for wrids in range(0,len(inputs['wr_vols'])):
             
-            if os.path.exists(self.json_file + str(wrids+1) +'_sharewr.json'):
-                with open(self.json_file + str(wrids+1) +'_sharewr.json') as json_file:
+            if os.path.exists(self.json_file + str(wrids+1) +'_time_sharewr.json'):
+                with open(self.json_file + str(wrids+1) +'_time_sharewr.json') as json_file:
                     actors_solutions = json.load(json_file)
             else:
                 actors_solutions = dict()
@@ -131,15 +131,17 @@ class Farmers(om.ExplicitComponent):
             indv_hru_irr = []
             indv_hru_irr_ids = []
             
-            for i in self.hrus_areas.keys():
-                if wrids+1 == int(i):
-                    for ii in range(0,len(self.hrus_areas[wrids+1])):
-                        indv_hru_irr.append(inputs['hru_irr'][hru_ids])
-                        indv_hru_irr_ids.append(hru_ids)
+            for ij in self.hrus_areas.keys():
+                if wrids+1 == int(ij):
+                    for yi in range(0,self.nyears):
+                        for ii in range(0,len(self.hrus_areas[wrids+1])):
+                            
+                                indv_hru_irr.append(inputs['hru_irr'][hru_ids])
+                                indv_hru_irr_ids.append(hru_ids)
                         
-                        hru_ids = hru_ids + 1
+                                hru_ids = hru_ids + 1
                         
-                hru_ids = hru_ids + 1
+                hru_ids = hru_ids + len(self.hrus_areas[int(ij)])*self.nyears
             
             indv_profit = 0
             indv_costs = 0
@@ -154,21 +156,18 @@ class Farmers(om.ExplicitComponent):
                 outputs['const_per'][wrids] = total_hru_irr
                 
             else:
-                for i in range(0,len(self.hrus_areas[wrids+1])):
-                    for yi in range(0,self.nyears):
-    
-                        print(wrids+1, indv_hru_irr_ids[i], yi)
-                        if indv_hru_irr_ids[i] == 4 and yi == 0:
-                            strp=0
+                for yi in range(0,self.nyears):
+                    for i in range(0,len(self.hrus_crops[wrids+1][yi])):
+                            
                         irr_amt = (indv_hru_irr[i]/100.)*wr_vol
                         
-                        crop_yield = np.interp(irr_amt, self.w_crops[:,0], self.w_crops[:,self.hrus_crops[wrids+1][i][yi]]) 
+                        crop_yield = np.interp(irr_amt, self.w_crops[:,0], self.w_crops[:,self.hrus_crops[wrids+1][yi][i]]) 
                         cost_f = np.interp(irr_amt, range(0,101), self.cost_fert[:,discrete_inputs['hru_fert'][indv_hru_irr_ids[i]]])*self.hrus_areas[wrids+1][i]
     
                     
                         per_yield = ((self.p_crops_e[discrete_inputs['hru_fert'][i]]*(irr_amt**2))+(self.p_crops_be[discrete_inputs['hru_fert'][i]]*irr_amt))/self.p_crops_de[discrete_inputs['hru_fert'][i]]
                     
-                        profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][i][yi]-1] - cost_f # profit function        
+                        profit = crop_yield*per_yield*self.hrus_areas[wrids+1][i]*self.crops_price[self.hrus_crops[wrids+1][yi][i]-1] - cost_f # profit function        
                         
                         envir = ((irr_amt**self.f_envr_a[discrete_inputs['hru_fert'][i]])/self.f_envr_b[discrete_inputs['hru_fert'][i]])*self.f_envr_N[discrete_inputs['hru_fert'][i]]*self.hrus_areas[wrids+1][i]
             
@@ -201,7 +200,7 @@ class Farmers(om.ExplicitComponent):
                     actors_solutions['farmer_' + str(wrids+1)][str(wr_vol)]['hru_fert'].append(list(np.asarray(discrete_inputs['hru_fert'][indv_hru_irr_ids]).astype(float)))
                     
                 
-                with open(self.json_file + str(wrids+1) +'_sharewr.json', 'w') as fp:
+                with open(self.json_file + str(wrids+1) +'_time_sharewr.json', 'w') as fp:
                     json.dump(actors_solutions, fp)
                     
         total_profit = 0

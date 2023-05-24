@@ -111,7 +111,7 @@ prob.model.json_file = json_actors
 # prob.add_recorder(recorder)
 
 prob.driver = om.SimpleGADriver()
-prob.driver.options['max_gen'] = 100
+prob.driver.options['max_gen'] = 10
 #prob.driver.options['Pm'] = 0.1
 prob.driver.options['pop_size'] = 500
 prob.driver.options['penalty_parameter'] = 20000.
