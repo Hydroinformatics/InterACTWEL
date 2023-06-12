@@ -953,6 +953,7 @@ fig, ax = plt.subplots()
 
 hrus2.plot(ax=ax, facecolor='none', edgecolor = 'lightgray', lw=0.7)
 
+
 for wrid in hru_wr_rel.keys():
     for hruid in hru_wr_rel[wrid]['HRUID']:
         hrus2.loc[hrus2['HRUINT'] == hruid].plot(ax=ax, facecolor='red', edgecolor = 'lightgray', lw=0.7)

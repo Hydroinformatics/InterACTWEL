@@ -149,8 +149,8 @@ class Farmers(om.ExplicitComponent):
 
                         if (total_hru_irr - 100.) > 0.0:
             
-                            outputs['indv_profit'][wrs_yr_ids] = 500000000.
-                            outputs['indv_envir'][wrs_yr_ids] = -500000000.
+                            outputs['indv_profit'][wrs_yr_ids] = -500000000.
+                            outputs['indv_envir'][wrs_yr_ids] = 500000000.
                             outputs['const_per'][wrs_yr_ids] = total_hru_irr
                             
                         else:

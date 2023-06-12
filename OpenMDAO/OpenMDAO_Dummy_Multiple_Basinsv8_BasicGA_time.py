@@ -123,8 +123,8 @@ model.add_design_var('wr_vols', lower=np.zeros(model.Region.nactors,dtype=int), 
 model.add_design_var('hru_irr', lower=0, upper=100)
 model.add_design_var('hru_fert', lower=0, upper=2)
 
-model.add_objective('profit', scaler=-1)
-model.add_objective('envir_impact', scaler=1)
+model.add_objective('profit', scaler= -1)
+model.add_objective('envir_impact', scaler= 1)
 model.add_constraint('total_wr', upper=sum(wr_vols_max))
 model.add_constraint('const_per', lower=100, upper=100)
 
