@@ -125,7 +125,8 @@ model.add_design_var('hru_fert', lower=0, upper=2)
 
 model.add_objective('profit', scaler= -1)
 model.add_objective('envir_impact', scaler= 1)
-model.add_constraint('total_wr', upper=sum(wr_vols_max))
+
+model.add_constraint('total_wr', upper = sum(wr_vols_max))
 model.add_constraint('const_per', lower=100, upper=100)
 
 prob.setup()
