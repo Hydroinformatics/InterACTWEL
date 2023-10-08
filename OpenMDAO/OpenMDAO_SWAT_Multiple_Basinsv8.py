@@ -2,21 +2,36 @@ import numpy as np
 import os
 import openmdao.api as om
 import matplotlib.pyplot as plt
-from FEW_SWAT_modelv8 import FEWNexus
 import time
 import json 
+import pandas as pd
+
+os.chdir(r'M:\GitHub\InterACTWEL\OpenMDAO')
+
 from pareto import eps_sort
+from FEW_SWAT_modelv8 import FEWNexus
 
 #%%
-
-out_path = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\MDAO_WRS_NOWA.txt'
+out_path = '/SWAT_WR_files/MDAO_WRS_NOWA.txt'
 wr_mdao = []
-with open(out_path, 'r') as search:
+with open(os.getcwd() + out_path, 'r') as search:
     for line in search:
         if len(line) > 0:
             wr_mdao.append(int(line))
 
 search.close()    
+
+hru_wrs = pd.read_csv(os.getcwd()+'/SWAT_WR_files/hruwr_deepGW_CR.dat', delim_whitespace=True, header=0, index_col=None, na_values='(missing)').to_numpy()
+#hru_wrs = pd.read_csv(r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\hruwr_deepGW_CR.dat', delim_whitespace=True, header=0, index_col=None, na_values='(missing)').set_index('WR_ID').stack().groupby('WR_ID').apply(list).to_dict()
+
+temp_dict = dict()
+for row in hru_wrs:
+    if row[1] not in temp_dict.keys() and row[1] in wr_mdao:
+        temp_dict[row[1]] = []
+    
+    if row[1] in wr_mdao:
+        temp_dict[row[1]].append(row[0])
+    
 
 #%%
 

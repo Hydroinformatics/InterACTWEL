@@ -139,13 +139,13 @@ cdir = os.getcwd()
 
 input_files = dict()
    
-#input_files['wrtfile'] = cdir +'/SWAT_WR_files/wrdata.dat'
-input_files['wrtfile'] = cdir +'/SWAT_WR_files/wrdata_deepGW_CR.dat'
-#input_files['hruwrt_file'] = cdir +'/SWAT_WR_files/hruwr.dat'
-input_files['hruwrt_file'] = cdir +'/SWAT_WR_files/hruwr_deepGW_CR.dat'
+input_files['wrtfile'] = cdir +'/SWAT_WR_files/wrdata.dat'
+input_files['hruwrt_file'] = cdir +'/SWAT_WR_files/hruwr.dat'
+
 input_files['hru_nowa_file'] = cdir +'/SWAT_WR_files/NOWA_HRU_pumping_limit.csv'
 input_files['model_database'] = r'C:\Users\riversam\Box\Research\SWAT\SWAT_JetStream_runs\Umatilla_InterACTWEL_QSWATv4.mdb'
-#input_files['base_irr'] = cdir +'/SWAT_WR_files/BASE_HRU_IRR.csv'
+
+input_files['base_irr'] = cdir +'/SWAT_WR_files/BASE_HRU_IRR.csv'
 input_files['wrt_out_file'] = cdir +'/SWAT_WR_files/wrs_use.out'
 
 
@@ -266,27 +266,6 @@ hrus2.to_crs(crs, inplace=True)
 nowa = gpd.read_file(data_path + "/NOWA_hrus_pumping_limitsv3.shp")
 nowa.to_crs(crs, inplace=True)
 
-# subs['g1'] = subs.geometry
-# nowa['g2'] = nowa.geometry
-# gdf_joined = subs.sjoin(nowa, how="inner")
-# gdf_joined['area_joined'] = gdf_joined.area
-# gdf_joined['sub_area'] = (gdf_joined['area_joined'] / gdf_joined['Shape_Area'])
-
-# def f(frame):
-#     """A function to calculate overlap percentage"""
-#     interpct = 100*frame.g1.intersection(frame.g2).area/frame.g1.area
-#     return interpct
-
-# gdf_joined['pct'] = gdf_joined.apply(f, axis=1)
-
-# #%%
-# subs_nowa = [int(row['Subbasin']) for i, row in gdf_joined.iterrows() if row['pct'] >= 10]
-
-# fig, ax = plt.subplots()
-# subs.plot(ax=ax, facecolor='none', edgecolor = 'black', lw=0.7)
-# nowa.plot(ax=ax, facecolor='yellow', edgecolor = 'black', alpha=0.7)
-# for sid in subs_nowa:
-#     subs.loc[subs['Subbasin']==sid,'geometry'].plot(ax=ax, facecolor='blue', alpha=0.5)
 
 #%%
 mtg_file = r'C:\Users\riversam\Box\Research\SWAT\QSWAT\Backup_v4_Iter15_bestsim\Backup'
